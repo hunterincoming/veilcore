@@ -116,6 +116,10 @@ const E2E_FIXTURES = import.meta.env.VITE_E2E_FIXTURES === '1';
 const RoyaltyPayFixture = E2E_FIXTURES
   ? page(() => import('./e2e-fixtures/RoyaltyPayFixture'), 'RoyaltyPayFixture')
   : undefined;
+// The backup restore drill's set, made with the app's own code (e2e-fixtures/RestoreDrillFixture.tsx).
+const RestoreDrillFixture = E2E_FIXTURES
+  ? page(() => import('./e2e-fixtures/RestoreDrillFixture'), 'RestoreDrillFixture')
+  : undefined;
 // The app frame's parts: one file, so the frame arrives in one request.
 const layoutParts = () => import('./app-layout-parts');
 const RolePicker = page<{ ask: boolean }>(layoutParts, 'RolePicker');
@@ -544,6 +548,16 @@ const routes = (
         element={
           <Light>
             <RoyaltyPayFixture />
+          </Light>
+        }
+      />
+    )}
+    {RestoreDrillFixture && (
+      <Route
+        path="/e2e/restore-drill"
+        element={
+          <Light>
+            <RestoreDrillFixture />
           </Light>
         }
       />

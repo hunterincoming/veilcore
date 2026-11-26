@@ -1,0 +1,132 @@
+# Backup restore drill
+
+A backup nobody has restored is a hope, not a backup. This drill proves that a holder gets
+everything back from the backup file alone, on a device with nothing on it. Part of it runs by
+itself on every change; part of it is a 10-minute check a founder does by hand on a real phone
+and laptop.
+
+## What runs by itself (on every change)
+
+Two tests, both in `bboard-ui`. Either one fails if anything stops coming back.
+
+**`src/veilcore/restore-drill.test.ts`** (unit tests, `npx vitest run src/veilcore/restore-drill.test.ts`).
+The app's own code, in several pretend browsers against a stand-in registry:
+
+- One browser makes a representative set: a plant, an animal, a child plant that names the
+  plant as its parent, a document with numbers that a lab signed and a claim was made on, a
+  document kept on this device only, a DNA report paired with the plant (and the pairing on
+  chain), the plant's date stamp, a lab's own signing key (in a lab's browser), and a license
+  on the plant whose royalty report is settled between two browsers (the licensee reports and
+  says "I paid", the licensor confirms it was received).
+- Each saves a backup with a password. A browser with nothing in it restores from that file.
+- Everything is compared byte for byte: the holder key, the vault key, every record's keys
+  (with its date stamp and DNA pairing), every record's fields, the lab signature and its
+  Midnight call, the claim, the license and its keys, the licensee's license secret, the lab's
+  signing key.
+- Then it is used: every record's proof code recomputes, every record's key still matches the
+  key the record names, every inclusion proof in the file folds to its batch root, the lab
+  signature still checks against the record, the licensor and the licensee both read the whole
+  deal and send a new message with the restored keys, and the restored lab key is the one that
+  signed.
+- With the registry gone: the file alone brings back every record, key, lab signature and
+  claim. The license is the one gap (below).
+- A wrong password, no password, a cut-off file and a changed file are all refused, and nothing
+  is written. A file with a record that was edited after sealing puts back none of the records
+  (all or nothing) and says why; the keys come back.
+- Restoring the same file twice adds nothing.
+- A record made while the registry was out of reach (still waiting to be saved) is in the file
+  and comes back.
+- The file opens without the website: the evidence bundle's offline checks (`verify.html`'s own
+  code) recompute every record in it, and `npx veilcore-records backup` and `deal` read it with
+  the password.
+- Every storage name the site uses is listed as either carried in the backup or not needed after
+  a restore, with the reason. A new one fails the test until someone decides which.
+
+**`e2e/backup-restore-drill.spec.ts`** (browser test, `npm run e2e:build` then
+`npx playwright test e2e/backup-restore-drill.spec.ts`). The same in a real browser, through the
+real pages: the plant is logged on the real log page, both backups are saved on the real backup
+page with a password, and every restore goes through the real restore page. It also checks, in
+the browser: the wrong-password and cut-off-file messages, that the restored record page opens
+its locked details, that the check page finds the record and its name, and that a prove link
+finds the key to answer with (before the restore the same link says there's nothing here to
+prove with). The rest of the set is made on a test-only page that is never in a real build
+(`src/e2e-fixtures/RestoreDrillFixture.tsx`), because a browser test can't get a real lab's
+signature or a real license on chain.
+
+Both were checked to fail when restore is broken on purpose (licenses held left out of the
+restore, and lab signatures left out), then put back.
+
+## What the drill found (26 Nov 2026)
+
+Fixed in the same change:
+
+1. **A record's lab signature, the Midnight call that published it, and the claims made on its
+   numbers were not in the backup file.** With VeilCore's registry there, they came back from
+   the registry; with it gone, the record came back without them. The file now carries them
+   (`heldEvidence`), and a restore puts each one back only onto its own record and only once it
+   checks against that record (`src/veilcore/held-evidence.ts`).
+2. **A licensee's backup that holds a license but no records said "Nothing new in that file."**
+   The license had come back. The restore page now says "Restored."
+
+Known gaps, not fixed here:
+
+3. **The license itself (terms, state, royalty log) is not in the file.** It lives on VeilCore's
+   registry. The file has the license's keys and every signed message of the deal
+   (`dealRecords`, checkable with `npx veilcore-records deal <file>`), so the history survives,
+   but with the registry gone the app can't show the license from the file. Carrying it means
+   restoring agreements the way records are restored (each checked, none overwriting one already
+   there); that is a design change of its own.
+4. **`npx veilcore-records backup` (version 0.18.1) reports a document with sealed numbers as
+   "DOES NOT MATCH".** Its fingerprint leaves out the field-set step of SPEC 4.5, which the app
+   and `verify.html` both do. The record is fine (the drill checks it with `verify.html`'s code).
+   The fix is in `veilcore-sdk` (`computeRecordFingerprint` in the published package), not in
+   this repository. The drill expects exactly this one failure, so a fixed version makes it fail
+   and the line gets updated.
+5. Small things a new device doesn't get, by design or for later: payment partner keys a checker
+   named, records a checker watches, remembered spreadsheet column layouts, and which spreadsheet
+   rows were already sealed. None of them is a holder's record or key.
+
+## The 10-minute manual drill (by hand, a real phone and laptop)
+
+Not done yet. Do it before the raise closes, then once a quarter. It checks what a test can't:
+a real phone, real downloads, a real password typed by a person.
+
+You need: your laptop, your phone, and 10 minutes. Use a practice record (put "(test data)" in
+its name). Don't use your real records' browser for the restore: the phone browser in step 4
+must have never opened VeilCore.
+
+1. **Laptop: make a practice record.** Open veilcore.org, log a plant named
+   "Drill (test data) <today's date>". Wait until it shows as saved.
+2. **Laptop: save a backup with a password.** Menu → Back up. Leave "Lock it with a password"
+   on, type a password you will remember for the next 10 minutes, save the file, then "Open my
+   saved copy" and type the password. It must say "It works."
+3. **Get the file to the phone** the way a real person would: AirDrop, email it to yourself, or
+   a cloud drive. Note which.
+4. **Phone: a browser with nothing in it.** Use a browser you don't use for VeilCore, or a
+   private tab. Open veilcore.org/restore.
+5. **Wrong password first.** "Open my backup file", pick the file, type a wrong password. It
+   must say the password doesn't open the backup and that nothing was changed.
+6. **Right password.** Pick the file again, type the right password. It must show when the
+   backup was made and how many records it holds. Tap to bring them back. It must say "Your
+   records are back."
+7. **Phone: open the record.** It must show its name and details (not "This record is locked").
+   Tap "Open check page": it must find the record and say the name matches.
+8. **Prove by link (optional, 2 more minutes).** On the laptop, in a private window, open the
+   record's check page and make a link to ask for proof. Open that link on the phone. It must
+   offer "Prove it". You don't have to send it.
+9. **Clean up.** Close the private tab (or clear the site's data in that browser) and delete the
+   copy of the file you sent yourself, if it went by email.
+
+### What to record
+
+Write one file, `docs/log/backup-drill-<date>.md`, with:
+
+- the date, and who did it;
+- the laptop and its browser, the phone and its browser (and its version);
+- how the file got to the phone;
+- the file's name and size, and the number of records the restore page said it holds;
+- for each of steps 2 and 5 to 8: passed or not, in a word, and what the screen said if not;
+- how long it took, start to finish;
+- anything confusing, even if it worked.
+
+If a step fails, stop and write down exactly what the screen said. Don't clear anything first.

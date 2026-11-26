@@ -57,11 +57,19 @@ the code stands for. Now the file also carries:
 - `sealedFields`: each record's sealed fields, exactly what its proof code is computed over.
   With these, any implementation of the format checks the file without knowing anything
   about this app.
+- `heldEvidence` (from 26 Nov): each record's lab signature, the Midnight call that published
+  it, and the claims made on its numbers. Before, these came back only from our registry. On
+  restore, each goes back only onto its own record, and only if it checks against it. Found by
+  the restore drill ([runbooks/backup-restore-drill.md](runbooks/backup-restore-drill.md)),
+  which also lists what the file still doesn't bring back.
 
 **Opening a backup without the website:** `npx veilcore-records backup <file>` (veilcore-sdk,
 on npm from version 0.17.1, with provenance) checks every record in the file, opens password-locked files, and names
 the transaction that dates each batch. It was checked against a real backup made by the app,
 and the published package was checked again after release.
+Version 0.18.1 reports a document with sealed numbers (a certificate) as not matching: its
+fingerprint leaves out the field-set step (SPEC 4.5). The record is fine, and the evidence
+bundle's `verify.html` checks it; the fix belongs in veilcore-sdk.
 
 A passkey copy doesn't carry them: it lives on our registry, so it's no help if the registry
 is gone, and leaving them out keeps it small. The backup file is the thing to keep.
