@@ -46,6 +46,8 @@ export const verify = {
   'app.verify.anchor.keys.committee':
     ' Qui peut modifier ce contrat : le comité {threshold} sur {committee} ({threshold} de ses {committee} membres doivent être d’accord).',
   'app.verify.anchor.keys.retired': ' Qui peut modifier ce contrat : personne. Il ne peut plus être modifié.',
+  'app.verify.anchor.v2Caution':
+    'Le smart contract de VeilCore, version 2, est déployé sur le réseau principal de Midnight pour des tests de VeilCore. Il n’a pas encore été examiné de façon indépendante et n’est pas destiné à vos enregistrements.',
   'app.verify.anchor.checked':
     'Vérifié sur Midnight : cette racine de lot a été écrite par la transaction {tx} dans le bloc {block} le {at}.{contract}{two}{test}',
   'app.verify.anchor.failed':

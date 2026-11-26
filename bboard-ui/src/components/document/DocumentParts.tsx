@@ -201,6 +201,12 @@ export const DocumentDateView: React.FC<{
           {row.sub}
         </Typography>
       )}
+      {/* A date from a contract still in testing (version 2 on mainnet): its line as a warning. */}
+      {row.caution && (
+        <Alert severity="warning" variant="outlined" data-v2-caution="" sx={{ mt: 1 }}>
+          {row.caution}
+        </Alert>
+      )}
       {/* Dated by VeilCore's word, not confirmed on Midnight from here: never "nothing dates it".
           Nothing while the lookup runs; "try again" only when Midnight couldn't be reached. */}
       {checker && row.mark === 'reported' && !anchorLookupPending && (
@@ -213,7 +219,7 @@ export const DocumentDateView: React.FC<{
           {tr.t(anchor?.status === 'unreachable' ? 'app.doc.check.notConfirmed' : 'app.doc.check.registryOnly')}
         </Alert>
       )}
-      {checker && row.mark !== 'done' && row.mark !== 'reported' && proof !== 'checking' && (
+      {checker && row.mark !== 'done' && row.mark !== 'testing' && row.mark !== 'reported' && proof !== 'checking' && (
         <Alert severity="warning" variant="outlined" sx={{ mt: 1 }} data-document-not-dated="">
           {tr.t('app.doc.check.notDated')}
         </Alert>

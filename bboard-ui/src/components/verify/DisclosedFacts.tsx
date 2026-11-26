@@ -16,6 +16,7 @@ import { Divider, Stack, Typography } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import NotCheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import FailedIcon from '@mui/icons-material/HighlightOff';
+import TestingIcon from '@mui/icons-material/WarningAmber';
 import LockIcon from '@mui/icons-material/LockOutlined';
 import { shortFingerprint } from '../../veilcore/commitment';
 import { LEGACY_NAME, fieldsFor, geneticsLabel, keysOn, labelOf, type Disclosure } from '../../veilcore/disclosure';
@@ -43,12 +44,19 @@ export const FACT_WORDS: Record<FactStatus, AppKey> = {
   failed: 'app.verify.mark.failed',
 };
 
-const MarkIcon: React.FC<{ status: FactStatus; label?: boolean }> = ({ status, label = false }) => {
+const MarkIcon: React.FC<{ status: FactStatus; label?: boolean; testing?: boolean }> = ({
+  status,
+  label = false,
+  testing = false,
+}) => {
   const { t } = useT();
   // On a line, the mark is named for screen readers (titleAccess); in the key, the words
   // beside it already say it.
   const a11y = label ? { titleAccess: t(FACT_WORDS[status]) } : { 'aria-hidden': true as const };
-  return status === 'checked' ? (
+  // Checked, but a date from a contract still in testing: the warning mark, never the green tick.
+  return status === 'checked' && testing ? (
+    <TestingIcon {...a11y} sx={{ fontSize: 18, color: color.warn, mt: '2px' }} />
+  ) : status === 'checked' ? (
     <CheckCircleIcon {...a11y} sx={{ fontSize: 18, color: color.ok, mt: '2px' }} />
   ) : status === 'failed' ? (
     <FailedIcon {...a11y} sx={{ fontSize: 18, color: 'error.main', mt: '2px' }} />
@@ -57,16 +65,24 @@ const MarkIcon: React.FC<{ status: FactStatus; label?: boolean }> = ({ status, l
   );
 };
 
-// data-fact names what the line is, so a test (or an auditor) can count the ticks.
-export const Fact: React.FC<{ ok?: boolean; status?: FactStatus; children: React.ReactNode }> = ({
+// data-fact names what the line is, so a test (or an auditor) can count the ticks. `testing`: a
+// date from a contract VeilCore is still testing (anchor-words.ts stillTesting), marked ⚠.
+export const Fact: React.FC<{ ok?: boolean; status?: FactStatus; testing?: boolean; children: React.ReactNode }> = ({
   ok = true,
   status,
+  testing = false,
   children,
 }) => {
   const st: FactStatus = status ?? (ok ? 'checked' : 'reported');
   return (
-    <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }} data-fact={st}>
-      <MarkIcon status={st} label />
+    <Stack
+      direction="row"
+      spacing={1}
+      sx={{ alignItems: 'flex-start' }}
+      data-fact={st}
+      {...(testing ? { 'data-fact-testing': '' } : {})}
+    >
+      <MarkIcon status={st} label testing={testing} />
       <Typography
         variant="body2"
         sx={{ color: st === 'checked' ? 'text.primary' : st === 'failed' ? 'error.main' : 'text.secondary' }}

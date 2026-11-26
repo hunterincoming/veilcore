@@ -118,6 +118,7 @@ export const plant = {
   'app.plant.hold.cannot': '待機中：今はここで行えません（下を参照）',
   'app.plant.stamp.dated': '日付あり',
   'app.plant.stamp.practice': '練習',
+  'app.plant.stamp.testing': 'テスト',
   'app.plant.labReport': '検査報告書',
   'app.plant.dnaReport': 'DNA報告書',
   'app.plant.tie.tied': '植物に結び付いています',

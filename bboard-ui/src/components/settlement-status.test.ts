@@ -72,7 +72,9 @@ describe('the component', () => {
     expect(src).toMatch(
       /anchorLine\(anchor, \{ network, bound: true, reportedAt: proof\.anchor\?\.anchoredAt \}, tr\)/,
     );
-    expect(src).toMatch(/<Fact status=\{anchorText\.status\}>\{anchorText\.text\}<\/Fact>/);
+    expect(src).toMatch(
+      /<Fact status=\{anchorText\.status\} testing=\{stillTesting\(anchor, network\)\}>\s*\{anchorText\.text\}\s*<\/Fact>/,
+    );
   });
   it('points to the evidence bundle and the check page, not “the open-source package and a lookup”', () => {
     expect(src).not.toMatch(/open-source package and a lookup on the network/);

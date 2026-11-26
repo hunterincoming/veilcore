@@ -153,6 +153,8 @@ export const pack = {
   'app.pack.gap.undated.other': 'VeilCoreの記録 {count} 件は、まだどのネットワークでも日付が付いていません。',
   'app.pack.gap.unchecked.other':
     '{count} 件の日付はVeilCoreの登録サーバーによるもので、このブラウザはMidnightのメインネットワークで確認していません。',
+  'app.pack.gap.testing.other':
+    'VeilCoreの記録 {count} 件は、VeilCoreコントラクトのバージョン2で日付が付けられています。このバージョンはVeilCoreのテスト専用で記録用ではないため、その日付は信頼できません。',
   'app.pack.gap.locked.other':
     'このブラウザのVeilCoreの記録 {count} 件は鍵がかかっており（このブラウザにない鍵で封印）、除外されています。',
 } satisfies Partial<AppTranslation>;

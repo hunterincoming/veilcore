@@ -10,7 +10,7 @@ import type { Translator } from '../../i18n/translate';
 import type { AppKey } from '../../i18n/app/en';
 import {
   batchCounts,
-  dateLines,
+  dateLineItems,
   dayOf,
   gapWords,
   registrationOf,
@@ -132,6 +132,17 @@ const sx = {
   '& .figures': { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, my: 1 },
   '& .block': { borderTop: `1px solid ${LINE}`, py: 1, breakInside: 'avoid' },
   '& .missing': { color: WARN, fontWeight: 700 },
+  // The still-testing line under a record's date: not colour alone, so it survives a grey print.
+  '& .warn-line': {
+    color: WARN,
+    fontWeight: 700,
+    border: `1.5px solid ${WARN}`,
+    borderRadius: '3px',
+    padding: '2px 6px',
+    my: 0.5,
+    listStyle: 'none',
+    marginLeft: '-1.2em',
+  },
   '& .lot': { borderLeft: `3px solid ${LINE}`, pl: 1.5, my: 1, breakInside: 'avoid' },
   '& .lot[data-chromatography="missing"]': { borderLeftColor: WARN },
   '& a': { color: '#0b4fa8' },
@@ -186,7 +197,8 @@ const Gaps: React.FC<{ pack: AuthorityPack; tr: Translator }> = ({ pack, tr }) =
       <ul>
         {pack.gaps.map((g, i) => (
           <li key={i} data-gap={g.kind}>
-            {gapWords(g, tr)}
+            {/* A date on a contract still in testing: marked, as its line under the record is. */}
+            {g.kind === 'testing' ? <strong>⚠ {gapWords(g, tr)}</strong> : gapWords(g, tr)}
           </li>
         ))}
       </ul>
@@ -273,9 +285,17 @@ const ProofBlock: React.FC<{ item: PackItem; tr: Translator }> = ({ item, tr }) 
       )}
       <p className="small muted">{tr.t('app.pack.doc.dateRests')}:</p>
       <ul className="small" style={{ margin: 0, paddingLeft: '1.2em' }} data-date-lines="">
-        {dateLines(item.date, tr).map((l, i) => (
-          <li key={i}>{l}</li>
-        ))}
+        {dateLineItems(item.date, tr).map((l, i) =>
+          l.warn ? (
+            // A date on a contract still in testing (docs/contract-v2.md 7, condition 5): a
+            // warning that reads on a black-and-white printout too: the ⚠ mark, bold, and a box.
+            <li key={i} className="warn-line" data-v2-caution="">
+              <strong>⚠ {l.text}</strong>
+            </li>
+          ) : (
+            <li key={i}>{l.text}</li>
+          ),
+        )}
       </ul>
     </div>
   );

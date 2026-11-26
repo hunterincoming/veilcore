@@ -106,7 +106,15 @@ describe('lookUpAnchor: the one look-up every page shares', () => {
 
 describe('the plant page’s “Record dated” line', () => {
   const reported: ProofState = { status: 'anchor-reported', proof: proof() };
-  const checked = { status: 'checked', txHash: TX, blockHeight: 77, blockTime: BLOCK_MS, indexers: 1 } as const;
+  // Version 1, the public contract: only its dates get ✓ (anchor-words.ts stillTesting).
+  const checked = {
+    status: 'checked',
+    txHash: TX,
+    blockHeight: 77,
+    blockTime: BLOCK_MS,
+    indexers: 1,
+    contract: { version: 'v1', address: 'ab'.repeat(32) },
+  } as const;
 
   it('✓ only when checked on Midnight, dated by the block', () => {
     expect(recordDateRow(reported, checked)).toEqual({

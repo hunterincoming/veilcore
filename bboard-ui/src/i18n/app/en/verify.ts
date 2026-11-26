@@ -45,6 +45,8 @@ export const verify = {
   'app.verify.anchor.keys.committee':
     ' Who can change that contract: the {threshold}-of-{committee} committee ({threshold} of its {committee} members must agree).',
   'app.verify.anchor.keys.retired': ' Who can change that contract: nobody. It can no longer be changed.',
+  'app.verify.anchor.v2Caution':
+    'VeilCore contract version 2 is deployed on mainnet for testing by VeilCore. It is not yet independently reviewed and not for your records.',
   'app.verify.anchor.checked':
     'Checked on Midnight: this batch root was written by transaction {tx} in block {block} at {at}.{contract}{two}{test}',
   'app.verify.anchor.failed': 'Not confirmed on Midnight: {reason}. Don’t rely on the date the registry reports.',

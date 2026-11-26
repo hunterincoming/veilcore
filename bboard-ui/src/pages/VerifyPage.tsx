@@ -111,7 +111,13 @@ import {
   anchorLine,
   anchorSummary,
   registryDateWords,
+  STAMP_WORD,
+  stampStateFor,
+  stillTesting,
+  v2CautionWords,
+  type AnchorState,
 } from '../components/verify/anchor-words';
+import { V2Caution } from '../components/verify/V2Caution';
 import { useAnchorCheck, useRecordDate } from '../components/verify/useAnchorCheck';
 import { useBitcoinCheck } from '../components/verify/useBitcoinCheck';
 import { BitcoinCheckAction } from '../components/verify/BitcoinCheckAction';
@@ -314,22 +320,52 @@ const isParentLine = (x: unknown): boolean =>
     typeof (x as Record<string, unknown>).name === 'string' &&
     typeof (x as Record<string, unknown>).individualId === 'string');
 
+/** Whether a deleted record's link carries its own proof code (the registry still reports it). */
+const deletedBound = (fp: string | null, storedFp?: string | null): boolean => !!fp && !!storedFp && fp === storedFp;
+
+type DeletedDate = { anchor: AnchorState | undefined; network: string };
+
+/** A deleted record's date, looked up by its proof code only when the link carries it. */
+export const useDeletedRecordDate = (fp: string | null, storedFp?: string | null): DeletedDate => {
+  const { proof, anchor } = useRecordDate(deletedBound(fp, storedFp) ? (fp ?? undefined) : undefined);
+  const network = proof !== 'checking' && proof.status === 'anchor-reported' ? (proof.proof.anchor?.network ?? '') : '';
+  return { anchor, network };
+};
+
+/**
+ * The "Make a record, free" box at the foot of the check page, unless the page is loading or
+ * ANY date it shows (the record's, or a deleted record's) is from a contract VeilCore is still
+ * testing (version 2 on mainnet, docs/contract-v2.md 7 condition 5). Fails closed with
+ * stillTesting: any contract but version 1. Its caution takes this invitation's place within
+ * the check page's word budget.
+ */
+export const CheckPageInvite: React.FC<{
+  loading: boolean;
+  dates: readonly { readonly check: AnchorState | undefined; readonly network: string }[];
+}> = ({ loading, dates }) => (loading || dates.some((d) => stillTesting(d.check, d.network)) ? null : <MakeYourOwn />);
+
 /**
  * A record its holder deleted. Its date is checked on Midnight here only when the link carries
  * the record's own proof code (the registry still reports it); otherwise it is the registry's
  * word. Whether it was dated before or after the deletion is said only when known.
  */
-const DeletedRecord: React.FC<{
+export const DeletedRecord: React.FC<{
   id: string;
   deletedAt?: string;
   anchored: boolean;
   relative?: string;
   fp: string | null;
   storedFp?: string | null;
-}> = ({ id, deletedAt, anchored, relative, fp, storedFp }) => {
-  const { t } = useT();
-  const bound = !!fp && !!storedFp && fp === storedFp;
-  const { anchor } = useRecordDate(bound ? fp : undefined);
+  /**
+   * Its date, looked up by the page (deletedRecordDate) so the page's "Make a record" box sees
+   * the same date this card shows.
+   */
+  date: DeletedDate;
+}> = ({ id, deletedAt, anchored, relative, fp, storedFp, date }) => {
+  const tr = useT();
+  const { t } = tr;
+  const bound = deletedBound(fp, storedFp);
+  const { anchor, network } = date;
   const checked = bound && anchor !== undefined && anchor !== 'checking' && anchor.status === 'checked' ? anchor : null;
   const deletedMs = deletedAt ? Date.parse(deletedAt) : NaN;
   const key = deletedDateKey({ checkedBlockTime: checked?.blockTime, anchored, relative, deletedAt });
@@ -347,6 +383,8 @@ const DeletedRecord: React.FC<{
       <Typography variant="body2" color="text.secondary">
         {dated}
       </Typography>
+      {/* Its date from a contract still in testing (version 2 on mainnet): the line, as a warning. */}
+      <V2Caution check={checked ?? undefined} network={network} tr={tr} sx={{ mt: 2, textAlign: 'left' }} />
     </Paper>
   );
 };
@@ -564,6 +602,9 @@ export const VerifyPage: React.FC = () => {
   // (chain/anchor-lookup.ts), so the two never disagree. Undefined until the inclusion
   // proof names a transaction to look up.
   const anchor = useAnchorCheck(proof);
+  // A deleted record's own date, which its card shows (DeletedRecord): the page's "Make a
+  // record" box is kept from beside it too when it is still in testing.
+  const deletedDate = useDeletedRecordDate(!result?.found && result?.deleted ? fp : null, result?.recordFingerprint);
   // The batch's Bitcoin stamp: the registry's word until the visitor asks this browser to
   // check it (useBitcoinCheck.ts; docs/bitcoin-header-check.md).
   const bitcoin = useBitcoinCheck(proof);
@@ -656,11 +697,16 @@ export const VerifyPage: React.FC = () => {
       ? undefined
       : anchorLine(anchor, { network: reportedNetwork ?? NETWORK, bound, reportedAt }, tr);
   const anchorLooked = anchorText !== undefined;
+  const v2Dated = v2CautionWords(anchor, reportedNetwork ?? NETWORK, tr) !== undefined;
   const seal = checked && anchorCheckedOnChain;
   // A date checked on a test network is practice data: its own amber mark and a PRACTICE
   // stamp, never mainnet's gold DATED stamp.
   const testSeal = seal && isTestNetwork(reportedNetwork ?? NETWORK);
-  const sealColor = testSeal ? TEST_MARK : color.text;
+  // The stamp (stampStateFor): gold DATED only for a date that is neither practice nor from a
+  // contract still in testing (version 2 on mainnet: TESTING, in the warning colour).
+  const stampState = stampStateFor(anchor, reportedNetwork ?? NETWORK) ?? 'dated';
+  const plainSeal = seal && stampState === 'dated';
+  const sealColor = plainSeal ? color.text : TEST_MARK;
   const sealedAt =
     seal && anchor !== undefined && anchor !== 'checking' && anchor.status === 'checked' ? anchor.blockTime : undefined;
   // The name (round 6): the one the holder published wins (or a record saved before names
@@ -703,6 +749,7 @@ export const VerifyPage: React.FC = () => {
           withdrawn,
           anchoredReported: result.anchored === true,
           testNetwork: isTestNetwork(reportedNetwork ?? NETWORK),
+          stillTesting: v2Dated,
           reportedAt,
         })
       : undefined;
@@ -749,6 +796,7 @@ export const VerifyPage: React.FC = () => {
             relative={result.anchoredRelativeToDeletion}
             fp={fp}
             storedFp={result.recordFingerprint}
+            date={deletedDate}
           />
         ) : !result?.found ? (
           <Paper sx={{ p: 4, textAlign: 'center' }} data-verify-not-found="">
@@ -826,8 +874,8 @@ export const VerifyPage: React.FC = () => {
                 stamp on a test network. */}
               {seal && sealedAt !== undefined && (
                 <DatedStamp
-                  state={testSeal ? 'practice' : 'dated'}
-                  word={testSeal ? t('app.plant.stamp.practice') : t('app.plant.stamp.dated')}
+                  state={stampState}
+                  word={t(STAMP_WORD[stampState])}
                   date={tr.date(sealedAt, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })}
                   pressKey={`check:${result.id ?? ''}`}
                   size={{ xs: 72, sm: 88 }}
@@ -851,9 +899,7 @@ export const VerifyPage: React.FC = () => {
                       sx={{
                         color: seal ? sealColor : 'text.disabled',
                         fontSize: 30,
-                        ...(seal && !testSeal
-                          ? { bgcolor: color.accent, borderRadius: '50%', p: 0.375, fontSize: 34 }
-                          : {}),
+                        ...(plainSeal ? { bgcolor: color.accent, borderRadius: '50%', p: 0.375, fontSize: 34 } : {}),
                       }}
                     />
                   );
@@ -881,6 +927,10 @@ export const VerifyPage: React.FC = () => {
                   </Typography>
                 </Box>
               </Stack>
+
+              {/* A date from contract version 2 on mainnet: the caution the evidence bundle carries
+                (docs/contract-v2.md 7, condition 5), under the heading and never folded away. */}
+              <V2Caution check={anchor} network={reportedNetwork ?? NETWORK} tr={tr} sx={{ mb: 2 }} />
 
               {/* Its own timestamp, seconds after it was sealed, until its batch has a Midnight
                 date (veilcore/instant-stamp.ts): the authority's time, checked here, and that the
@@ -1215,7 +1265,7 @@ export const VerifyPage: React.FC = () => {
                               )}
                               {anchorText && (
                                 <Box data-anchor-check={anchor === 'checking' ? 'checking' : anchor?.status}>
-                                  <Fact status={anchorText.status}>
+                                  <Fact status={anchorText.status} testing={v2Dated}>
                                     {anchor === 'checking' ? '' : forWhom}
                                     {anchorText.text}
                                   </Fact>
@@ -1420,7 +1470,15 @@ export const VerifyPage: React.FC = () => {
             ),
           })}
         </Typography>
-        {!loading && <MakeYourOwn />}
+        {/* Not beside any date from a contract still in testing: the record's, or a deleted
+          record's. That contract is not for anyone's records yet. */}
+        <CheckPageInvite
+          loading={loading}
+          dates={[
+            { check: anchor, network: reportedNetwork ?? NETWORK },
+            { check: deletedDate.anchor, network: deletedDate.network },
+          ]}
+        />
       </Container>
     </Box>
   );

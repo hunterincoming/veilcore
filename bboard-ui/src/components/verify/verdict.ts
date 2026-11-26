@@ -65,6 +65,11 @@ export const recordVerdict = (f: {
   /** A lab withdrew a signature shown on this page (valid, but no longer stood behind). */
   withdrawn?: boolean;
   testNetwork: boolean;
+  /**
+   * The date is from a contract VeilCore is still testing (contract version 2 on mainnet,
+   * docs/contract-v2.md 7 condition 5): the same words, never the green of a full success.
+   */
+  stillTesting?: boolean;
   /** When the registry says the batch was dated (its word). */
   reportedAt?: string;
   /**
@@ -94,7 +99,7 @@ export const recordVerdict = (f: {
     if (f.failed) return { tone: 'warn', key: 'app.verify.verdict.datedButFailed', date: a.blockTime };
     if (f.withdrawn) return { tone: 'warn', key: 'app.verify.verdict.datedWithdrawn', date: a.blockTime };
     if (f.testNetwork) return { tone: 'warn', key: 'app.verify.verdict.datedTest', date: a.blockTime };
-    return { tone: 'ok', key: 'app.verify.verdict.dated', date: a.blockTime };
+    return { tone: f.stillTesting ? 'warn' : 'ok', key: 'app.verify.verdict.dated', date: a.blockTime };
   }
   // Not looked up, or no indexer answered: the date is VeilCore's server's word.
   const reported = f.reportedAt && !Number.isNaN(Date.parse(f.reportedAt)) ? f.reportedAt : undefined;
@@ -118,6 +123,11 @@ export const claimVerdict = (c: {
   verdict: ClaimVerdict | undefined;
   /** The link's further claims, in order (undefined: still being checked). */
   more: readonly (ClaimVerdict | undefined)[];
+  /**
+   * The record the claim is about is dated on a contract VeilCore is still testing (version 2 on
+   * mainnet, docs/contract-v2.md 7 condition 5): the same words, never the green of a full success.
+   */
+  stillTesting?: boolean;
 }): (Verdict & { date?: number }) | undefined => {
   if (!c.readable) return { tone: 'fail', key: 'app.claim.verdict.bad' };
   if (c.off) return undefined;
@@ -128,9 +138,10 @@ export const claimVerdict = (c: {
   if (v.lab?.signer?.kind === 'retracted') return { tone: 'warn', key: 'app.claim.verdict.labWithdrawn' };
   if (v.lab?.signer?.kind === 'conflict') return { tone: 'warn', key: 'app.claim.verdict.labConflict' };
   if (c.more.some((m) => m?.ok === false)) return { tone: 'warn', key: 'app.claim.verdict.someFailed' };
+  const tone = c.stillTesting ? 'warn' : 'ok';
   return v.blockTime
-    ? { tone: 'ok', key: 'app.claim.verdict.okWhen', date: v.blockTime }
-    : { tone: 'ok', key: 'app.claim.verdict.ok' };
+    ? { tone, key: 'app.claim.verdict.okWhen', date: v.blockTime }
+    : { tone, key: 'app.claim.verdict.ok' };
 };
 
 /** "11 October 2026", the way the visitor's language writes it, in UTC like every date on the page. */

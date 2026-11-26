@@ -7,7 +7,8 @@
 
 import { WhoVouches } from '../verify/WhoVouches';
 import { CheckVerdict, CheckYourself, MakeYourOwn } from '../verify/CheckParts';
-import { recordVerdict, VERDICT_DATE, type Verdict } from '../verify/verdict';
+import { VERDICT_DATE, type Verdict } from '../verify/verdict';
+import { documentDateTesting, documentVerdict } from './document-verdict';
 import { whoVouches } from '../verify/who-vouches';
 import { useRecordDate } from '../verify/useAnchorCheck';
 import { anchorCheckFailed, anchorConfirmed } from '../verify/anchor-words';
@@ -66,42 +67,12 @@ export const DocumentCheck: React.FC = () => {
 
   // Dated: by Midnight, or by VeilCore's word (the page says which); the same marks DocumentDateView uses.
   const dateMark = date.proof === 'checking' ? undefined : recordDateRow(date.proof, date.anchor, tr).mark;
-  const dated = dateMark === 'done' || dateMark === 'reported';
-  // The one plain line at the top (easy-mode review, 19 Nov): the record's own check words
-  // (verify/verdict.ts), with the document's file answer when one was chosen. The proof code is
-  // recomputed here from the link, so it is always checked against the link's own fields.
-  const reportedAnchor =
-    date.proof !== 'checking' && date.proof.status === 'anchor-reported' ? date.proof.proof.anchor : undefined;
-  const base =
-    !read || (read.ok && date.proof === 'checking')
-      ? ({ tone: 'wait', key: 'app.verify.verdict.checking' } as Verdict)
-      : !read.ok
-        ? ({ tone: 'fail', key: 'app.doc.verdict.bad' } as Verdict)
-        : recordVerdict({
-            sealed: true,
-            bound: true,
-            proof: date.proof,
-            anchor: date.anchor,
-            signaturesChecking: false,
-            failed: picked === false,
-            testNetwork: isTestNetwork(reportedAnchor?.network ?? NETWORK),
-            reportedAt: reportedAnchor?.anchoredAt,
-            document: true,
-          });
-  // "All checks passed" isn't said for a document: its file is a check of its own, the reader's to make.
-  const top: Verdict =
-    base.key === 'app.verify.verdict.dated'
-      ? {
-          ...base,
-          key: picked
-            ? 'app.doc.verdict.datedSameFile'
-            : read?.ok && read.fields.files.length
-              ? 'app.doc.verdict.datedChooseFile'
-              : 'app.doc.verdict.dated',
-        }
-      : base.key === 'app.verify.verdict.datedButFailed'
-        ? { ...base, key: 'app.doc.verdict.datedOtherFile' }
-        : base;
+  const dated = dateMark === 'done' || dateMark === 'testing' || dateMark === 'reported';
+  // The one plain line at the top (easy-mode review, 19 Nov), and whether the date is from a
+  // contract VeilCore is still testing (version 2 on mainnet): then never the green verdict, and
+  // no "make a record" beside it (document-verdict.ts).
+  const top: Verdict = documentVerdict(read, date, picked);
+  const testingDate = documentDateTesting(date);
 
   return (
     <Box sx={{ bgcolor: 'background.default' }} data-document-check="">
@@ -213,7 +184,7 @@ export const DocumentCheck: React.FC = () => {
             </Paper>
           </Stack>
         )}
-        <MakeYourOwn />
+        {!testingDate && <MakeYourOwn />}
       </Container>
     </Box>
   );

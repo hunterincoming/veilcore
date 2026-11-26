@@ -26,7 +26,9 @@ import { DatedNotOrigin } from '../verify/DatedNotOrigin';
 import { CheckVerdict, CheckYourself, MakeYourOwn } from '../verify/CheckParts';
 import { claimVerdict, VERDICT_DATE } from '../verify/verdict';
 import { useT } from '../../i18n/app';
-import { DocumentDate, Fact } from './DocumentParts';
+import { DocumentDateView, Fact } from './DocumentParts';
+import { useRecordDate } from '../verify/useAnchorCheck';
+import { stillTesting } from '../verify/anchor-words';
 import { claimRawWords, claimWords, MarkerLimits, ParentageBands } from './ProveNumber';
 import { PARENTAGE_SCHEMA, meetsAcceptance } from '../../veilcore/parentage';
 import { claimFooter, labStands } from '../../veilcore/claim-call';
@@ -38,7 +40,7 @@ import { NameCheckText } from '../NameCheckText';
 import { RESULT_CALL_SCHEMAS, SCHEMAS } from '../../veilcore/field-set';
 import { ClaimResultFile } from '../lab/ClaimResultFile';
 import { ViabilityNotRead } from '../lab/ResultFacts';
-import { viabilityNotRead } from '../../config/network';
+import { NETWORK, viabilityNotRead } from '../../config/network';
 import { withdrawnWords } from '../lab/signer-words';
 import { errorReason } from '../../i18n/error-words';
 
@@ -54,6 +56,15 @@ export const ClaimCheck: React.FC = () => {
   const viabilityOff = !!link && viabilityNotRead({ schema: link.schema });
   const isMarker = !!link && isMarkerSchema(link.schema);
   const more = link ? claimsOf(link).slice(1) : [];
+  // The record's date, looked up once for its line below and for whether to invite a record.
+  const recordDate = useRecordDate(link ? anchoredFingerprintOf(link) : undefined);
+  const dateNetwork =
+    recordDate.proof !== 'checking' && recordDate.proof.status === 'anchor-reported'
+      ? (recordDate.proof.proof.anchor?.network ?? NETWORK)
+      : NETWORK;
+  // A date from a contract VeilCore is still testing (version 2 on mainnet, docs/contract-v2.md 7
+  // condition 5): no "make a record" beside it.
+  const testingDate = stillTesting(recordDate.anchor, dateNetwork);
   const [verdict, setVerdict] = useState<ClaimVerdict>();
   const [moreVerdicts, setMoreVerdicts] = useState<readonly (ClaimVerdict | undefined)[]>([]);
   useEffect(() => {
@@ -124,6 +135,7 @@ export const ClaimCheck: React.FC = () => {
     off: viabilityOff,
     verdict,
     more: more.map((_, i) => moreVerdicts[i]),
+    stillTesting: testingDate,
   });
   // The lab's signer, with its key's level (docs/lab-identity-levels.md), when the registry tied it.
   const signer = verdict?.ok && verdict.lab?.ok ? verdict.lab.signer : undefined;
@@ -315,7 +327,7 @@ export const ClaimCheck: React.FC = () => {
                 {t('app.claim.check.record')}
               </Typography>
               <Stack spacing={1.5}>
-                <DocumentDate fingerprint={anchoredFingerprintOf(link)} checker />
+                <DocumentDateView proof={recordDate.proof} anchor={recordDate.anchor} checker />
                 <Fact label={t('app.doc.k.proofCode')} mono>
                   {anchoredFingerprintOf(link)}
                 </Fact>
@@ -336,7 +348,7 @@ export const ClaimCheck: React.FC = () => {
             </Typography>
           </Stack>
         )}
-        <MakeYourOwn />
+        {!testingDate && <MakeYourOwn />}
       </Container>
     </Box>
   );

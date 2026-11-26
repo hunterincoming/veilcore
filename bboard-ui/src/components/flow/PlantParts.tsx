@@ -6,6 +6,7 @@ import { Box, ButtonBase, Paper, Stack, Typography } from '@mui/material';
 import DoneIcon from '@mui/icons-material/CheckCircle';
 import WaitIcon from '@mui/icons-material/RadioButtonUnchecked';
 import FailIcon from '@mui/icons-material/HighlightOff';
+import TestingIcon from '@mui/icons-material/WarningAmber';
 import ChevronIcon from '@mui/icons-material/ChevronRight';
 import { proofCodeSent, waitsToBeSent, type StrainRecord } from '../../veilcore/records';
 import { nextBatchRow, useAnchorCadence } from './dating-words';
@@ -15,8 +16,9 @@ import { useOfflineState } from '../../offline/register';
 import { useStampRetries } from '../chain/useKeyStamp';
 import type { RecordKeys } from '../../veilcore/record-keys';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
-import { LAB_RESULTS_ENABLED, isTestNetwork } from '../../config/network';
+import { LAB_RESULTS_ENABLED } from '../../config/network';
 import { useRecordDate } from '../verify/useAnchorCheck';
+import { STAMP_WORD, stampStateFor } from '../verify/anchor-words';
 import { SECTIONS, useSectionName, type Section } from './FlowFrame';
 import { color } from '../../config/tokens';
 import { DatedStamp } from '../DatedStamp';
@@ -34,13 +36,21 @@ export { keyStampLine, labReceiptRow, labSentRow, recordDateRow };
 
 const Row: React.FC<{
   done: boolean;
-  /** Overrides `done`: ✓ done, ○ reported (the registry's word) or waiting, ⊗ failed. */
+  /**
+   * Overrides `done`: ✓ done, ⚠ testing (dated on a contract still in testing), ○ reported (the
+   * registry's word) or waiting, ⊗ failed.
+   */
   mark?: RowMark;
   /** The row's English label, in every language: data-status-row, for tests and support. */
   id: string;
   label: string;
   value: string;
   sub?: string;
+  /**
+   * A date from a contract VeilCore is still testing (docs/contract-v2.md 7, condition 5): its
+   * line, in the warning colour, always shown, beside any `sub`, never in its place.
+   */
+  caution?: string;
   /** The last row draws no ruled line under it. */
   last?: boolean;
   /**
@@ -50,7 +60,7 @@ const Row: React.FC<{
   custody?: string;
   /** Room kept on the right for the stamp pressed over the sheet's corner. */
   stampRoom?: object;
-}> = ({ done, mark = done ? 'done' : 'wait', id, label, value, sub, last, custody, stampRoom }) => {
+}> = ({ done, mark = done ? 'done' : 'wait', id, label, value, sub, caution, last, custody, stampRoom }) => {
   // Beside the stamp a phone has no room for label and value on one line: the value goes
   // under the label there.
   const under = Boolean(stampRoom);
@@ -78,6 +88,8 @@ const Row: React.FC<{
       >
         {mark === 'done' ? (
           <DoneIcon color="success" titleAccess={t('app.plant.mark.done')} />
+        ) : mark === 'testing' ? (
+          <TestingIcon sx={{ color: color.warn }} titleAccess={t('app.plant.stamp.testing')} />
         ) : mark === 'failed' ? (
           <FailIcon color="error" titleAccess={t('app.plant.mark.failed')} />
         ) : (
@@ -96,7 +108,11 @@ const Row: React.FC<{
             maxWidth: '55%',
             fontWeight: mark === 'done' ? 700 : 500,
             color:
-              mark === 'done' || mark === 'reported' ? undefined : mark === 'failed' ? 'error.main' : 'text.secondary',
+              mark === 'done' || mark === 'testing' || mark === 'reported'
+                ? undefined
+                : mark === 'failed'
+                  ? 'error.main'
+                  : 'text.secondary',
           }}
         >
           {label}
@@ -128,6 +144,15 @@ const Row: React.FC<{
           {sub}
         </Typography>
       )}
+      {caution && (
+        <Typography
+          variant="caption"
+          sx={{ display: 'block', pl: 4.25, pt: 0.25, color: color.warn, fontWeight: 600 }}
+          data-v2-caution=""
+        >
+          {caution}
+        </Typography>
+      )}
     </Box>
   );
 };
@@ -144,7 +169,7 @@ export const dnaReportRow = (
   arrived?: readonly ArrivedResult[] | null,
   waiting = 0,
   tr: Translator = enT,
-): { done: boolean; mark: RowMark; id: string; label: string; value: string; sub?: string } =>
+): { done: boolean; mark: RowMark; id: string; label: string; value: string; sub?: string; caution?: string } =>
   tie === null
     ? {
         done: false,
@@ -261,7 +286,13 @@ export const PlantStatus: React.FC<{
           : dated.mark === 'reported' && !reportedDay
             ? t('app.plant.date.reportedNoDay')
             : t('app.plant.date.dated', { what: dated.value });
-  const batch = { done: dated.mark === 'done', mark: dated.mark, value: datedValue };
+  const batch = {
+    done: dated.mark === 'done',
+    mark: dated.mark,
+    value: datedValue,
+    // Shown beside its own timestamp lines, never pushed out by them.
+    ...(dated.caution ? { caution: dated.caution } : {}),
+  };
 
   // And one line for proof you hold it: the key's own date stamp, on its own row, never mixed
   // into the record's date. Same facts as keyStampLine (the key's anchor, and the retry queue).
@@ -288,7 +319,15 @@ export const PlantStatus: React.FC<{
             : t('app.plant.hold.notYet'),
         };
 
-  const rows: { done: boolean; mark?: RowMark; id: string; label: string; value: string; sub?: string }[] = [
+  const rows: {
+    done: boolean;
+    mark?: RowMark;
+    id: string;
+    label: string;
+    value: string;
+    sub?: string;
+    caution?: string;
+  }[] = [
     ...(received
       ? []
       : [
@@ -332,13 +371,14 @@ export const PlantStatus: React.FC<{
   const anchored = proof !== 'checking' && proof.status === 'anchor-reported' ? proof.proof.anchor : undefined;
   const checkedAt =
     anchor !== undefined && anchor !== 'checking' && anchor.status === 'checked' ? anchor.blockTime : undefined;
+  // Gold DATED only for a date not on a test network and not from a contract still in testing.
+  const stampState = stampStateFor(anchor, anchored?.network ?? '') ?? 'dated';
   const stamp = received
     ? undefined
     : checkedAt !== undefined
       ? {
-          state: anchored && isTestNetwork(anchored.network) ? ('practice' as const) : ('dated' as const),
-          word:
-            anchored && isTestNetwork(anchored.network) ? t('app.plant.stamp.practice') : t('app.plant.stamp.dated'),
+          state: stampState,
+          word: t(STAMP_WORD[stampState]),
           date: tr.date(checkedAt, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }),
         }
       : undefined;
