@@ -59,7 +59,7 @@ export const en = {
     'It asks while your records have no other way back. The backup file is one way: it brings your records back on a new phone or computer, even without VeilCore. Saving them with VeilCore, with this device’s lock, is another; then the file is up to you. VeilCore can’t recover the file or make another.',
   'm.help.backup.2q': 'Where should I keep it?',
   'm.help.backup.2a':
-    'On a USB stick or in a password manager, and in a second place too. Anyone with the file can open your records and act as you. Add a password when you save it: then the file alone opens nothing. If you forget the password, nobody can open the file, us included.',
+    'On a USB stick or in a password manager, and in a second place too. Anyone with the file can open your records and act as you. Add a password when you save it: then the file alone opens nothing. A lab’s file always gets one, because it holds the lab’s signing key. If you forget the password, nobody can open the file, us included.',
   'm.help.backup.3q': 'I lost my backup. What now?',
   'm.help.backup.3a':
     "If this browser still has your records, save a new backup now. If it doesn't, nobody can open the locked copies on our server, VeilCore included. The site will offer to delete them and start a new key. Records that were already dated stay dated, but you can no longer show they are yours.",

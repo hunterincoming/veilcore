@@ -45,6 +45,8 @@ export const backup = {
   'app.backup.pw.add': 'Le verrouiller avec un mot de passe (conseillé)',
   'app.backup.pw.why':
     'Le fichier seul n’ouvre alors rien : qui l’a doit aussi avoir le mot de passe. Si vous l’oubliez, personne ne peut ouvrir le fichier, pas même nous.',
+  'app.backup.pw.required':
+    'Un mot de passe est obligatoire : ce fichier contient la clé de signature de votre laboratoire, et qui l’aurait pourrait signer des résultats au nom de votre laboratoire.',
   'app.backup.pw.label': 'Mot de passe du fichier de sauvegarde',
   'app.backup.pw.again': 'Saisissez-le de nouveau',
   'app.backup.pw.short': 'Au moins {n} caractères.',

@@ -37,6 +37,7 @@ const KNOWN: [string, AppKey][] = [
   // A password on the file (version 4).
   [enT.t('app.backup.pw.needed'), 'app.backup.pw.needed'],
   [enT.t('app.backup.pw.wrong'), 'app.backup.pw.wrong'],
+  [enT.t('app.backup.pw.required'), 'app.backup.pw.required'],
   // The passkey copy (veilcore/passkey-backup.ts).
   [enT.t('app.backup.passkey.err.unsupported'), 'app.backup.passkey.err.unsupported'],
   [enT.t('app.backup.passkey.err.cancelled'), 'app.backup.passkey.err.cancelled'],

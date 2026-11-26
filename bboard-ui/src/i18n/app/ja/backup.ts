@@ -43,6 +43,8 @@ export const backup = {
   'app.backup.pw.add': 'パスワードで鍵をかける（おすすめ）',
   'app.backup.pw.why':
     'そうすれば、ファイルだけでは何も開けません。ファイルを持つ人にはパスワードも必要です。パスワードを忘れると、私たちを含め誰もファイルを開けません。',
+  'app.backup.pw.required':
+    'パスワードが必要です。このファイルにはラボの署名鍵が入っており、手に入れた人は誰でもラボとして結果に署名できてしまいます。',
   'app.backup.pw.label': 'バックアップファイルのパスワード',
   'app.backup.pw.again': 'もう一度入力',
   'app.backup.pw.short': '{n}文字以上。',

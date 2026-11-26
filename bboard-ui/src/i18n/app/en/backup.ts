@@ -43,6 +43,8 @@ export const backup = {
   'app.backup.pw.add': 'Lock it with a password (suggested)',
   'app.backup.pw.why':
     'Then the file alone opens nothing: whoever has it also needs the password. If you forget it, nobody can open the file, us included.',
+  'app.backup.pw.required':
+    "A password is required: this file holds your lab's signing key, and whoever had it could sign results as your lab.",
   'app.backup.pw.label': 'Password for the backup file',
   'app.backup.pw.again': 'Type it again',
   'app.backup.pw.short': 'At least {n} characters.',

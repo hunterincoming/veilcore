@@ -6,11 +6,14 @@
 //     copy", which downloads the same file again;
 //   - on a phone whose share sheet fails, the same by-hand line and button;
 //   - step 3's button is the filled one as soon as step 1 is saved.
+// And a file holding a lab's signing key can't be saved without a password (summit 5b.12): no
+// switch, one line saying why; without a lab key the switch stays, on by default.
 // Stand-in registry, so it runs the CI way too. All data is practice data.
 // SPDX-License-Identifier: Apache-2.0
 import { readFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
-import { isolate, noBackupPassword, watch, expectNoErrors } from './helpers';
+import { generateKeypair } from 'veilcore-records';
+import { E2E_BACKUP_PASSWORD, isolate, noBackupPassword, watch, expectNoErrors } from './helpers';
 
 /** The backup page (no first-visit question: everyone starts as a breeder). */
 const openBackup = async (page: Page) => {
@@ -93,4 +96,54 @@ test.describe('on a phone', () => {
     );
     await expect(page.getByRole('button', { name: /Save another copy/ })).toBeVisible();
   });
+});
+
+test('without a lab key the password is on by default and can be switched off', async ({ page }) => {
+  await isolate(page);
+  await openBackup(page);
+  const sw = page.locator('[data-backup-password] input[type="checkbox"]');
+  await expect(sw).toBeChecked();
+  await expect(page.locator('[data-backup-password-required]')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /Save backup file/ })).toBeDisabled();
+  await sw.click();
+  await expect(page.getByRole('button', { name: /Save backup file/ })).toBeEnabled();
+});
+
+test("a lab's backup: the password can't be switched off, it says why, and the file is locked", async ({ page }) => {
+  const errors = watch(page);
+  const keypair = await generateKeypair();
+  await page.addInitScript(
+    (k) => localStorage.setItem('veilcore.attester.v1', JSON.stringify({ keypair: k, role: 'laboratory' })),
+    keypair,
+  );
+  await isolate(page);
+  await openBackup(page);
+  await expect(page.locator('[data-backup-password] input[type="checkbox"]')).toHaveCount(0);
+  await expect(page.locator('[data-backup-password-required]')).toHaveText(
+    "A password is required: this file holds your lab's signing key, and whoever had it could sign results as your lab.",
+  );
+  await expect(page.getByText('Lock it with a password (suggested)')).toHaveCount(0);
+  // The same strength rule as everyone's: at least 10 characters, typed twice.
+  const save = page.getByRole('button', { name: /Save backup file/ });
+  await expect(save).toBeDisabled();
+  await page.getByLabel('Password for the backup file').fill('short');
+  await page.getByLabel('Type it again').fill('short');
+  await expect(save).toBeDisabled();
+  expect(await noBackupPassword(page)).toBe(E2E_BACKUP_PASSWORD);
+  await expect(save).toBeEnabled();
+
+  const download = page.waitForEvent('download');
+  await save.click();
+  const file = await (await download).path();
+  const text = readFileSync(file, 'utf8');
+  expect(JSON.parse(text)).toMatchObject({ format: 'veilcore-backup', version: 4 });
+  expect(text).not.toContain(keypair.privateKey);
+
+  const chooser = page.waitForEvent('filechooser');
+  await page.getByRole('button', { name: /Open my saved copy/ }).click();
+  await (await chooser).setFiles(file);
+  await page.getByLabel("The backup's password").fill(E2E_BACKUP_PASSWORD);
+  await page.getByRole('button', { name: 'Open it' }).click();
+  await expect(page.getByText('It works.')).toBeVisible();
+  expectNoErrors(errors);
 });

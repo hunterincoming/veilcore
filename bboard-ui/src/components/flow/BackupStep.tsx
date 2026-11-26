@@ -28,7 +28,13 @@ import {
   Typography,
 } from '@mui/material';
 import DoneIcon from '@mui/icons-material/CheckCircle';
-import { backupFileName, backupFileText, checkBackup, downloadBackupAll } from '../../veilcore/backup';
+import {
+  backupFileName,
+  backupFileText,
+  backupNeedsPassword,
+  checkBackup,
+  downloadBackupAll,
+} from '../../veilcore/backup';
 import { isTouch, ScreenHeading, softDisabled } from './FlowFrame';
 import { damagedDeviceOnly, useRecords } from '../../veilcore/records';
 import { backupHoldsLine } from '../stage/record-kinds';
@@ -174,11 +180,14 @@ export const BackupStep: React.FC<{
     if (checked !== undefined) worksRef.current?.focus();
   }, [checked]);
 
-  // A password on the file (persona review, 17 Oct): suggested, never forced. On by default since
-  // the full review (22 Nov): a file without one opens the records for whoever finds it, and it
-  // is easy to switch off. The password lives only in this screen's memory while it's open; it's
-  // never stored or sent.
-  const [usePassword, setUsePassword] = useState(true);
+  // A password on the file (persona review, 17 Oct). On by default since the full review (22 Nov):
+  // a file without one opens the records for whoever finds it, and it is easy to switch off.
+  // Required when the file holds a lab's signing key (summit, 25 Nov): whoever had that file could
+  // sign results as the lab, so there is no switch, only the line saying why. The password lives
+  // only in this screen's memory while it's open; it's never stored or sent.
+  const labKeyInFile = backupNeedsPassword();
+  const [passwordWanted, setUsePassword] = useState(true);
+  const usePassword = labKeyInFile || passwordWanted;
   const [pw, setPw] = useState('');
   const [pw2, setPw2] = useState('');
   const [locking, setLocking] = useState(false);
@@ -433,11 +442,17 @@ export const BackupStep: React.FC<{
             ) : (
               <Stack spacing={1.25}>
                 <Box data-backup-password="">
-                  <FormControlLabel
-                    control={<Switch checked={usePassword} onChange={() => setUsePassword((v) => !v)} />}
-                    label={<Typography variant="body2">{t('app.backup.pw.add')}</Typography>}
-                    sx={{ minHeight: 44, mr: 0 }}
-                  />
+                  {labKeyInFile ? (
+                    <Typography variant="body2" sx={{ mb: 0.75 }} data-backup-password-required="">
+                      {t('app.backup.pw.required')}
+                    </Typography>
+                  ) : (
+                    <FormControlLabel
+                      control={<Switch checked={usePassword} onChange={() => setUsePassword((v) => !v)} />}
+                      label={<Typography variant="body2">{t('app.backup.pw.add')}</Typography>}
+                      sx={{ minHeight: 44, mr: 0 }}
+                    />
+                  )}
                   <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                     {t('app.backup.pw.why')}
                   </Typography>
