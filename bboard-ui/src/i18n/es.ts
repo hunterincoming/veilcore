@@ -831,6 +831,9 @@ export const es: Strings = {
   'm.privacy.code.text':
     'VeilCore sirve el código de la app. Cada versión publica la lista de sus archivos. Usted puede comprobar que los archivos que recibió su navegador coinciden con esa lista, y cualquiera puede reconstruir la versión a partir del código publicado y comparar. Esto muestra lo que publicamos. No puede probar que un servidor haya enviado a todos los mismos archivos.',
   'm.checksite.title': 'Comprobar este sitio',
+  // Next to each "we can't read it": what that rests on (the code served is the code published).
+  'm.trust.code':
+    'Esto vale para el código del sitio que publicamos: cada versión es pública, así que puede comprobar que su navegador recibió ese código.',
   'm.checksite.lede':
     'VeilCore sirve el código de la app. Cada versión publica la lista de sus archivos. Usted puede comprobar que los archivos que recibió su navegador coinciden con esa lista, y cualquiera puede reconstruir la versión a partir del código publicado y comparar. Esto muestra lo que publicamos. No puede probar que un servidor haya enviado a todos los mismos archivos.',
   'm.checksite.reading': 'Leyendo qué versión es…',

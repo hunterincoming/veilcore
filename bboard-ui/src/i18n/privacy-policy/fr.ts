@@ -13,6 +13,8 @@ export const policyFr: PolicyStrings = {
     'Vos fichiers ADN, vos fichiers de rapports de laboratoire et vos photos ne quittent jamais votre appareil. Votre navigateur tire un code de chacun ; le fichier lui-même n’est jamais envoyé.',
   'm.pp.short.2':
     'Ce que vous saisissez dans un enregistrement est verrouillé dans votre navigateur avant d’être envoyé. Notre serveur le conserve verrouillé, et nous n’avons pas la clé.',
+  'm.pp.short.code':
+    'Cela vaut pour le code du site que nous publions : chaque version est publique, vous pouvez donc vérifier que votre navigateur a bien reçu ce code.',
   'm.pp.short.3':
     'Notre serveur peut lire ce dont il a besoin pour fonctionner : l’identifiant d’un enregistrement, son code de preuve, quand il a été sauvegardé, et ce que vous choisissez de montrer. La liste complète est ci-dessous.',
   'm.pp.short.4':

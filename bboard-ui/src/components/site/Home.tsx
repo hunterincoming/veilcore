@@ -646,7 +646,12 @@ export const MovedFromHome: React.FC = () => {
               <summary>{t('m.faq.4q')}</summary>
               <p>
                 {t('m.faq.4a')}
+                {/* What "we can't read it" rests on. Here, in the fold, not beside the custody
+                    heading: /how-it-works is at its word and tap budget (complexity-budget.json). */}
                 {sp}
+                <span data-trust-code="">{t('m.trust.code')}</span>
+                {sp}
+                <RouterLink to="/check-this-site">{arrowed(`${t('m.checksite.title')} →`)}</RouterLink>{' '}
                 <RouterLink to="/privacy">{arrowed(t('m.faq.4link1'))}</RouterLink>{' '}
                 <RouterLink to="/docs/integrate">{arrowed(t('m.faq.4link2'))}</RouterLink>
               </p>

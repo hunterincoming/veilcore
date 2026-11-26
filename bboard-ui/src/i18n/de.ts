@@ -838,6 +838,9 @@ export const de: Strings = {
   'm.privacy.code.text':
     'VeilCore stellt den Code der App bereit. Jede Version veröffentlicht die Liste ihrer Dateien. Sie können prüfen, ob die Dateien, die Ihr Browser erhalten hat, mit dieser Liste übereinstimmen, und jeder kann die Version aus dem veröffentlichten Code neu bauen und vergleichen. Das zeigt, was wir veröffentlicht haben. Es kann nicht beweisen, dass ein Host allen dieselben Dateien geschickt hat.',
   'm.checksite.title': 'Diese Website prüfen',
+  // Next to each "we can't read it": what that rests on (the code served is the code published).
+  'm.trust.code':
+    'Das gilt für den Website-Code, den wir veröffentlichen: Jede Version ist öffentlich, Sie können also prüfen, ob Ihr Browser genau diesen Code erhalten hat.',
   'm.checksite.lede':
     'VeilCore stellt den Code der App bereit. Jede Version veröffentlicht die Liste ihrer Dateien. Sie können prüfen, ob die Dateien, die Ihr Browser erhalten hat, mit dieser Liste übereinstimmen, und jeder kann die Version aus dem veröffentlichten Code neu bauen und vergleichen. Das zeigt, was wir veröffentlicht haben. Es kann nicht beweisen, dass ein Host allen dieselben Dateien geschickt hat.',
   'm.checksite.reading': 'Es wird gelesen, welche Version dies ist…',

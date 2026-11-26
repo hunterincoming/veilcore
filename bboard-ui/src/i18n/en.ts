@@ -870,6 +870,9 @@ export const en = {
   'm.privacy.code.text':
     "VeilCore serves the app's code. Each release publishes the list of its files. You can check that the files your browser received match that list, and anyone can rebuild the release from the published code and compare. This shows what we released. It can't prove a host sent everyone the same files.",
   'm.checksite.title': 'Check this site',
+  // Next to each "we can't read it": what that rests on (the code served is the code published).
+  'm.trust.code':
+    'That holds for the website code we publish: every release is public, so you can check that your browser got that code.',
   'm.checksite.lede':
     "VeilCore serves the app's code. Each release publishes the list of its files. You can check that the files your browser received match that list, and anyone can rebuild the release from the published code and compare. This shows what we released. It can't prove a host sent everyone the same files.",
   'm.checksite.reading': 'Reading which release this is…',
