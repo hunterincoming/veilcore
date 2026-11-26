@@ -109,7 +109,9 @@ const { LabReportOverview } = await import('../stage/LabReportOverview');
 const { documentVerdict, documentDateTesting } = await import('../document/document-verdict');
 const { recordDateRow } = await import('../flow/plant-status-words');
 const { dnaDateOf, dnaTieRow, dnaTieSentence } = await import('../../veilcore/dna-tie');
-const { stillTesting, stampStateFor } = await import('./anchor-words');
+const { stillTesting, stampStateFor, dateStillTesting, reportedStillTesting } = await import('./anchor-words');
+const { V2Caution } = await import('./V2Caution');
+const { MAINNET_PINNED } = await import('../../../../api/src/pinned-contracts');
 const { Fact } = await import('./DisclosedFacts');
 const { TieLine, DocumentDateLine } = await import('../flow/AppHome');
 const { CertificateDnaTie } = await import('../wizard/Step3Certificate');
@@ -478,5 +480,140 @@ describe('the check page for a deleted record', () => {
         ]),
       ).toBe('');
     }
+  });
+});
+
+describe('a date no indexer confirmed: the contract the registry’s report names decides (fails closed)', () => {
+  const main = (v: string) => MAINNET_PINNED.find((e) => e.kind === 'veilcore' && e.version === v)!.address;
+  const claims = MAINNET_PINNED.find((e) => e.kind === 'claims' && e.version === 'v1')!.address;
+  const V1_ADDR = main('v1');
+  const V2_ADDR = main('v2');
+  const UNREACHABLE = { status: 'unreachable', reason: 'no indexer answered' } as AnchorCheck;
+  const NOT_CHECKED = { status: 'not-checked', why: 'not-configured', reason: 'none' } as AnchorCheck;
+  const FAILED = { status: 'failed', reason: 'not that root' } as AnchorCheck;
+  /** The registry's proof, its anchor naming a contract (or none). */
+  const proofNaming = (network: string, contractAddress?: string): ProofState =>
+    ({
+      status: 'anchor-reported',
+      proof: {
+        batchId: 'B-1',
+        root: 'ef'.repeat(32),
+        anchor: {
+          network,
+          txHash: TX,
+          anchoredAt: '2026-11-20T09:29:00Z',
+          ...(contractAddress ? { contractAddress } : {}),
+        },
+      },
+    }) as never;
+
+  it('version 1 as the live registry reports it is not flagged; anything else on mainnet is', () => {
+    // Every mainnet anchor the registry had recorded by 26 Nov 2026 names the v1 main contract,
+    // in lowercase hex without 0x. The same address however it is written still counts as v1.
+    for (const a of [V1_ADDR, V1_ADDR.toUpperCase(), `0x${V1_ADDR}`])
+      expect(reportedStillTesting({ network: 'mainnet', contractAddress: a }), a).toBe(false);
+    for (const a of [V2_ADDR, claims, 'cd'.repeat(32), '', 'not hex', undefined])
+      expect(reportedStillTesting({ network: 'mainnet', contractAddress: a }), String(a)).toBe(true);
+    // A mainnet report that names no contract: still testing.
+    expect(reportedStillTesting({ network: 'mainnet' })).toBe(true);
+    // Off mainnet, or no report: a test network's own note already says the date carries no weight.
+    expect(reportedStillTesting({ network: 'preprod', contractAddress: V2_ADDR })).toBe(false);
+    expect(reportedStillTesting({ network: 'preprod' })).toBe(false);
+    expect(reportedStillTesting(undefined)).toBe(false);
+  });
+
+  it('the report decides only while the date is unconfirmed; a confirmed check names the contract itself', () => {
+    const v2 = { network: 'mainnet', contractAddress: V2_ADDR };
+    const v1 = { network: 'mainnet', contractAddress: V1_ADDR };
+    for (const c of [undefined, 'checking' as const, UNREACHABLE, NOT_CHECKED, FAILED]) {
+      expect(dateStillTesting(c, 'mainnet', v2), JSON.stringify(c)).toBe(true);
+      expect(dateStillTesting(c, 'mainnet', v1), JSON.stringify(c)).toBe(false);
+      expect(dateStillTesting(c, 'mainnet', undefined), JSON.stringify(c)).toBe(false);
+    }
+    expect(dateStillTesting(V1, 'mainnet', v2)).toBe(false);
+    expect(dateStillTesting(V2, 'mainnet', v1)).toBe(true);
+  });
+
+  it('the record’s line: shown as the warning in all five languages for a v2 or unnamed report, not for v1', () => {
+    const line = (tr: Translator, reported: { network: string; contractAddress?: string }) =>
+      draw(React.createElement(V2Caution, { check: UNREACHABLE, network: 'mainnet', reported, tr }), tr, state.date);
+    for (const [lang, tr] of Object.entries(LANGS)) {
+      for (const reported of [{ network: 'mainnet', contractAddress: V2_ADDR }, { network: 'mainnet' }]) {
+        const html = line(tr, reported);
+        expect(html, lang).toContain('data-v2-caution');
+        expect(html, lang).toContain('MuiAlert-colorWarning');
+        expect(html, lang).toContain(esc(words(tr)));
+      }
+      expect(line(tr, { network: 'mainnet', contractAddress: V1_ADDR }), lang).toBe('');
+    }
+  });
+
+  it('the foot invite: hidden beside an unconfirmed date whose report names v2 or no contract, kept for v1', () => {
+    const invite = (dates: { check: AnchorCheck | undefined; network: string; reported?: object }[]) =>
+      draw(React.createElement(CheckPageInvite, { loading: false, dates } as never), LANGS.en, state.date);
+    const at = (contractAddress?: string) => ({ network: 'mainnet', ...(contractAddress ? { contractAddress } : {}) });
+    expect(invite([{ check: UNREACHABLE, network: 'mainnet', reported: at(V1_ADDR) }])).toContain('data-make-your-own');
+    for (const reported of [at(V2_ADDR), at(), at('cd'.repeat(32))]) {
+      expect(invite([{ check: UNREACHABLE, network: 'mainnet', reported }])).toBe('');
+      expect(invite([{ check: undefined, network: 'mainnet', reported }])).toBe('');
+      expect(
+        invite([
+          { check: V1, network: 'mainnet', reported: at(V1_ADDR) },
+          { check: UNREACHABLE, network: 'mainnet', reported },
+        ]),
+      ).toBe('');
+    }
+  });
+
+  describe('a deleted record', () => {
+    const fp = '12'.repeat(32);
+    /** As VerifyPage wires it: the hook with the registry's anchor, the card, and the foot invite. */
+    const DeletedPage: React.FC<{
+      linkFp: string | null;
+      registry: { network: string; contractAddress?: string } | null;
+    }> = ({ linkFp, registry }) => {
+      const date = useDeletedRecordDate(linkFp, fp, registry);
+      return React.createElement(
+        React.Fragment,
+        null,
+        React.createElement(DeletedRecord, { id: 'VEIL-TEST', anchored: true, fp: linkFp, storedFp: fp, date }),
+        React.createElement(CheckPageInvite, {
+          loading: false,
+          dates: [{ check: date.anchor, network: date.network, reported: date.reported }],
+        }),
+      );
+    };
+    const page = (
+      tr: Translator,
+      props: { linkFp: string | null; registry: { network: string; contractAddress?: string } | null },
+      proof: ProofState,
+    ) => draw(React.createElement(DeletedPage, props), tr, { proof, anchor: props.linkFp ? UNREACHABLE : undefined });
+
+    it('its own proof names v2, no indexer answered: the line as a warning, no box, in all five languages', () => {
+      for (const [lang, tr] of Object.entries(LANGS)) {
+        const html = page(tr, { linkFp: fp, registry: null }, proofNaming('mainnet', V2_ADDR));
+        expect(html, lang).toContain('data-deleted-record');
+        expect(html, lang).toContain('data-v2-caution');
+        expect(html, lang).toContain('MuiAlert-colorWarning');
+        expect(html, lang).toContain(esc(words(tr)));
+        expect(html, lang).not.toContain('data-make-your-own');
+      }
+    });
+
+    it('a link without its proof code: the registry’s answer names the contract, judged the same way', () => {
+      const none = { status: 'none' } as ProofState;
+      const v2 = page(LANGS.en, { linkFp: null, registry: { network: 'mainnet', contractAddress: V2_ADDR } }, none);
+      expect(v2).toContain('data-v2-caution');
+      expect(v2).not.toContain('data-make-your-own');
+      const v1 = page(LANGS.en, { linkFp: null, registry: { network: 'mainnet', contractAddress: V1_ADDR } }, none);
+      expect(v1).not.toContain('data-v2-caution');
+      expect(v1).toContain('data-make-your-own');
+    });
+
+    it('version 1 as the registry reports it: unchanged, no line and the box', () => {
+      const html = page(LANGS.en, { linkFp: fp, registry: null }, proofNaming('mainnet', V1_ADDR));
+      expect(html).not.toContain('data-v2-caution');
+      expect(html).toContain('data-make-your-own');
+    });
   });
 });

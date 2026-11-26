@@ -631,7 +631,11 @@ key. The tool changes (Stage A item 7) are needed for the handover.
     bordered box, so it reads on a black-and-white printout. It fails closed: only version 1 is
     public, so any other version (or a check naming none) on mainnet is treated as still in
     testing until it is switched on purpose; the words say "version 2", the only other version
-    pinned. The claim check's own claim result has no version check: it is a full success only
+    pinned. On the check page this holds for a date no indexer confirmed too: the contract the
+    registry's report names decides (`dateStillTesting`, `reportedStillTesting`), and a report
+    naming any contract but the pinned version 1 main contract, or none on mainnet, gets the
+    line and loses the "Make a record, free" box, on the record and on a deleted record. A date
+    this browser confirmed goes by the contract it found called. The claim check's own claim result has no version check: it is a full success only
     because the pinned mainnet claims contract is version 1, and a test fails if that pin
     changes. A test fails if any of these regresses (`components/verify/v2-not-for-records.test.ts`
     draws each screen; `veilcore/authority-pack.test.ts` draws the pack;

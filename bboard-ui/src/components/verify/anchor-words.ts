@@ -9,6 +9,7 @@ import { isTestNetwork } from '../../config/network';
 import { utcStamp } from '../../veilcore/time';
 import { enT, type Translator } from '../../i18n/translate';
 import { networkWords } from '../../i18n/network-words';
+import { MAINNET_PINNED, pinnedAt, type PinnedEntry } from '../../../../api/src/pinned-contracts';
 
 export type AnchorState = AnchorCheck | 'checking';
 
@@ -113,14 +114,49 @@ export const stillTesting = (check: AnchorState | undefined, network: string): b
  * version 2 (or any contract other than version 1, see stillTesting) on mainnet always carries
  * this line, in the evidence bundle's and verify.html's own words (evidence/words.ts
  * midnightSteps). Undefined for any other date: version 1, a test network (its own note already
- * says the date carries no weight), or nothing checked yet. Every surface that shows a checked
+ * says the date carries no weight), or nothing checked yet with no registry report naming a
+ * contract still in testing (dateStillTesting). Every surface that shows a checked
  * date renders it through V2Caution (V2Caution.tsx) or recordDateRow's `caution`.
  */
 export const v2CautionWords = (
   check: AnchorState | undefined,
   network: string,
   tr: Translator = enT,
-): string | undefined => (stillTesting(check, network) ? tr.t('app.verify.anchor.v2Caution') : undefined);
+  /** The registry's report of the anchor, for a date this browser hasn't checked (dateStillTesting). */
+  reported?: ReportedAnchor,
+): string | undefined => (dateStillTesting(check, network, reported) ? tr.t('app.verify.anchor.v2Caution') : undefined);
+
+/** Where the registry says a batch root was anchored: the anchor in its proof (proofs.ts). */
+export type ReportedAnchor = { readonly network?: string; readonly contractAddress?: string } | undefined;
+
+/**
+ * Whether the registry's report of an anchor names a contract VeilCore is still testing. For a
+ * date this browser could not check (no indexer answered, or not looked up yet), the report is
+ * all there is, so it is judged the same way as a checked date, and fails closed the same way:
+ * on mainnet, anything but VeilCore's pinned version 1 main contract counts, a report that names
+ * no contract included. The registry names the contract in every anchor it records (it refuses
+ * one without), and every mainnet anchor it had recorded by 26 Nov 2026 names version 1. Off mainnet, false:
+ * a test network's own note already says the date carries no weight.
+ */
+export const reportedStillTesting = (
+  reported: ReportedAnchor,
+  pinned: readonly PinnedEntry[] = MAINNET_PINNED,
+): boolean => {
+  if (reported?.network !== 'mainnet') return false;
+  const entry = typeof reported.contractAddress === 'string' ? pinnedAt(pinned, reported.contractAddress) : undefined;
+  return !(entry?.kind === 'veilcore' && entry.version === 'v1');
+};
+
+/**
+ * Whether a date is from a contract still in testing: by this browser's own check when it has
+ * confirmed the anchor (stillTesting), else by the registry's report (reportedStillTesting).
+ * A confirmed check wins: it names the pinned contract the transaction actually called.
+ */
+export const dateStillTesting = (
+  check: AnchorState | undefined,
+  network: string,
+  reported?: ReportedAnchor,
+): boolean => (anchorConfirmed(check) ? stillTesting(check, network) : reportedStillTesting(reported));
 
 /**
  * The stamp for a checked date: gold `dated` only for a real date on a contract that is not

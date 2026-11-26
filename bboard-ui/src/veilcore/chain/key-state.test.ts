@@ -427,13 +427,25 @@ describe('a date from version 2 on mainnet always says it is for testing and not
     // record's (useDeletedRecordDate, the same value its card shows). No other look-up of a date.
     const page = read('../../pages/VerifyPage.tsx');
     expect(page.match(/<MakeYourOwn \/>/g)).toHaveLength(1);
-    expect(page).toMatch(/stillTesting\(d\.check, d\.network\)\) \? null : <MakeYourOwn \/>/);
+    expect(page).toMatch(/dateStillTesting\(d\.check, d\.network, d\.reported\)\) \? null : <MakeYourOwn \/>/);
     expect(page.match(/\buse(RecordDate|AnchorCheck)\(/g)).toHaveLength(2);
     expect(page.match(/\buseDeletedRecordDate\(/g)).toHaveLength(1);
-    expect(page).toMatch(/const deletedDate = useDeletedRecordDate\(/);
+    // What it looks up matters too: the deleted record's own code, only when the record is
+    // gone, the code it was stored under, and the registry's report of its anchor (whose
+    // contract decides when no indexer answers). Handing it null would drop the card's date.
+    expect(page).toMatch(
+      /const deletedDate = useDeletedRecordDate\(\s*!result\?\.found && result\?\.deleted \? fp : null,\s*result\?\.recordFingerprint,\s*!result\?\.found && result\?\.deleted \? result\.anchor : null,\s*\);/,
+    );
     expect(page).toMatch(/date=\{deletedDate\}/);
     expect(page).toMatch(
-      /<CheckPageInvite\s+loading=\{loading\}\s+dates=\{\[\s*\{ check: anchor, network: reportedNetwork \?\? NETWORK \},\s*\{ check: deletedDate\.anchor, network: deletedDate\.network \},\s*\]\}/,
+      /<CheckPageInvite\s+loading=\{loading\}\s+dates=\{\[\s*\{ check: anchor, network: reportedNetwork \?\? NETWORK, reported: reportedAnchor \},\s*\{ check: deletedDate\.anchor, network: deletedDate\.network, reported: deletedDate\.reported \},\s*\]\}/,
+    );
+    // The record's own line takes the same report, read from where its network is read.
+    expect(page).toMatch(
+      /<V2Caution\s+check=\{anchor\}\s+network=\{reportedNetwork \?\? NETWORK\}\s+reported=\{reportedAnchor\}/,
+    );
+    expect(page).toMatch(
+      /const reportedAnchor = reportedAnchorOf\(\s*proof !== 'checking' && proof\.status === 'anchor-reported' \? proof\.proof\.anchor : result\?\.anchor,\s*\);/,
     );
     // Every other reader of a record's date, and how its words reach the line. Calling
     // recordDateRow is not enough on its own: the file must show the row's `caution` (or hand
