@@ -311,8 +311,15 @@ export const verify = {
   'app.verify.unnamedReceipt':
     'この記録のサンプルについてのラボの受領書（レジストリの報告による）。どのラボが署名したかは、保有者が表示していません。',
   // who-vouches.ts: who stands behind each fact on a check page
+  'app.verify.who.viaRelay': 'VeilCoreの中継を通じて読み取りました。',
+  'app.verify.layers.title': '異議のある人がこれを確認する方法',
+  'app.verify.layers.standard':
+    'VeilCoreが書いていないツールで確認できるもの：Bitcoinのスタンプ（OpenTimestampsのクライアント）、タイムスタンプ局のトークン（OpenSSL）、Midnightのトランザクション（任意のMidnightエクスプローラー）、ラボの署名（任意のEd25519ツール）。ファイルは保有者の証拠バンドルにあります。',
+  'app.verify.layers.veilcore':
+    'VeilCore独自のもので、まだ監査されていないもの：このページが行う確認、記録の鍵を記録に結びつける方法、内容を見せずに証明される事実。',
+  'app.verify.signerClock': '署名者の時計だけで日付が付けられています。',
   'app.verify.who.title': 'それぞれの事実の根拠',
-  'app.verify.who.date': '日付',
+  'app.verify.who.date': 'Midnightでの日付',
   'app.verify.who.date.chain': 'Midnight。このページがMidnight上で直接確認しました。',
   'app.verify.who.date.chainTest':
     'Midnightのテストネットワーク。このページが直接確認しましたが、練習用で、頼れる日付ではありません。',

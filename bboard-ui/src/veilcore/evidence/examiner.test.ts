@@ -189,6 +189,24 @@ describe('EXAMINER-SUMMARY.html', () => {
     expect(text).toMatch(/Pending: not yet in a Bitcoin block/);
     expect(text).toContain('ots verify root.bin.ots');
     // What it shows and does not.
+    // The dates in the order a court trusts them: Bitcoin before Midnight, in the dates and
+    // in the steps; Midnight as the registry reported it (summit 5b item 13).
+    expect(html.indexOf('<h3>Bitcoin (OpenTimestamps)</h3>')).toBeGreaterThan(0);
+    expect(html.indexOf('<h3>Bitcoin (OpenTimestamps)</h3>')).toBeLessThan(html.indexOf('<h3>Midnight</h3>'));
+    expect(html.indexOf('<h3>The Bitcoin stamp</h3>')).toBeLessThan(html.indexOf('<h3>Date it on Midnight'));
+    expect(text.indexOf('Not checked for you: the Bitcoin block')).toBeLessThan(
+      text.indexOf('Not checked for you: the Midnight transaction'),
+    );
+    expect(text).toMatch(/As VeilCore’s registry reported it: nothing in this bundle read it from Midnight for you/);
+    expect(text).toMatch(/Legal standing: not a qualified electronic time stamp/);
+    // The two layers, and the reader lines.
+    expect(html).toContain('data-layer="standard"');
+    expect(text).toMatch(/Checkable with tools VeilCore didn’t write .*The Bitcoin stamp: the OpenTimestamps client/);
+    expect(text).toMatch(/VeilCore-specific, not yet audited .*verify\.html/);
+    expect(text).toContain('How someone who disagrees can check this');
+    expect(text).toContain('You don’t need to open any link to read this');
+    // Lab signatures are dated only by the signer's clock.
+    expect(text).toMatch(/\(dated only by the signer’s clock: nothing in this bundle dates the signature\)/);
     expect(text).toMatch(/What this shows/);
     expect(text).toMatch(/What this does not show/);
     expect(text).toMatch(/existed, unchanged, by that date/);

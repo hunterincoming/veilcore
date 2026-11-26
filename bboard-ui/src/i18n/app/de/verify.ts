@@ -335,8 +335,15 @@ export const verify = {
   'app.verify.unnamedReceipt':
     'Eine Empfangsbestätigung eines Labors für eine Probe aus diesem Datensatz, wie das Register meldet. Der Inhaber hat nicht gezeigt, welches Labor sie signiert hat.',
   // who-vouches.ts: who stands behind each fact on a check page
+  'app.verify.who.viaRelay': 'Über das Relais von VeilCore gelesen.',
+  'app.verify.layers.title': 'Wie jemand, der widerspricht, das prüfen kann',
+  'app.verify.layers.standard':
+    'Prüfbar mit Werkzeugen, die VeilCore nicht geschrieben hat: der Bitcoin-Stempel (der OpenTimestamps-Client), das Token einer Zeitstempelstelle (OpenSSL), die Midnight-Transaktion (jeder Midnight-Explorer) und Signaturen von Laboren (jedes Ed25519-Werkzeug). Das Beweispaket des Inhabers enthält die Dateien.',
+  'app.verify.layers.veilcore':
+    'VeilCore-spezifisch, noch nicht unabhängig geprüft: die Prüfungen dieser Seite, wie der Schlüssel des Datensatzes an ihn gebunden ist, und Angaben, die bewiesen werden, ohne sie zu zeigen.',
+  'app.verify.signerClock': 'Nur nach der Uhr des Unterzeichners datiert.',
   'app.verify.who.title': 'Worauf jede Angabe beruht',
-  'app.verify.who.date': 'Das Datum',
+  'app.verify.who.date': 'Das Datum auf Midnight',
   'app.verify.who.date.chain': 'Midnight. Diese Seite hat es dort selbst geprüft.',
   'app.verify.who.date.chainTest':
     'Ein Midnight-Testnetz. Diese Seite hat es dort selbst geprüft: eine Übung, kein Datum, auf das man sich verlassen kann.',

@@ -323,8 +323,15 @@ export const verify = {
   'app.verify.unnamedReceipt':
     'A lab’s receipt for a sample from this record, as the registry reports it. The holder hasn’t shown which lab signed it.',
   // who-vouches.ts: who stands behind each fact on a check page
+  'app.verify.who.viaRelay': 'Read through VeilCore’s relay.',
+  'app.verify.layers.title': 'How someone who disagrees can check this',
+  'app.verify.layers.standard':
+    'Checkable with tools VeilCore didn’t write: the Bitcoin stamp (the OpenTimestamps client), a timestamp authority’s token (OpenSSL), the Midnight transaction (any Midnight explorer) and lab signatures (any Ed25519 tool). The holder’s evidence bundle has the files.',
+  'app.verify.layers.veilcore':
+    'VeilCore-specific, not yet audited: the checks this page runs, how the record’s key is bound to it, and facts proved without being shown.',
+  'app.verify.signerClock': 'Dated only by the signer’s clock.',
   'app.verify.who.title': 'What each fact rests on',
-  'app.verify.who.date': 'The date',
+  'app.verify.who.date': 'The Midnight date',
   'app.verify.who.date.chain': 'Midnight. This page checked it there itself.',
   'app.verify.who.date.chainTest':
     'A Midnight test network. This page checked it there itself: practice, not a date to rely on.',

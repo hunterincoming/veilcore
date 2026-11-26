@@ -103,7 +103,7 @@ import {
 import { DNA_SALT_PARAM, dnaLinkValues } from '../veilcore/dna-link';
 import { displayName } from '../veilcore/display-name';
 import { utcStamp as fmt } from '../veilcore/time';
-import { REAL_CHAIN } from '../veilcore/chain/config';
+import { READS_THROUGH_RELAY, REAL_CHAIN } from '../veilcore/chain/config';
 import {
   anchorCheckFailed,
   anchorConfirmed,
@@ -164,7 +164,8 @@ const DateSummary: React.FC<{
     <Box sx={{ mb: 2 }} data-date-summary={checked ? 'checked' : 'reported'}>
       <Typography variant="body1" sx={{ fontWeight: 700 }}>
         {checked
-          ? t('app.verify.summary.checked', { date: fmt(at), test })
+          ? t('app.verify.summary.checked', { date: fmt(at), test }) +
+            (READS_THROUGH_RELAY ? ` ${t('app.verify.who.viaRelay')}` : '')
           : t('app.verify.summary.reported', { date: fmt(at), test })}{' '}
         <Link
           component="button"
@@ -1043,25 +1044,6 @@ export const VerifyPage: React.FC = () => {
               <SeeTheChecks open={checksOpen} onToggle={() => setChecksOpen((v) => !v)} controls="verify-checks" />
               <Collapse in={checksOpen} id="verify-checks" data-checks={checksOpen ? 'open' : 'closed'}>
                 <Box sx={{ pt: 2 }}>
-                  {/* The date first, in one line, and whose word it is (persona review, 17 Oct). */}
-                  {result.recordFingerprint &&
-                    proof !== 'checking' &&
-                    proof.status === 'anchor-reported' &&
-                    anchor !== 'checking' &&
-                    anchor?.status !== 'failed' &&
-                    (anchorCheckedOnChain && anchor?.status === 'checked' ? anchor.blockTime : reportedAt) !==
-                      undefined && (
-                      <DateSummary
-                        at={
-                          (anchorCheckedOnChain && anchor?.status === 'checked' ? anchor.blockTime : reportedAt) ?? ''
-                        }
-                        checked={anchorCheckedOnChain && anchor?.status === 'checked'}
-                        network={reportedNetwork ?? NETWORK}
-                        anchor={proof.proof.anchor ?? {}}
-                        root={proof.proof.root}
-                      />
-                    )}
-
                   {/* What each fact rests on, from what this page already worked out
                 (who-vouches.ts): checked here, signed by a lab, the registry's report, or the
                 holder's own words. */}
@@ -1094,6 +1076,7 @@ export const VerifyPage: React.FC = () => {
                           }),
                           max: SIGNATURE_LINES,
                           ...(bitcoin.row ? { bitcoin: bitcoin.row } : {}),
+                          relay: READS_THROUGH_RELAY,
                         },
                         tr,
                       )}
@@ -1103,6 +1086,43 @@ export const VerifyPage: React.FC = () => {
                           : undefined
                       }
                     />
+                  )}
+
+                  {/* The Midnight date in one line, and whose word it is (persona review, 17 Oct), after the
+                    Bitcoin stamp and any timestamp above it: what a court trusts first comes first
+                    (summit 5b item 13). */}
+                  {result.recordFingerprint &&
+                    proof !== 'checking' &&
+                    proof.status === 'anchor-reported' &&
+                    anchor !== 'checking' &&
+                    anchor?.status !== 'failed' &&
+                    (anchorCheckedOnChain && anchor?.status === 'checked' ? anchor.blockTime : reportedAt) !==
+                      undefined && (
+                      <DateSummary
+                        at={
+                          (anchorCheckedOnChain && anchor?.status === 'checked' ? anchor.blockTime : reportedAt) ?? ''
+                        }
+                        checked={anchorCheckedOnChain && anchor?.status === 'checked'}
+                        network={reportedNetwork ?? NETWORK}
+                        anchor={proof.proof.anchor ?? {}}
+                        root={proof.proof.root}
+                      />
+                    )}
+
+                  {/* How someone who disagrees can check this: what rests on tools VeilCore didn't
+                    write, and what is VeilCore's own (summit 5b item 13; the judge's two layers). */}
+                  {result.recordFingerprint && (
+                    <Box sx={{ mb: 2 }} data-evidence-layers="">
+                      <Typography variant="subtitle2" component="h2" sx={{ mb: 0.5 }}>
+                        {t('app.verify.layers.title')}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }} data-layer="standard">
+                        {t('app.verify.layers.standard')}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" data-layer="veilcore">
+                        {t('app.verify.layers.veilcore')}
+                      </Typography>
+                    </Box>
                   )}
 
                   <Stack spacing={1.25}>
@@ -1272,7 +1292,8 @@ export const VerifyPage: React.FC = () => {
                                 dates: withheld
                                   .map((a) => `${a.issuedAt.slice(0, 10)} (UTC)`)
                                   .join(t('app.verify.sum.comma')),
-                              })}
+                              })}{' '}
+                              {t('app.verify.signerClock')}
                             </Box>
                           </Fact>
                         )}

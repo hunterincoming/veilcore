@@ -1,7 +1,9 @@
 // EXAMINER-SUMMARY.html for the evidence bundle: a printable summary for a lawyer, an
-// examiner or a court clerk, with the record as sealed, its identifiers, how it was
-// checked, the lab signatures and sample receipts, the Bitcoin stamp, and what it shows
-// and doesn't (docs/evidence-bundle.md, docs/evidence-in-practice.md).
+// examiner or a court clerk, with the record as sealed, its dates (Bitcoin and the RFC 3161
+// token first, Midnight third: what a court trusts first, summit 5b item 13), its
+// identifiers, how it was checked, what rests on tools VeilCore didn't write and what is
+// VeilCore's own, the lab signatures and sample receipts, and what it shows and doesn't
+// (docs/evidence-bundle.md, docs/evidence-in-practice.md).
 //
 // Text only. The page has no script at all, loads nothing and links nowhere: its
 // Content-Security-Policy forbids scripts and every request, and every value in it is
@@ -287,6 +289,19 @@ const custodySection = (ev: Evidence): string => {
   return out.join('');
 };
 
+/** How to check the RFC 3161 token with OpenSSL and nothing from VeilCore. */
+const TSA_STEPS: string[] = [
+  'The token is proof/root.tst; the file it stamps is proof/root.bin (the batch root as 32 bytes). It shows the batch root existed by the time it states, and nothing earlier.',
+  'With OpenSSL, in the proof folder: openssl ts -verify -data root.bin -in root.tst -token_in -CAfile <the authority’s published chain file>. It must print Verification: OK.',
+  'Get that chain file from the authority’s own website, not from VeilCore.',
+];
+
+/** The RFC 3161 token's legal standing, in one line. */
+const tsaStanding = (q: { scheme: string; trustedList?: string } | undefined): string =>
+  q
+    ? `Legal standing: VeilCore’s registry stated this authority is qualified under ${oneLine(q.scheme)}${q.trustedList ? ` (${oneLine(q.trustedList)})` : ''}. Check its trusted list yourself for the token’s date. Where it is qualified, EU law presumes a qualified time stamp’s date is accurate (eIDAS Article 41).`
+    : 'Legal standing: VeilCore doesn’t state this authority is qualified, so the token carries no legal presumption. A court weighs it as it would any signed timestamp from that authority.';
+
 /**
  * The page. `sigs` are the lab signatures as the holder's browser checked them when the
  * bundle was made; `hasOts`, whether the bundle has the Bitcoin stamp file.
@@ -300,6 +315,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   const test = anchor ? anchor.network !== 'mainnet' : true;
   const lookup = ev.batch && anchor ? anchorLookup(anchor, ev.batch.root) : null;
   const ots = ev.batch && hasOts ? ev.batch.opentimestamps : null;
+  const tsa = ev.batch?.rfc3161?.available ? ev.batch.rfc3161 : null;
   const made = utcWords(ev.createdAt) ?? ev.createdAt;
   const keyBound = isString(fields.keyBinding);
 
@@ -322,15 +338,21 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     checked.push(
       `${okSigs} of ${sigs.length} lab signature${sigs.length === 1 ? '' : 's'} checked (Ed25519).${okSigs < sigs.length ? ' The others do not check and should be ignored.' : ''}`,
     );
+  // The dates in the order a court trusts them (summit 5b item 13): Bitcoin, the RFC 3161
+  // token, then Midnight.
+  if (ots)
+    checked.push(
+      'Not checked for you: the Bitcoin block. The stamp file is in the bundle; verify.html reads it, and the steps below say how to check it against Bitcoin.',
+    );
+  if (tsa)
+    checked.push(
+      'The RFC 3161 token was checked against the batch root in the holder’s browser when the bundle was made (a token that doesn’t check is left out). The steps below say how to check it again with OpenSSL.',
+    );
   checked.push(
     tx
       ? 'Not checked for you: the Midnight transaction. VeilCore’s registry reported it; nobody has looked it up on the chain for you. The steps below say how.'
       : 'There is no Midnight transaction to look up yet.',
   );
-  if (ots)
-    checked.push(
-      'Not checked for you: the Bitcoin block. The stamp file is in the bundle; verify.html reads it, and the steps below say how to check it against Bitcoin.',
-    );
 
   const ids: [string, string | null][] = [
     ['Record ID', ev.record.id],
@@ -340,11 +362,6 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     ['Batch', ev.batch?.batchId ?? 'not in a batch yet'],
     ['Batch root', ev.batch?.root ?? null],
     ['Batch sealed by the registry at', ev.batch?.sealedAt ? (utcWords(ev.batch.sealedAt) ?? ev.batch.sealedAt) : null],
-    ['Network', anchor ? networkWords(anchor.network) : 'not recorded on a network yet'],
-    ['Contract', anchor && isString(anchor.contractAddress) ? anchor.contractAddress : null],
-    ['Transaction', tx],
-    ['Block (as the registry reported it)', anchor && isNumber(anchor.blockHeight) ? String(anchor.blockHeight) : null],
-    ['Time (as the registry reported it)', anchor ? utcWords(anchor.anchoredAt) : null],
     [
       'Registry first saw the record',
       ev.registry.firstSeen
@@ -352,8 +369,17 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
         : null,
     ],
   ];
+
+  // Midnight: third, and as VeilCore's registry reported it. Nothing in the bundle read it from the chain.
+  const midnightRows: [string, string | null][] = [
+    ['Network', anchor ? networkWords(anchor.network) : 'not recorded on a network yet'],
+    ['Contract', anchor && isString(anchor.contractAddress) ? anchor.contractAddress : null],
+    ['Transaction', tx],
+    ['Block (as the registry reported it)', anchor && isNumber(anchor.blockHeight) ? String(anchor.blockHeight) : null],
+    ['Time (as the registry reported it)', anchor ? utcWords(anchor.anchoredAt) : null],
+  ];
   for (const a of ev.batch?.earlierAnchors ?? []) {
-    ids.push([
+    midnightRows.push([
       'Recorded earlier on',
       `${networkWords(a.network)}, transaction ${String(a.txHash)} (a later one took its place)`,
     ]);
@@ -372,6 +398,19 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
           ots.bitcoinBlockTime ? (utcWords(ots.bitcoinBlockTime) ?? ots.bitcoinBlockTime) : null,
         ],
         ['Stamp file', 'proof/root.bin.ots, over proof/root.bin (the batch root as 32 bytes)'],
+      ]
+    : [];
+
+  const tsaRows: [string, string | null][] = tsa
+    ? [
+        ['Time the token states', tsa.genTime ? (utcWords(tsa.genTime) ?? tsa.genTime) : '(not read)'],
+        ['Authority (as VeilCore’s registry reported it)', tsa.tsa ? oneLine(tsa.tsa) : null],
+        ['Signer named in the token', tsa.signer ? oneLine(tsa.signer) : null],
+        ['Token file', 'proof/root.tst, over proof/root.bin (the batch root as 32 bytes)'],
+        [
+          'Asked for',
+          tsa.requestedAfterSeal ? 'After the batch was sealed, so its time is later than the sealing' : null,
+        ],
       ]
     : [];
 
@@ -413,7 +452,12 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
             : 'Document SHA-256',
         s.documentHash ?? null,
       ],
-      ['Signed at', s.issuedAt ? `${s.issuedAt} (the signer’s own clock)` : null],
+      [
+        'Signed at',
+        s.issuedAt
+          ? `${s.issuedAt} (dated only by the signer’s clock: nothing in this bundle dates the signature)`
+          : null,
+      ],
       ['Signature ID', s.attestationId ?? null],
       [
         'Status',
@@ -426,7 +470,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   });
 
   const shows: string[] = [
-    `Once the Midnight transaction${ots ? ' (or the Bitcoin stamp)' : ''}${ev.batch?.rfc3161?.available ? ' (or the RFC 3161 token in proof/root.tst, by the time it states)' : ''} is looked up and holds this batch root: this record existed, unchanged, by that date. Whoever had it sealed held this record by then.`,
+    `Once ${[ots ? 'the Bitcoin stamp' : null, tsa ? 'the RFC 3161 token in proof/root.tst (by the time it states)' : null, 'the Midnight transaction'].filter(Boolean).join(' or ')} is checked and holds this batch root: this record existed, unchanged, by that date. Whoever had it sealed held this record by then.`,
     'The sealed fields above are exactly what the proof code was made from: any change to them, even one character, gives a different proof code.',
   ];
   if (ev.key) shows.push('The record named this key when it was sealed, so the key can’t have been swapped since.');
@@ -440,8 +484,8 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
       : 'That anything the record says is true: the name, who bred it, the stated date. The breeder wrote those.',
     `Who holds the ${subject} or the record now.`,
     'That a signing key belongs to the lab it names. VeilCore doesn’t vouch for anyone.',
-    `Any date at all until the batch root is found in the named transaction${ots ? ' (or the Bitcoin stamp checks)' : ''}.`,
-    'The sealing time in the record and the registry’s “first saw” time: each is one party’s own clock.',
+    `Any date at all until ${[ots ? 'the Bitcoin stamp checks' : null, tsa ? 'the RFC 3161 token checks' : null, 'the batch root is found in the named Midnight transaction'].filter(Boolean).join(' or ')}.`,
+    `The sealing time in the record, the registry’s “first saw” time${sigs.length ? ' and the time on each lab signature' : ''}: each is one party’s own clock.`,
   ];
   if (lab)
     doesNot.push(
@@ -452,10 +496,34 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   );
 
   const steps: string[] = [];
-  if (lookup) {
-    steps.push(`<h3>Date it on Midnight</h3>${list(midnightSteps(lookup), true)}`);
-  }
   if (ots) steps.push(`<h3>The Bitcoin stamp</h3>${list(bitcoinSteps(ots.status !== 'bitcoin'), true)}`);
+  if (tsa) steps.push(`<h3>The RFC 3161 token</h3>${list(TSA_STEPS, true)}`);
+  if (lookup) {
+    steps.push(`<h3>Date it on Midnight (as VeilCore’s registry reported it)</h3>${list(midnightSteps(lookup), true)}`);
+  }
+
+  // How someone who disagrees can check this: what rests on tools anyone has, and what rests
+  // on VeilCore's own code (summit 5b item 13; the judge's two layers).
+  const standard: string[] = [
+    'The record’s content hash: the SHA-256 of record/sealed-fields.canonical.json, with any SHA-256 tool.',
+  ];
+  if (ev.proof && ev.batch)
+    standard.push(
+      'The path from the proof code to the batch root (proof/inclusion-proof.json): SHA-256 steps, which any SHA-256 tool can redo by SPEC.md.',
+    );
+  if (ots) standard.push('The Bitcoin stamp: the OpenTimestamps client, or opentimestamps.org.');
+  if (tsa) standard.push('The RFC 3161 token: OpenSSL (openssl ts), with the authority’s own published files.');
+  if (tx) standard.push('The Midnight transaction: any Midnight explorer.');
+  if (sigs.length)
+    standard.push(
+      'The lab signatures: Ed25519, with any Ed25519 tool. The bytes signed follow VeilCore’s published format (SPEC.md).',
+    );
+  const veilcoreOnly: string[] = [
+    'verify.html and any script in the proof folder: VeilCore wrote them, and nobody outside VeilCore has audited them.',
+  ];
+  if (keyBound)
+    veilcoreOnly.push('How the record’s key is folded into its proof code (key binding): VeilCore’s own scheme.');
+  if (tx) veilcoreOnly.push('VeilCore’s contract on Midnight, which wrote the batch root.');
 
   const title = `Examiner summary: ${name} (${ev.record.id})`;
   return `<!doctype html>
@@ -505,6 +573,12 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     td.hex { font-size: 7.5pt; }
     .note { padding: 4px 8px; margin: 4px 0; }
     tr, .sig, li { break-inside: avoid; }
+    h3 { break-after: avoid; }
+    .cols { display: block; }
+    .cols > div { break-inside: avoid; }
+    footer { break-inside: avoid; }
+    body, .note { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { background: #fff; }
   }
 </style>
 </head>
@@ -513,27 +587,41 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   <h1>${escapeHtml(title)}</h1>
   ${p(`Made ${made} by the VeilCore site, from the holder’s own copy of the record. Bundle format ${ev.format}; record format ${ev.spec.version}.`, 'muted')}
   ${banner ? `<div class="note warn" data-practice="yes">${p(banner)}</div>` : ''}
-  <div class="note">${p('This page is a printout of what the VeilCore site found when it made this bundle. It runs no code and checks nothing when opened. To check the files yourself, open verify.html in the same folder (it works offline); README.txt explains every file.')}</div>
+  <div class="note">${p('This page is a printout of what the VeilCore site found when it made this bundle. It runs no code and checks nothing when opened. To check the files yourself, open verify.html in the same folder (it works offline); README.txt explains every file.')}${p('You don’t need to open any link to read this: everything it says is on the page. The addresses and commands below are only for checking it.', 'muted')}</div>
 
   <h2>1. The record as it was sealed</h2>
   ${p('Exactly what the proof code was made from, in the holder’s own words.', 'muted')}
   ${table(sealedRows(fields), 'sealed')}
 
-  <h2>2. Proof code, batch and transaction</h2>
+  <h2>2. The dates</h2>
+  ${ots || tsa ? p('In the order to rely on them: the oldest and most widely used first. Each is separate.', 'muted') : ''}
+  ${ots ? `<h3>Bitcoin (OpenTimestamps)</h3>${table(bitcoinRows)}${p('Legal standing: not a qualified electronic time stamp (EU eIDAS) or any other legally presumed one. A court weighs it as evidence. Bitcoin has run since 2009, and anyone can check the stamp.', 'muted')}` : ''}
+  ${tsa ? `<h3>RFC 3161 token from a Time Stamping Authority</h3>${table(tsaRows)}${p(tsaStanding(tsa.qualified), 'muted')}` : ''}
+  <h3>Midnight</h3>
+  ${table(midnightRows)}
+  ${anchor ? p('As VeilCore’s registry reported it: nothing in this bundle read it from Midnight for you. Legal standing: not a legally presumed time stamp. Midnight is a newer public blockchain; a court weighs it as evidence, and may want an expert to read it.', 'muted') : ''}
+
+  <h2>3. Proof code and batch</h2>
   ${table(ids)}
 
-  <h2>3. How it was checked</h2>
+  <h2>4. How it was checked</h2>
   ${p(`By the VeilCore site, in the holder’s browser, at ${made}:`)}
   ${list(checked)}
   ${steps.join('\n  ')}
 
-  <h2>4. Lab reports, signatures and sample receipts</h2>
-  ${lab ? `<h3>Lab report saved to this ${subject}</h3>${table(labRows)}` : p(`No lab report is saved to this ${subject}.`)}
-  ${sigs.length ? `<h3>Signatures about this record</h3>${sigBlocks.join('')}` : p('No lab signatures about this record are in this bundle.')}
-  ${custodySection(ev)}
-  ${ots ? `<h2>5. The Bitcoin stamp</h2>${table(bitcoinRows)}` : ''}
+  <h2>5. How someone who disagrees can check this</h2>
+  <div class="cols" data-layers="">
+    <div data-layer="standard"><h3>Checkable with tools VeilCore didn’t write</h3>${list(standard)}</div>
+    <div data-layer="veilcore"><h3>VeilCore-specific, not yet audited</h3>${list(veilcoreOnly)}</div>
+  </div>
+  ${p('Rely on what you can check with tools VeilCore didn’t write. Treat the rest as VeilCore’s word until it is audited.', 'muted')}
 
-  <h2>${ots ? '6' : '5'}. What this shows and what it does not</h2>
+  <h2>6. Lab reports, signatures and sample receipts</h2>
+  ${lab ? `<h3>Lab report saved to this ${subject}</h3>${table(labRows)}` : p(`No lab report is saved to this ${subject}.`)}
+  ${sigs.length ? `<h3>Signatures about this record</h3>${p('Each signature is dated only by the signer’s clock. Nothing in this bundle dates a signature.', 'muted')}${sigBlocks.join('')}` : p('No lab signatures about this record are in this bundle.')}
+  ${custodySection(ev)}
+
+  <h2>7. What this shows and what it does not</h2>
   <div class="cols">
     <div><h3>What this shows</h3>${list(shows)}</div>
     <div><h3>What this does not show</h3>${list(doesNot)}</div>

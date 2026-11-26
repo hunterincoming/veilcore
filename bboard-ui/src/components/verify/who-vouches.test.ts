@@ -23,7 +23,7 @@ const rows = (i: Partial<WhoInput>) => whoVouches({ ...base, ...i });
 describe('what each fact rests on', () => {
   it('the date is Midnight only when this page found the anchor itself, for the link’s own code', () => {
     expect(rows({})[0]).toEqual({
-      fact: 'The date',
+      fact: 'The Midnight date',
       who: 'Midnight. This page checked it there itself.',
       basis: 'checked',
     });
@@ -34,8 +34,8 @@ describe('what each fact rests on', () => {
     // The batch's date was checked, but only the registry puts this record in it.
     expect(rows({ bound: false })[0].who).toMatch(/^Midnight dated the batch.*Only VeilCore’s registry/);
     expect(rows({ testNetwork: true })[0].who).toMatch(/practice, not a date to rely on/);
-    expect(rows({ proof: 'pending' })[0]).toMatchObject({ fact: 'The date', basis: 'none' });
-    expect(rows({ proof: 'none' })[0]).toMatchObject({ fact: 'The date', basis: 'none' });
+    expect(rows({ proof: 'pending' })[0]).toMatchObject({ fact: 'The Midnight date', basis: 'none' });
+    expect(rows({ proof: 'none' })[0]).toMatchObject({ fact: 'The Midnight date', basis: 'none' });
     expect(rows({ proof: 'none' })[0].who).toMatch(/isn’t in a dated batch/);
   });
 
@@ -66,7 +66,10 @@ describe('what each fact rests on', () => {
   });
 
   it('a failed check on Midnight is said as failed, not as unchecked', () => {
-    expect(rows({ anchorFailed: true, anchorConfirmed: false })[0]).toMatchObject({ fact: 'The date', basis: 'none' });
+    expect(rows({ anchorFailed: true, anchorConfirmed: false })[0]).toMatchObject({
+      fact: 'The Midnight date',
+      basis: 'none',
+    });
     expect(rows({ anchorFailed: true, anchorConfirmed: false })[0].who).toMatch(/failed/);
   });
 
@@ -114,7 +117,7 @@ describe('what each fact rests on', () => {
   it('a document: the code worked out from the link, no lab row, and the file checked only once it matched', () => {
     const r = rows({ document: true, signers: [{ kind: 'Lab report', who: 'X', nameChecked: true }] });
     expect(r.map((x) => [x.fact, x.basis])).toEqual([
-      ['The date', 'checked'],
+      ['The Midnight date', 'checked'],
       ['The proof code', 'checked'],
       ['The file', 'none'],
       ['What’s typed (title, holder, issuer, notes)', 'holder'],
@@ -217,8 +220,23 @@ describe('the Bitcoin stamp row', () => {
     });
     // No stamp reported: no row.
     expect(whoVouches(base).some((r) => r.id === 'bitcoin')).toBe(false);
-    // Right after the date.
-    expect(whoVouches({ ...base, bitcoin: { state: 'pending' } })[1].id).toBe('bitcoin');
+    // First, before any timestamp and before Midnight (summit 5b item 13).
+    const order = whoVouches({
+      ...base,
+      bitcoin: { state: 'pending' },
+      instant: [{ tsa: 'Test TSA', at: '2026-10-15T11:00:00.000Z' }],
+    }).map((r) => r.fact);
+    expect(order.slice(0, 3)).toEqual(['The Bitcoin stamp', 'A timestamp (Test TSA)', 'The Midnight date']);
+  });
+
+  it('says when the Midnight date was read through VeilCore’s relay, and only then', () => {
+    const date = (i: Partial<WhoInput>) => whoVouches({ ...base, ...i }).find((r) => r.fact === 'The Midnight date');
+    expect(date({ relay: true })?.who).toMatch(/This page checked it there itself\. Read through VeilCore’s relay\.$/);
+    expect(date({})?.who).not.toMatch(/relay/);
+    expect(date({ relay: true, bound: false })?.who).toMatch(/Read through VeilCore’s relay\.$/);
+    // A date the page didn't read on Midnight says nothing about the relay.
+    expect(date({ relay: true, anchorConfirmed: false })?.who).not.toMatch(/relay/);
+    expect(date({ relay: true, anchorConfirmed: false, anchorFailed: true })?.who).not.toMatch(/relay/);
   });
 
   it('every state in every language, with nothing left as a key', () => {
