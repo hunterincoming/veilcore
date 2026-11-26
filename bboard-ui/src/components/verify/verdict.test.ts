@@ -1,7 +1,7 @@
 // The one line at the top of a check page (verdict.ts): never kinder than the checks under it.
 // SPDX-License-Identifier: Apache-2.0
 import { describe, expect, it } from 'vitest';
-import { checkProblems, claimVerdict, recordVerdict } from './verdict';
+import { checkProblems, claimVerdict, namedRecordDate, recordVerdict } from './verdict';
 import type { ClaimVerdict } from '../../veilcore/claim-link';
 import type { ProofState } from '../../veilcore/proofs';
 import type { AnchorState } from './anchor-words';
@@ -177,5 +177,41 @@ describe('the green line never stands over something that didn’t pass (review 
     expect(one(ok, [undefined])?.tone).toBe('wait');
     expect(one({ ok: false, reason: 'x' })?.tone).toBe('fail');
     expect(claimVerdict({ readable: false, off: false, verdict: undefined, more: [] })?.tone).toBe('fail');
+  });
+
+  it('the claim page: never green while a record the claim names isn’t dated on Midnight (SPEC 4.5 check 2)', () => {
+    const ok = { ok: true, blockTime: Date.UTC(2026, 9, 11) } as ClaimVerdict;
+    const reported = { status: 'anchor-reported', proof: {} } as unknown as ProofState;
+    const checked = { status: 'checked', blockTime: 1 } as unknown as AnchorState;
+    const failed = { status: 'failed' } as unknown as AnchorState;
+    // How each record's card stands, as the top line reads it.
+    expect(namedRecordDate({ proof: 'checking', anchor: undefined })).toBe('checking');
+    expect(namedRecordDate({ proof: { status: 'none' }, anchor: undefined })).toBe('unconfirmed');
+    expect(namedRecordDate({ proof: { status: 'pending' } as never, anchor: undefined })).toBe('unconfirmed');
+    expect(namedRecordDate({ proof: reported, anchor: undefined })).toBe('unconfirmed');
+    expect(namedRecordDate({ proof: reported, anchor: 'checking' })).toBe('checking');
+    expect(namedRecordDate({ proof: reported, anchor: failed })).toBe('failed');
+    expect(namedRecordDate({ proof: reported, anchor: checked })).toBe('dated');
+    const line = (dates: Parameters<typeof claimVerdict>[0]['dates']) =>
+      claimVerdict({ readable: true, off: false, verdict: ok, more: [], dates });
+    expect(line(['dated'])?.tone).toBe('ok');
+    expect(line(['dated', 'dated'])?.tone).toBe('ok');
+    expect(line(['unconfirmed'])).toMatchObject({ tone: 'warn', key: 'app.claim.verdict.notDated' });
+    // One of two records undated is enough: a claim about two records names both.
+    expect(line(['dated', 'unconfirmed'])).toMatchObject({ tone: 'warn', key: 'app.claim.verdict.notDated' });
+    expect(line(['dated', 'failed'])).toMatchObject({ tone: 'warn', key: 'app.claim.verdict.dateFailed' });
+    expect(line(['dated', 'checking'])?.tone).toBe('wait');
+    // A failed claim stays a failure, whatever the dates.
+    expect(
+      claimVerdict({ readable: true, off: false, verdict: { ok: false, reason: 'x' }, more: [], dates: ['dated'] })
+        ?.tone,
+    ).toBe('fail');
+  });
+
+  it('both claim check pages hand every named record’s date to the top line', async () => {
+    const fs = await import('node:fs');
+    const read = (f: string) => fs.readFileSync(new URL(`../document/${f}`, import.meta.url), 'utf8');
+    expect(read('ClaimCheck.tsx')).toMatch(/dates: \[namedRecordDate\(recordDate\)\]/);
+    expect(read('TwoClaimCheck.tsx')).toMatch(/dates: \[namedRecordDate\(firstDate\), namedRecordDate\(secondDate\)\]/);
   });
 });

@@ -326,6 +326,7 @@ describe('every step a screen can send has a receipt', () => {
     'components/lab-import/BulkImportPage.tsx': ['anchor'],
     'components/document/ProveNumber.tsx': ['proveValue', 'proveRange'],
     'components/document/LabSignaturePanel.tsx': ['proveAttested'],
+    'components/document/TwoRecordClaims.tsx': ['proveDistinct', 'proveUnchanged'],
     'components/licensing/RealLicensePanel.tsx': ['issueLicense', 'revokeLicense'],
     'components/licensing/LicenseInvitePage.tsx': ['countersignLicense'],
     'components/licensing/LicenseProof.tsx': ['proveLicense'],

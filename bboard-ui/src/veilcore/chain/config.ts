@@ -324,8 +324,18 @@ const claimsAddr = (env.VITE_REAL_CHAIN_CLAIMS_ADDRESS ?? '').trim().toLowerCase
 /** The claims contract this build calls, or undefined when none is configured. */
 export const CLAIMS_CONTRACT: string | undefined = /^[0-9a-f]{64}$/.test(claimsAddr) ? claimsAddr : undefined;
 
-/** The claims circuits the browser may call. proveRange is k=16, proveValue k=15, proveAttested k=13. */
-export const CLAIMS_BROWSER_CIRCUITS = ['proveRange', 'proveValue', 'proveAttested'] as const;
+/**
+ * The claims circuits the browser may call. proveRange is k=16, proveValue k=15, proveAttested
+ * k=13; proveDistinct and proveUnchanged (two records, two-record-claims.ts) are k=17, and the
+ * sponsor doesn't pay for those two yet (config/copy.ts TWO_RECORD_CLAIMS_SPONSORED).
+ */
+export const CLAIMS_BROWSER_CIRCUITS = [
+  'proveRange',
+  'proveValue',
+  'proveAttested',
+  'proveDistinct',
+  'proveUnchanged',
+] as const;
 export type ClaimsCircuit = (typeof CLAIMS_BROWSER_CIRCUITS)[number];
 
 /** Why this build can't make claims, or undefined when it can. */

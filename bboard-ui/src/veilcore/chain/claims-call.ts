@@ -3,6 +3,12 @@
 // published), or is a stated value (proveValue; the value is published). Paid for by the
 // sponsor, like every call this site makes (sponsor/src/policy.ts CLAIMS_CIRCUITS).
 //
+// Two more are about a pair of the holder's records (two-record-claims.ts): they differ in at
+// least k of their form's compared numbers (proveDistinct), or a correction changed nothing
+// outside a published list (proveUnchanged). Both records' numbers and salts are the private
+// input. The sponsor doesn't pay for these two yet (config/copy.ts TWO_RECORD_CLAIMS_SPONSORED),
+// so a call reaches it and is refused there, after proving: the page doesn't offer the button.
+//
 // The same steps as the main contract's calls (actions.ts): run the circuit here against the
 // contract's current state (a false bound is refused here, before anything is proved or sent),
 // check the site's proving files are the contract's own, prove in the worker, seal, hand to the
@@ -24,6 +30,7 @@ import { makeProviders, PRIVATE_STATE_ID, type Hooks } from './providers';
 import { setProverProgress } from './prover';
 import { browserCallDeps, type CallDeps } from './prover-choice';
 import { slotInput, type ClaimMaterial } from '../claims-input';
+import { maskOf } from '../two-record-claims';
 import { signatureParts, type LabSignature } from '../lab-attest';
 import { verifyRecordSignature } from '../../../../contract/src/attest';
 import { fromSerialized } from '../../../../contract/src/contract-state';
@@ -206,4 +213,70 @@ export const proveAttestedOnChain = async (
   if (!verifyRecordSignature(key, m.commitment, signature))
     throw new Error('That signature doesn’t check: it wasn’t made for this record by that key.');
   return claimCall('proveAttested', [m.commitment], { attester: key, signature }, opts);
+};
+
+const sameSchema = (a: ClaimMaterial, b: ClaimMaterial): boolean => sameBytes(a.schemaId, b.schemaId);
+const zero = (v: Uint8Array): boolean => v.every((x) => x === 0);
+
+/**
+ * Records `a` and `b` differ in at least k of their form's compared numbers (k and which numbers
+ * are compared are the form's). Counted here first, as the contract counts, so a pair that
+ * doesn't is refused before a minute of proving. Publishes both records' commitments and the
+ * form, never which numbers differ or how many.
+ */
+export const proveDistinctOnChain = (
+  a: ClaimMaterial,
+  b: ClaimMaterial,
+  opts: ClaimCallOptions = {},
+): Promise<ClaimReceipt> => {
+  if (sameBytes(a.commitment, b.commitment))
+    return Promise.reject(new Error('That is the same record. Pick a different one.'));
+  if (!sameSchema(a, b))
+    return Promise.reject(new Error('The two records use different forms, so their numbers can’t be compared.'));
+  const differing = a.terms.comparable.filter((c, i) => {
+    const x = a.fieldSet.values[i];
+    const y = b.fieldSet.values[i];
+    return c && !zero(x) && !zero(y) && !sameBytes(x, y);
+  }).length;
+  if (a.terms.k < 1n || BigInt(differing) < a.terms.k)
+    return Promise.reject(
+      new Error(
+        'These two records don’t differ in enough of the compared numbers, so this can’t be proved. Nothing was sent.',
+      ),
+    );
+  return claimCall(
+    'proveDistinct',
+    [a.commitment, b.commitment],
+    { first: a.fieldSet, second: b.fieldSet, terms: a.terms },
+    opts,
+  );
+};
+
+/**
+ * Outside the slots in `mayChange`, `corrected` holds the same numbers as `original`. Checked
+ * here first, as the contract checks it, so a correction that changed a number it doesn't list
+ * is refused before a minute of proving. Publishes both commitments, the form and the list.
+ */
+export const proveUnchangedOnChain = (
+  original: ClaimMaterial,
+  corrected: ClaimMaterial,
+  mayChange: readonly number[],
+  opts: ClaimCallOptions = {},
+): Promise<ClaimReceipt> => {
+  if (sameBytes(original.commitment, corrected.commitment))
+    return Promise.reject(new Error('That is the same record. Pick a different one.'));
+  if (!sameSchema(original, corrected))
+    return Promise.reject(new Error('The two records use different forms, so their numbers can’t be compared.'));
+  const mask = maskOf(mayChange);
+  const kept = mask.every((free, i) => free || sameBytes(original.fieldSet.values[i], corrected.fieldSet.values[i]));
+  if (!kept)
+    return Promise.reject(
+      new Error('A number that isn’t in your list changed, so this can’t be proved. Nothing was sent.'),
+    );
+  return claimCall(
+    'proveUnchanged',
+    [original.commitment, corrected.commitment, original.schemaId, mask],
+    { first: original.fieldSet, second: corrected.fieldSet },
+    opts,
+  );
 };

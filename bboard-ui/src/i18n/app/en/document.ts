@@ -181,6 +181,10 @@ export const document = {
   'app.claim.verdict.labFailed': 'This claim checked out, but the lab’s signature on it didn’t. See below.',
   'app.claim.verdict.someFailed': 'This claim checked out, but another one in this link didn’t. See below.',
   'app.claim.verdict.okWhen': 'Proved on {date}. Checked in your browser.',
+  'app.claim.verdict.notDated':
+    'This claim checked out, but no date on Midnight was confirmed for a record it names. Don’t rely on it until that record shows a date.',
+  'app.claim.verdict.dateFailed':
+    'This claim checked out, but the date of a record it names didn’t. Don’t rely on that record’s date.',
   'app.claim.verdict.ok': 'This claim checked out in your browser.',
   'app.claim.verdict.labConflict':
     'This claim checked out, but more than one lab claims the key that signed it, so read the numbers as the holder’s own. See below.',

@@ -24,7 +24,7 @@ import { anchoredFingerprintOf, claimsOf, readClaimLink, type ClaimVerdict } fro
 import { isMarkerSchema, joinedPlacement, markerSourceKey, offerOf } from '../../veilcore/marker-claims';
 import { DatedNotOrigin } from '../verify/DatedNotOrigin';
 import { CheckVerdict, CheckYourself, MakeYourOwn } from '../verify/CheckParts';
-import { claimVerdict, VERDICT_DATE } from '../verify/verdict';
+import { claimVerdict, namedRecordDate, VERDICT_DATE } from '../verify/verdict';
 import { useT } from '../../i18n/app';
 import { DocumentDateView, Fact } from './DocumentParts';
 import { useRecordDate } from '../verify/useAnchorCheck';
@@ -43,8 +43,19 @@ import { ViabilityNotRead } from '../lab/ResultFacts';
 import { NETWORK, viabilityNotRead } from '../../config/network';
 import { withdrawnWords } from '../lab/signer-words';
 import { errorReason } from '../../i18n/error-words';
+import { isTwoClaimHash } from '../../veilcore/two-record-claims';
+import { TwoClaimCheck } from './TwoClaimCheck';
 
+/**
+ * /check-claim: a claim about one number (#c=…), or about two records (#p=…, TwoClaimCheck.tsx),
+ * each on its own page so neither's words can show on the other's.
+ */
 export const ClaimCheck: React.FC = () => {
+  const { hash } = useLocation();
+  return isTwoClaimHash(hash) ? <TwoClaimCheck /> : <OneClaimCheck />;
+};
+
+const OneClaimCheck: React.FC = () => {
   const tr = useT();
   const { t } = tr;
   const { hash } = useLocation();
@@ -136,6 +147,7 @@ export const ClaimCheck: React.FC = () => {
     verdict,
     more: more.map((_, i) => moreVerdicts[i]),
     stillTesting: testingDate,
+    dates: [namedRecordDate(recordDate)],
   });
   // The lab's signer, with its key's level (docs/lab-identity-levels.md), when the registry tied it.
   const signer = verdict?.ok && verdict.lab?.ok ? verdict.lab.signer : undefined;

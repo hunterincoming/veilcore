@@ -229,7 +229,7 @@ export const RestorePage: React.FC = () => {
                     ? tr.tp('app.account.restore.welcome', allRecords().length)
                     : done.records > 0 || done.holderKey === 'restored'
                       ? t('app.backup.plantsBack')
-                      : done.labSignature || labWork(done, tr)
+                      : done.labSignature || labWork(done, tr) || done.licenses || done.receiving
                         ? t('app.backup.restored')
                         : t('app.backup.nothingNew')}
                 </Typography>

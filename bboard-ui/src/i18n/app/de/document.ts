@@ -182,6 +182,10 @@ export const document = {
   'app.claim.verdict.someFailed':
     'Dieser Beleg hat die Prüfung bestanden, ein anderer in diesem Link aber nicht. Siehe unten.',
   'app.claim.verdict.okWhen': 'Belegt am {date}. In Ihrem Browser geprüft.',
+  'app.claim.verdict.notDated':
+    'Dieser Beleg hat die Prüfung bestanden, aber für einen Datensatz, den er nennt, wurde kein Datum auf Midnight bestätigt. Verlassen Sie sich nicht darauf, bis dieser Datensatz ein Datum zeigt.',
+  'app.claim.verdict.dateFailed':
+    'Dieser Beleg hat die Prüfung bestanden, das Datum eines Datensatzes, den er nennt, aber nicht. Verlassen Sie sich nicht auf das Datum dieses Datensatzes.',
   'app.claim.verdict.ok': 'Dieser Beleg hat die Prüfung in Ihrem Browser bestanden.',
   'app.claim.verdict.labConflict':
     'Dieser Beleg hat die Prüfung bestanden, aber mehr als ein Labor beansprucht den Schlüssel, der ihn signiert hat. Lesen Sie die Zahlen daher als Angabe des Inhabers. Siehe unten.',

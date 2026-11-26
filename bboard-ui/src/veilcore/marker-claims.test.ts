@@ -16,6 +16,7 @@ import {
   MARKER_OFFERS,
   MATCH_SCHEMA,
   distinctOffered,
+  isMarkerSchema,
   isExactCount,
   joinedCounts,
   linkClaims,
@@ -24,7 +25,7 @@ import {
   panelClaims,
   roundedBound,
 } from './marker-claims';
-import { SCHEMAS } from './field-set';
+import { LAB_ONLY_SCHEMAS, SCHEMAS } from './field-set';
 import { PARENTAGE_SCHEMA } from './parentage';
 import { CALL_SCHEMA, type LabResultStatement } from './lab-result';
 import { CALL_WORDS } from './claim-call';
@@ -342,9 +343,19 @@ describe('what is already public is counted per sample', () => {
 });
 
 describe('"differs in at least k values" only under a form made for it', () => {
-  it('is offered under no published form today', () => {
-    expect(DISTINCT_SCHEMAS).toEqual([]);
-    for (const id of Object.keys(SCHEMAS)) expect(distinctOffered(id), id).toBe(false);
+  it('is offered only under the forms a holder types in, never a lab’s result form', () => {
+    expect(DISTINCT_SCHEMAS).toEqual([
+      'veilcore/schema/potency/v1',
+      'veilcore/schema/seed-quality/v1',
+      'veilcore/schema/grow-batch/v1',
+      'veilcore/schema/harvest-lot/v1',
+    ]);
+    for (const id of DISTINCT_SCHEMAS) {
+      expect(SCHEMAS[id], id).toBeDefined();
+      expect(LAB_ONLY_SCHEMAS, id).not.toContain(id);
+      expect(isMarkerSchema(id), id).toBe(false);
+    }
+    for (const id of LAB_ONLY_SCHEMAS) expect(distinctOffered(id), id).toBe(false);
   });
 
   it('the hazard the allowlist guards: the comparison forms mark their call comparable with k = 1', () => {

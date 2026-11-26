@@ -181,6 +181,10 @@ export const document = {
   'app.claim.verdict.someFailed':
     'Cette preuve a passé la vérification, mais pas une autre de ce lien. Voir ci-dessous.',
   'app.claim.verdict.okWhen': 'Prouvé le {date}. Vérifié dans votre navigateur.',
+  'app.claim.verdict.notDated':
+    'Cette preuve a passé la vérification, mais aucune date sur Midnight n’a été confirmée pour un enregistrement qu’elle nomme. Ne vous y fiez pas tant que cet enregistrement n’affiche pas de date.',
+  'app.claim.verdict.dateFailed':
+    'Cette preuve a passé la vérification, mais pas la date d’un enregistrement qu’elle nomme. Ne vous fiez pas à la date de cet enregistrement.',
   'app.claim.verdict.ok': 'Cette preuve a passé la vérification dans votre navigateur.',
   'app.claim.verdict.labConflict':
     'Cette preuve a passé la vérification, mais plusieurs laboratoires disent détenir la clé qui l’a signée : lisez les chiffres comme la déclaration du détenteur. Voir ci-dessous.',

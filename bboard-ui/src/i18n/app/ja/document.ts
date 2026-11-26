@@ -178,6 +178,10 @@ export const document = {
   'app.claim.verdict.someFailed':
     'このクレームは確認できましたが、このリンクにある別のクレームは通りませんでした。下を見てください。',
   'app.claim.verdict.okWhen': '{date}に証明されています。このブラウザで確認しました。',
+  'app.claim.verdict.notDated':
+    'このクレームは確認できましたが、名前の挙がった記録のMidnight上の日付は確認できていません。その記録に日付が表示されるまで当てにしないでください。',
+  'app.claim.verdict.dateFailed':
+    'このクレームは確認できましたが、名前の挙がった記録の日付は確認できませんでした。その記録の日付を当てにしないでください。',
   'app.claim.verdict.ok': 'このクレームはこのブラウザで確認できました。',
   'app.claim.verdict.labConflict':
     'このクレームは確認できましたが、署名した鍵を複数のラボが自分の鍵だとしているため、数値は保有者自身の申告として読んでください。下を見てください。',

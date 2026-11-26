@@ -726,11 +726,20 @@ describe('Ledger type stays what the pages read', () => {
   });
 });
 
-describe('the e2e fixture page is only in the e2e build', () => {
-  it('App adds the route only under VITE_E2E_FIXTURES=1, and only e2e:build sets it', () => {
+describe('the e2e fixture pages are only in the e2e build', () => {
+  it('App adds the fixture routes only under VITE_E2E_FIXTURES=1, and only e2e:build sets it', () => {
     const app = readFileSync(new URL('../App.tsx', import.meta.url), 'utf8');
     expect(app).toMatch(/const E2E_FIXTURES = import\.meta\.env\.VITE_E2E_FIXTURES === '1';/);
     expect(app).toMatch(/const RoyaltyPayFixture = E2E_FIXTURES\s*\?/);
+    // The backup restore drill's page too (e2e-fixtures/RestoreDrillFixture.tsx): never in a real build.
+    expect(app).toMatch(/const RestoreDrillFixture = E2E_FIXTURES\s*\?/);
+    expect(app).toMatch(/\{RestoreDrillFixture && \(\s*<Route\s+path="\/e2e\/restore-drill"/);
+    // Every fixture page's import sits behind the flag: none is imported any other way.
+    for (const m of app.matchAll(/import\('\.\/e2e-fixtures\/(\w+)'\)/g))
+      expect(app, m[1]).toMatch(
+        new RegExp(`const ${m[1]} = E2E_FIXTURES\\s*\\?\\s*page\\(\\(\\) => import\\('\\./e2e-fixtures/${m[1]}'\\)`),
+      );
+    expect(app).not.toMatch(/^import[^;]*e2e-fixtures/m);
     const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as {
       scripts: Record<string, string>;
     };
