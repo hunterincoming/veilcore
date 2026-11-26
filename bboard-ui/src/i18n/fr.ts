@@ -53,7 +53,7 @@ export const fr: Strings = {
     'Il est demandé tant que vos enregistrements n’ont pas d’autre moyen de revenir. Le fichier de sauvegarde en est un : il récupère vos enregistrements sur un nouveau téléphone ou ordinateur, même sans VeilCore. Les sauvegarder chez VeilCore, avec le verrouillage de cet appareil, en est un autre ; le fichier est alors à votre choix. VeilCore ne peut ni récupérer le fichier ni en refaire un.',
   'm.help.backup.2q': 'Où dois-je le conserver ?',
   'm.help.backup.2a':
-    'Sur une clé USB ou dans un gestionnaire de mots de passe, et aussi à un deuxième endroit. Toute personne qui a le fichier peut ouvrir vos enregistrements et agir en votre nom. Ajoutez un mot de passe en l’enregistrant : le fichier seul n’ouvre alors rien. Si vous oubliez le mot de passe, personne ne peut ouvrir le fichier, nous non plus.',
+    'Sur une clé USB ou dans un gestionnaire de mots de passe, et aussi à un deuxième endroit. Toute personne qui a le fichier peut ouvrir vos enregistrements et agir en votre nom. Ajoutez un mot de passe en l’enregistrant : le fichier seul n’ouvre alors rien. Le fichier d’un laboratoire en a toujours un, car il contient la clé de signature du laboratoire. Si vous oubliez le mot de passe, personne ne peut ouvrir le fichier, nous non plus.',
   'm.help.backup.3q': 'J’ai perdu ma sauvegarde. Que faire ?',
   'm.help.backup.3a':
     'Si ce navigateur a encore vos enregistrements, enregistrez tout de suite une nouvelle sauvegarde. Sinon, personne ne peut ouvrir les copies verrouillées sur notre serveur, VeilCore non plus. Le site proposera de les supprimer et de repartir avec une nouvelle clé. Les enregistrements déjà datés restent datés, mais vous ne pouvez plus montrer qu’ils sont les vôtres.',

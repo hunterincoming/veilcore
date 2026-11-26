@@ -426,3 +426,56 @@ describe("the lab's key in the backup (labKeyBackedUp)", () => {
     expect(lab.labKeyBackedUp()).toBe(false);
   });
 });
+
+describe("a backup holding a lab's signing key needs a password (summit 5b.12)", () => {
+  it('is never written without one, and is written locked with one', async () => {
+    const { backup, h } = await setup();
+    const lab = await import('./attester-keys');
+    expect(backup.backupNeedsPassword()).toBe(false);
+    await lab.createAttester('E2E Lab', 'laboratory');
+    expect(backup.backupNeedsPassword()).toBe(true);
+    await expect(backup.backupFileText()).rejects.toThrow(backup.LAB_KEY_NEEDS_PASSWORD);
+    await expect(backup.backupFileText('')).rejects.toThrow(backup.LAB_KEY_NEEDS_PASSWORD);
+    // Saving without the text (which would write the contents as they are) is refused before anything is made.
+    expect(() => backup.downloadBackupAll()).toThrow(backup.LAB_KEY_NEEDS_PASSWORD);
+
+    const text = await backup.backupFileText('correct horse battery', Date.now(), 1000);
+    expect(JSON.parse(text)).toMatchObject({ version: 4 });
+    const privateKey = lab.loadAttester()!.keypair.privateKey;
+    for (const secret of [privateKey, h.toLowerCase()]) expect(text).not.toContain(secret);
+    // The reason is said in every language.
+    const { backupMessageWords } = await import('../components/flow/backup-words');
+    const { makeTranslator } = await import('../i18n/translate');
+    const { appJa } = await import('../i18n/app/ja');
+    const ja = makeTranslator('ja', appJa);
+    expect(backupMessageWords(backup.LAB_KEY_NEEDS_PASSWORD, ja)).toBe(ja.t('app.backup.pw.required'));
+    expect(ja.t('app.backup.pw.required')).not.toBe(backup.LAB_KEY_NEEDS_PASSWORD);
+  });
+
+  it('a backup without a lab key can still be saved without a password, as before', async () => {
+    const { backup } = await setup();
+    expect(backup.backupNeedsPassword()).toBe(false);
+    const text = await backup.backupFileText();
+    expect(JSON.parse(text)).toMatchObject({ version: 3 });
+    expect(JSON.parse(text)).not.toHaveProperty('labSignature');
+    expect((await backup.checkBackup(fileOf(text))).ok).toBe(true);
+  });
+
+  it('an older file without a password that holds a lab key still checks and restores', async () => {
+    const { keys, backup } = await setup();
+    const lab = await import('./attester-keys');
+    await lab.createAttester('E2E Lab', 'laboratory');
+    const pub = lab.loadAttester()!.keypair.publicKey;
+    // Made the way the app made it before this change: the version 3 contents, as they are.
+    const old = JSON.stringify(backup.backupContents(), null, 2);
+    expect(JSON.parse(old)).toMatchObject({ version: 3, labSignature: { keypair: { publicKey: pub } } });
+    expect((await backup.checkBackup(fileOf(old))).ok).toBe(true);
+    // A new browser.
+    local.clear();
+    keys.__resetRecordKeysForTests();
+    expect(lab.loadAttester()).toBeNull();
+    const r = await backup.restoreAny(fileOf(old));
+    expect(r).toMatchObject({ labSignature: true, records: 2 });
+    expect(lab.loadAttester()?.keypair.publicKey).toBe(pub);
+  });
+});

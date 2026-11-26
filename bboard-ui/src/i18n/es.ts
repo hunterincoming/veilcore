@@ -54,7 +54,7 @@ export const es: Strings = {
     'Se lo pide mientras sus registros no tengan otra forma de volver. El archivo de copia de seguridad es una forma: recupera sus registros en un teléfono o una computadora nuevos, incluso sin VeilCore. Guardarlos con VeilCore, con el bloqueo de este dispositivo, es otra; entonces el archivo queda a su criterio. VeilCore no puede recuperar el archivo ni hacer otro.',
   'm.help.backup.2q': '¿Dónde debo guardarlo?',
   'm.help.backup.2a':
-    'En una memoria USB o en un gestor de contraseñas, y además en un segundo lugar. Quien tenga el archivo puede abrir sus registros y actuar en su nombre. Agregue una contraseña al guardarlo: así el archivo por sí solo no abre nada. Si olvida la contraseña, nadie puede abrir el archivo, tampoco nosotros.',
+    'En una memoria USB o en un gestor de contraseñas, y además en un segundo lugar. Quien tenga el archivo puede abrir sus registros y actuar en su nombre. Agregue una contraseña al guardarlo: así el archivo por sí solo no abre nada. El archivo de un laboratorio siempre lleva una, porque contiene la clave de firma del laboratorio. Si olvida la contraseña, nadie puede abrir el archivo, tampoco nosotros.',
   'm.help.backup.3q': 'Perdí mi copia de seguridad. ¿Y ahora?',
   'm.help.backup.3a':
     'Si este navegador todavía tiene sus registros, guarde ahora una copia de seguridad nueva. Si no, nadie puede abrir las copias cifradas en nuestro servidor, tampoco VeilCore. El sitio le ofrecerá borrarlas y empezar con una clave nueva. Los registros ya fechados siguen fechados, pero usted ya no puede demostrar que son suyos.',

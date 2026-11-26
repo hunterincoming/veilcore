@@ -44,6 +44,8 @@ export const backup = {
   'app.backup.pw.add': 'Cerrarlo con una contraseña (recomendado)',
   'app.backup.pw.why':
     'Así, el archivo por sí solo no abre nada: quien lo tenga también necesita la contraseña. Si la olvida, nadie puede abrir el archivo, ni siquiera nosotros.',
+  'app.backup.pw.required':
+    'Hace falta una contraseña: este archivo contiene la clave de firma de su laboratorio, y quien lo tuviera podría firmar resultados en nombre de su laboratorio.',
   'app.backup.pw.label': 'Contraseña del archivo de copia de seguridad',
   'app.backup.pw.again': 'Escríbala otra vez',
   'app.backup.pw.short': 'Al menos {n} caracteres.',

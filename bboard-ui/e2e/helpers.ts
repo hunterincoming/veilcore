@@ -114,29 +114,43 @@ export const isolate = async (page: Page, handlers: Record<string, Handler> = {}
 // yet"), and a lab can't receive a delivery. So every test that saves does what a person
 // does: save the backup file, then open it again so the app checks it.
 
+/** The password a test types when the backup step requires one (a lab's file). Practice data only. */
+export const E2E_BACKUP_PASSWORD = 'practice backup password';
+
 /**
  * The backup step's password is on by default (22 Nov): a test that saves a file without one
- * switches it off first, as a person choosing no password would.
+ * switches it off first, as a person choosing no password would. A file holding a lab's
+ * signing key has no switch (summit 5b.12): the password is typed instead, and returned.
  */
-export const noBackupPassword = async (page: Page): Promise<void> => {
+export const noBackupPassword = async (page: Page): Promise<string | undefined> => {
   // The step is on screen first: a switch looked for before it renders would be missed.
   await page
     .getByRole('button', { name: /Save backup file/ })
     .first()
     .waitFor({ timeout: 90_000 });
+  if (await page.locator('[data-backup-password-required]').count()) {
+    await page.getByLabel('Password for the backup file').fill(E2E_BACKUP_PASSWORD);
+    await page.getByLabel('Type it again').fill(E2E_BACKUP_PASSWORD);
+    return E2E_BACKUP_PASSWORD;
+  }
   const sw = page.locator('[data-backup-password] input[type="checkbox"]');
   if ((await sw.count()) && (await sw.first().isChecked())) await sw.first().click();
+  return undefined;
 };
 
 /** On a page showing the backup step: save the file, open it again, and see the check pass. Returns the file. */
 export const saveAndCheckBackup = async (page: Page): Promise<string> => {
-  await noBackupPassword(page);
+  const password = await noBackupPassword(page);
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: /Save backup file/ }).click();
   const file = await (await download).path();
   const chooser = page.waitForEvent('filechooser');
   await page.getByRole('button', { name: /Open my saved copy/ }).click();
   await (await chooser).setFiles(file);
+  if (password) {
+    await page.getByLabel("The backup's password").fill(password);
+    await page.getByRole('button', { name: 'Open it' }).click();
+  }
   await expect(page.getByText('It works.')).toBeVisible();
   return file;
 };

@@ -170,8 +170,10 @@ Then the examiner's "prove it's distinct" screens, and the company side of signi
 
 ## Open decisions
 
-- Encrypt the backup file with a password? A password can be forgotten (the restore
-  failure the research measured). Until decided, steer people to Drive, iCloud or USB as
-  well as email. Decide before mainnet.
+- ~~Encrypt the backup file with a password?~~ Decided: the backup screen offers one, on by
+  default, and a person can switch it off (a password can be forgotten, the restore failure the
+  research measured). A file that holds a lab's signing key always gets one, with no switch:
+  whoever had that file could sign results as the lab (summit, 25 Nov). Older files without a
+  password still restore. How the file is locked is in `bboard-ui/src/veilcore/backup.ts`.
 - Keep or drop the per-record anchor panel's "backup first" rule on the plant page (the
   new flow date-stamps before the backup when the browser keeps storage).

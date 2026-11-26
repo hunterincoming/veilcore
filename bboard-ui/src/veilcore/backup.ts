@@ -20,13 +20,17 @@
 //     (`receiving`). Optional fields are how version 3 grows: a file without one restores as
 //     before, and the version changes only when an older app would misread the file.
 //
-// A password on the file is offered, and suggested, not forced (persona review, 17 Oct): the
-// file opens every locked detail, so an email account that gets broken into would leak it. A
-// file with a password is version 4: { format, version: 4, warning, savedAt, locked } where
+// A password on the file (persona review, 17 Oct): the file opens every locked detail, so an
+// email account that gets broken into would leak it. The backup screen turns it on by default
+// (full review, 22 Nov) and lets a person switch it off, except when the file holds a lab's
+// signing key: then it is required (summit, 25 Nov), because whoever had that file could sign
+// results as the lab, for any record, with no way to tell them apart. backupFileText and
+// downloadBackupAll refuse to write such a file without one. A file with a password is version 4: { format, version: 4, warning, savedAt, locked } where
 // `locked` holds the version 3 JSON sealed with AES-256-GCM under a key made from the password
 // with PBKDF2-SHA256 (at least 600,000 iterations, a random 16-byte salt). Opening it asks for
 // the password; a wrong one changes nothing. A file without a password stays version 3 and
-// works as before. The password is never stored or sent anywhere.
+// works as before, and an older one without a password restores as before even when it holds a
+// lab key: only writing a new one is refused. The password is never stored or sent anywhere.
 // SPDX-License-Identifier: Apache-2.0
 
 import { holderKeyIfAny, setHolderKey } from './holder';
@@ -205,6 +209,11 @@ const LOCKED_WARNING =
 
 /** backup.ts's words for a locked file (backup-words.ts translates them). */
 export const NEEDS_PASSWORD = enT.t('app.backup.pw.needed');
+/** Thrown when a file holding a lab's signing key would be written without a password. */
+export const LAB_KEY_NEEDS_PASSWORD = enT.t('app.backup.pw.required');
+
+/** Whether a file made now holds a lab's signing key, so it can't be saved without a password. */
+export const backupNeedsPassword = (): boolean => loadAttester() !== null;
 export const WRONG_PASSWORD = enT.t('app.backup.pw.wrong');
 
 /** Thrown by restoreAny for a locked file opened without its password. Nothing was changed. */
@@ -330,6 +339,7 @@ export const backupFileText = async (
   iterations: number = BACKUP_PBKDF2_ITERATIONS,
 ): Promise<string> => {
   const contents = await withRecordsAndProofs(backupContents(now));
+  if (!password && contents.labSignature !== undefined) throw new Error(LAB_KEY_NEEDS_PASSWORD);
   return JSON.stringify(password ? await lockBackup(contents, password, iterations) : contents, null, 2);
 };
 
@@ -464,6 +474,8 @@ export const hasAnythingToBackUp = (): boolean =>
  */
 export const downloadBackupAll = (now = Date.now(), text?: string, label?: string): string => {
   const name = backupFileName(now, label);
+  // Without the text (made by backupFileText), the file would be written as it is: never with a lab key.
+  if (text === undefined && backupNeedsPassword()) throw new Error(LAB_KEY_NEEDS_PASSWORD);
   const blob = new Blob([text ?? JSON.stringify(backupContents(now), null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

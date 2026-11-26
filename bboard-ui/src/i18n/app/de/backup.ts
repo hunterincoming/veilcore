@@ -44,6 +44,8 @@ export const backup = {
   'app.backup.pw.add': 'Mit einem Passwort verschlüsseln (empfohlen)',
   'app.backup.pw.why':
     'Dann öffnet die Datei allein nichts: Wer sie hat, braucht auch das Passwort. Wenn Sie es vergessen, kann niemand die Datei öffnen, auch wir nicht.',
+  'app.backup.pw.required':
+    'Ein Passwort ist nötig: Diese Datei enthält den Signaturschlüssel Ihres Labors, und wer sie hätte, könnte Ergebnisse im Namen Ihres Labors signieren.',
   'app.backup.pw.label': 'Passwort für die Sicherungsdatei',
   'app.backup.pw.again': 'Noch einmal eingeben',
   'app.backup.pw.short': 'Mindestens {n} Zeichen.',

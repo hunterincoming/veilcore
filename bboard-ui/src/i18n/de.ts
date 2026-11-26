@@ -53,7 +53,7 @@ export const de: Strings = {
     'Sie wird erfragt, solange Ihre Datensätze keinen anderen Weg zurück haben. Die Sicherungsdatei ist ein Weg: Sie holt Ihre Datensätze auf einem neuen Handy oder Computer zurück, sogar ohne VeilCore. Sie bei VeilCore zu speichern, mit der Sperre dieses Geräts, ist ein anderer; dann ist die Datei Ihre Wahl. VeilCore kann die Datei weder wiederherstellen noch neu erstellen.',
   'm.help.backup.2q': 'Wo bewahre ich sie auf?',
   'm.help.backup.2a':
-    'Auf einem USB-Stick oder in einem Passwortmanager, und zusätzlich an einem zweiten Ort. Wer die Datei hat, kann Ihre Datensätze öffnen und in Ihrem Namen handeln. Geben Sie beim Speichern ein Passwort an: Dann öffnet die Datei allein nichts. Wenn Sie das Passwort vergessen, kann niemand die Datei öffnen, auch wir nicht.',
+    'Auf einem USB-Stick oder in einem Passwortmanager, und zusätzlich an einem zweiten Ort. Wer die Datei hat, kann Ihre Datensätze öffnen und in Ihrem Namen handeln. Geben Sie beim Speichern ein Passwort an: Dann öffnet die Datei allein nichts. Die Datei eines Labors bekommt immer eines, weil sie den Signaturschlüssel des Labors enthält. Wenn Sie das Passwort vergessen, kann niemand die Datei öffnen, auch wir nicht.',
   'm.help.backup.3q': 'Ich habe meine Sicherungskopie verloren. Was nun?',
   'm.help.backup.3a':
     'Wenn dieser Browser Ihre Datensätze noch hat, speichern Sie jetzt eine neue Sicherungskopie. Wenn nicht, kann niemand die verschlossenen Kopien auf unserem Server öffnen, auch VeilCore nicht. Die Website bietet dann an, sie zu löschen und einen neuen Schlüssel zu beginnen. Bereits datierte Datensätze bleiben datiert, aber Sie können nicht mehr zeigen, dass es Ihre sind.',
