@@ -115,6 +115,7 @@ import {
 import { useAnchorCheck, useRecordDate } from '../components/verify/useAnchorCheck';
 import { useBitcoinCheck } from '../components/verify/useBitcoinCheck';
 import { BitcoinCheckAction } from '../components/verify/BitcoinCheckAction';
+import { evidenceLayers } from '../components/verify/evidence-layers';
 import { deletedDateKey } from '../components/verify/deleted-words';
 import { utcSeconds, utcStamp } from '../veilcore/time';
 import { useInstantStamp } from '../veilcore/instant-stamp';
@@ -595,6 +596,18 @@ export const VerifyPage: React.FC = () => {
   // Lab report signatures made before round 6, which the registry shows only to the breeder and
   // the lab (CONTRACT.md #34): said, with their dates, as the registry's report.
   const withheld = withheldLabReports(atts ?? []);
+  // How someone who disagrees can check this: only what this record has (evidence-layers.ts).
+  const layers = evidenceLayers(
+    {
+      bitcoin: !!bitcoin.row,
+      timestamp: instantTokens.length > 0,
+      midnight: proof !== 'checking' && proof.status === 'anchor-reported',
+      path: proof !== 'checking' && proof.status !== 'none',
+      signatures: signed.length > 0,
+      keyBound: result?.keyBound === true,
+    },
+    tr,
+  );
   // Round 6: which file is saved comes from the registry as it is now; the link's `rs` is
   // only a hint from when the link was made (saved-report.ts publicReportLine).
   // The lab status is shared but the holder's pairing values are stale (the registry left
@@ -1116,11 +1129,13 @@ export const VerifyPage: React.FC = () => {
                       <Typography variant="subtitle2" component="h2" sx={{ mb: 0.5 }}>
                         {t('app.verify.layers.title')}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }} data-layer="standard">
-                        {t('app.verify.layers.standard')}
-                      </Typography>
+                      {layers.standard && (
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }} data-layer="standard">
+                          {layers.standard}
+                        </Typography>
+                      )}
                       <Typography variant="body2" color="text.secondary" data-layer="veilcore">
-                        {t('app.verify.layers.veilcore')}
+                        {layers.veilcore}
                       </Typography>
                     </Box>
                   )}

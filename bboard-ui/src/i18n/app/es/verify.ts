@@ -331,11 +331,19 @@ export const verify = {
     'Un acuse de recibo de laboratorio de una muestra de este registro, según el servidor de registros. El titular no ha mostrado qué laboratorio lo firmó.',
   // who-vouches.ts: who stands behind each fact on a check page
   'app.verify.who.viaRelay': 'Leída por medio del relé de VeilCore.',
-  'app.verify.layers.title': 'Cómo puede comprobarlo alguien que no esté de acuerdo',
   'app.verify.layers.standard':
-    'Se puede comprobar con herramientas que VeilCore no escribió: el sello de Bitcoin (el cliente de OpenTimestamps), el token de una autoridad de sellado de tiempo (OpenSSL), la transacción en Midnight (cualquier explorador de Midnight) y las firmas de laboratorios (cualquier herramienta Ed25519). El paquete de evidencia del titular tiene los archivos.',
-  'app.verify.layers.veilcore':
-    'Propio de VeilCore, aún sin auditar: las comprobaciones que hace esta página, cómo la clave del registro queda ligada a él y los datos que se prueban sin mostrarlos.',
+    'Se puede comprobar con herramientas que VeilCore no escribió: {list}. El paquete de evidencia del titular tiene los archivos.',
+  'app.verify.layers.btc': 'el sello de Bitcoin (el cliente de OpenTimestamps)',
+  'app.verify.layers.tsa': 'el token de una autoridad de sellado de tiempo (OpenSSL)',
+  'app.verify.layers.tx':
+    'que la transacción en Midnight existe, se completó y cuándo (cualquier explorador de Midnight)',
+  'app.verify.layers.path': 'el camino del código de prueba a la raíz del lote (cualquier herramienta SHA-256)',
+  'app.verify.layers.sigs': 'las firmas de laboratorios (cualquier herramienta Ed25519)',
+  'app.verify.layers.veilcore': 'Propio de VeilCore, aún sin auditar: {list}.',
+  'app.verify.layers.page': 'las comprobaciones que hace esta página',
+  'app.verify.layers.root': 'leer la raíz del lote en Midnight, que necesita el contrato compilado de VeilCore',
+  'app.verify.layers.key': 'cómo la clave del registro queda ligada a él',
+  'app.verify.layers.title': 'Cómo puede comprobarlo alguien que no esté de acuerdo',
   'app.verify.signerClock': 'Fechado solo por el reloj de quien firmó.',
   'app.verify.who.title': 'En qué se basa cada dato',
   'app.verify.who.date': 'La fecha en Midnight',

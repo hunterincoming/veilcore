@@ -324,11 +324,18 @@ export const verify = {
     'A lab’s receipt for a sample from this record, as the registry reports it. The holder hasn’t shown which lab signed it.',
   // who-vouches.ts: who stands behind each fact on a check page
   'app.verify.who.viaRelay': 'Read through VeilCore’s relay.',
-  'app.verify.layers.title': 'How someone who disagrees can check this',
   'app.verify.layers.standard':
-    'Checkable with tools VeilCore didn’t write: the Bitcoin stamp (the OpenTimestamps client), a timestamp authority’s token (OpenSSL), the Midnight transaction (any Midnight explorer) and lab signatures (any Ed25519 tool). The holder’s evidence bundle has the files.',
-  'app.verify.layers.veilcore':
-    'VeilCore-specific, not yet audited: the checks this page runs, how the record’s key is bound to it, and facts proved without being shown.',
+    'Checkable with tools VeilCore didn’t write: {list}. The holder’s evidence bundle has the files.',
+  'app.verify.layers.btc': 'the Bitcoin stamp (the OpenTimestamps client)',
+  'app.verify.layers.tsa': 'a timestamp authority’s token (OpenSSL)',
+  'app.verify.layers.tx': 'that the Midnight transaction exists, succeeded and when (any Midnight explorer)',
+  'app.verify.layers.path': 'the path from the proof code to the batch root (any SHA-256 tool)',
+  'app.verify.layers.sigs': 'lab signatures (any Ed25519 tool)',
+  'app.verify.layers.veilcore': 'VeilCore-specific, not yet audited: {list}.',
+  'app.verify.layers.page': 'the checks this page runs',
+  'app.verify.layers.root': 'reading the batch root from Midnight, which needs VeilCore’s compiled contract',
+  'app.verify.layers.key': 'how the record’s key is bound to it',
+  'app.verify.layers.title': 'How someone who disagrees can check this',
   'app.verify.signerClock': 'Dated only by the signer’s clock.',
   'app.verify.who.title': 'What each fact rests on',
   'app.verify.who.date': 'The Midnight date',

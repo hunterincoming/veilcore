@@ -127,6 +127,24 @@ describe('RFC 3161 token in the bundle', () => {
     expect(summary).toContain('openssl ts -verify -data root.bin -in root.tst -token_in');
     expect(summary).toContain('The RFC 3161 token: OpenSSL');
     expect(summary).not.toMatch(/certif/i);
+    // No stale "nothing dates it" beside a token, and no line denying the token's standing.
+    expect(summary).toContain(
+      'This record is not dated on Midnight yet. The RFC 3161 token below dates its batch root.',
+    );
+    expect(summary).not.toMatch(/nothing here dates it/);
+    expect(summary).not.toMatch(/any other legally/);
+    expect(summary).toContain('The RFC 3161 token’s standing is in its own line in section 2.');
+    expect(summary).toContain('The timestamp authority’s token, then Midnight once it is dated there.');
+    // Unqualified as far as VeilCore records: it says so and sends the reader to check.
+    const plain = examinerSummaryHtml(
+      { ...ev, batch: { ...ev.batch!, rfc3161: { ...ev.batch!.rfc3161, qualified: undefined } } },
+      [],
+      false,
+    )
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ');
+    expect(plain).toContain('VeilCore doesn’t record whether this authority is qualified. Check its status yourself');
+    expect(plain).not.toMatch(/carries no legal presumption/);
     const files = await bundleFiles(ev, g, { includeKey: false });
     const tst = Object.entries(files).find(([k]) => k.endsWith('proof/root.tst'));
     expect(tst).toBeTruthy();

@@ -198,7 +198,15 @@ describe('EXAMINER-SUMMARY.html', () => {
       text.indexOf('Not checked for you: the Midnight transaction'),
     );
     expect(text).toMatch(/As VeilCore’s registry reported it: nothing in this bundle read it from Midnight for you/);
-    expect(text).toMatch(/Legal standing: not a qualified electronic time stamp/);
+    expect(text).toMatch(/Legal standing: not a qualified electronic time stamp under EU law/);
+    expect(text).toContain('Vermont, 12 V.S.A. § 1913, is one exception');
+    expect(text).not.toMatch(/oldest|most widely used|any other legally/);
+    expect(text).toContain('Bitcoin, then Midnight. Each is separate: any one that checks dates the record.');
+    expect(text).toContain('Neither the Bitcoin stamp nor the Midnight date is a qualified electronic time stamp');
+    expect(text).toContain('That the Midnight transaction exists, succeeded and when: any Midnight explorer.');
+    expect(text).toMatch(
+      /That the Midnight transaction wrote this batch root: reading it needs VeilCore’s compiled contract/,
+    );
     // The two layers, and the reader lines.
     expect(html).toContain('data-layer="standard"');
     expect(text).toMatch(/Checkable with tools VeilCore didn’t write .*The Bitcoin stamp: the OpenTimestamps client/);

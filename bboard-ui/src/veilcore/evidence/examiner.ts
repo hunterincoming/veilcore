@@ -300,7 +300,11 @@ const TSA_STEPS: string[] = [
 const tsaStanding = (q: { scheme: string; trustedList?: string } | undefined): string =>
   q
     ? `Legal standing: VeilCore’s registry stated this authority is qualified under ${oneLine(q.scheme)}${q.trustedList ? ` (${oneLine(q.trustedList)})` : ''}. Check its trusted list yourself for the token’s date. Where it is qualified, EU law presumes a qualified time stamp’s date is accurate (eIDAS Article 41).`
-    : 'Legal standing: VeilCore doesn’t state this authority is qualified, so the token carries no legal presumption. A court weighs it as it would any signed timestamp from that authority.';
+    : 'Legal standing: VeilCore doesn’t record whether this authority is qualified. Check its status yourself on the EU trusted list. If the token is a qualified time stamp, EU law presumes its date is accurate (eIDAS Article 41); if not, a court weighs it as it would any signed timestamp.';
+
+/** Bitcoin's and Midnight's legal standing: not qualified under EU law, and only a few places presume their date. */
+const CHAIN_STANDING =
+  'not a qualified electronic time stamp under EU law (eIDAS), and most places have no law presuming its date (Vermont, 12 V.S.A. § 1913, is one exception). A court weighs it as evidence.';
 
 /**
  * The page. `sigs` are the lab signatures as the holder's browser checked them when the
@@ -322,7 +326,9 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   const banner = test
     ? anchor
       ? `Practice data. This record is dated on ${networkWords(anchor.network)}. A test network can be reset and its dates carry no weight.`
-      : 'This record is not dated on any network yet. Until it is, nothing here dates it.'
+      : tsa || ots?.status === 'bitcoin'
+        ? `This record is not dated on Midnight yet. The ${tsa ? 'RFC 3161 token' : 'Bitcoin stamp'} below dates its batch root.`
+        : 'This record is not dated on any network yet. Until it is, nothing here dates it.'
     : null;
 
   // How it was checked: what the site did when it made the bundle, and what it did not do.
@@ -485,14 +491,24 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     `Who holds the ${subject} or the record now.`,
     'That a signing key belongs to the lab it names. VeilCore doesn’t vouch for anyone.',
     `Any date at all until ${[ots ? 'the Bitcoin stamp checks' : null, tsa ? 'the RFC 3161 token checks' : null, 'the batch root is found in the named Midnight transaction'].filter(Boolean).join(' or ')}.`,
-    `The sealing time in the record, the registry’s “first saw” time${sigs.length ? ' and the time on each lab signature' : ''}: each is one party’s own clock.`,
+    `The sealing time in the record${sigs.length ? ', the registry’s “first saw” time and the time on each lab signature' : ' and the registry’s “first saw” time'}: each is one party’s own clock.`,
   ];
   if (lab)
     doesNot.push(
       `When the lab report was saved to the ${subject}. That came after sealing and isn’t inside the record’s proof code, so the batch doesn’t date it.`,
     );
+  // Bitcoin and Midnight only: the RFC 3161 token's standing is its own line in section 2.
+  const chains = [ots ? 'the Bitcoin stamp' : null, anchor ? 'the Midnight date' : null].filter(
+    (x): x is string => !!x,
+  );
   doesNot.push(
-    'This is not a qualified electronic time stamp (EU eIDAS) or any other legally recognised time stamp. How much weight a court or agency gives it is for them to decide.',
+    `${
+      chains.length === 2
+        ? 'Neither the Bitcoin stamp nor the Midnight date is a qualified electronic time stamp under EU law (eIDAS); most places have no law presuming their date. '
+        : chains.length === 1
+          ? `${chains[0].replace(/^t/, 'T')} is not a qualified electronic time stamp under EU law (eIDAS); most places have no law presuming its date. `
+          : ''
+    }${tsa ? 'The RFC 3161 token’s standing is in its own line in section 2. ' : ''}How much weight a court or agency gives any of it is for them to decide.`,
   );
 
   const steps: string[] = [];
@@ -513,7 +529,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     );
   if (ots) standard.push('The Bitcoin stamp: the OpenTimestamps client, or opentimestamps.org.');
   if (tsa) standard.push('The RFC 3161 token: OpenSSL (openssl ts), with the authority’s own published files.');
-  if (tx) standard.push('The Midnight transaction: any Midnight explorer.');
+  if (tx) standard.push('That the Midnight transaction exists, succeeded and when: any Midnight explorer.');
   if (sigs.length)
     standard.push(
       'The lab signatures: Ed25519, with any Ed25519 tool. The bytes signed follow VeilCore’s published format (SPEC.md).',
@@ -523,7 +539,10 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   ];
   if (keyBound)
     veilcoreOnly.push('How the record’s key is folded into its proof code (key binding): VeilCore’s own scheme.');
-  if (tx) veilcoreOnly.push('VeilCore’s contract on Midnight, which wrote the batch root.');
+  if (tx)
+    veilcoreOnly.push(
+      'That the Midnight transaction wrote this batch root: reading it needs VeilCore’s compiled contract. VeilCore’s contract wrote it.',
+    );
 
   const title = `Examiner summary: ${name} (${ev.record.id})`;
   return `<!doctype html>
@@ -594,12 +613,12 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   ${table(sealedRows(fields), 'sealed')}
 
   <h2>2. The dates</h2>
-  ${ots || tsa ? p('In the order to rely on them: the oldest and most widely used first. Each is separate.', 'muted') : ''}
-  ${ots ? `<h3>Bitcoin (OpenTimestamps)</h3>${table(bitcoinRows)}${p('Legal standing: not a qualified electronic time stamp (EU eIDAS) or any other legally presumed one. A court weighs it as evidence. Bitcoin has run since 2009, and anyone can check the stamp.', 'muted')}` : ''}
+  ${ots || tsa ? p(`${[ots ? 'Bitcoin' : null, tsa ? 'the timestamp authority’s token' : null, anchor ? 'Midnight' : null].filter(Boolean).join(', then ').replace(/^t/, 'T')}${anchor ? '' : ', then Midnight once it is dated there'}. Each is separate: any one that checks dates the record.`, 'muted') : ''}
+  ${ots ? `<h3>Bitcoin (OpenTimestamps)</h3>${table(bitcoinRows)}${p(`Legal standing: ${CHAIN_STANDING} Bitcoin has run since 2009, and anyone can check the stamp.`, 'muted')}` : ''}
   ${tsa ? `<h3>RFC 3161 token from a Time Stamping Authority</h3>${table(tsaRows)}${p(tsaStanding(tsa.qualified), 'muted')}` : ''}
   <h3>Midnight</h3>
   ${table(midnightRows)}
-  ${anchor ? p('As VeilCore’s registry reported it: nothing in this bundle read it from Midnight for you. Legal standing: not a legally presumed time stamp. Midnight is a newer public blockchain; a court weighs it as evidence, and may want an expert to read it.', 'muted') : ''}
+  ${anchor ? p(`As VeilCore’s registry reported it: nothing in this bundle read it from Midnight for you. Legal standing: ${CHAIN_STANDING} Midnight is a newer public blockchain, and a court may want an expert to read it.`, 'muted') : ''}
 
   <h2>3. Proof code and batch</h2>
   ${table(ids)}
