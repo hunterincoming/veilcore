@@ -39,8 +39,10 @@ The app's own code, in several pretend browsers against a stand-in registry:
 - The file opens without the website: the evidence bundle's offline checks (`verify.html`'s own
   code) recompute every record in it, and `npx veilcore-records backup` and `deal` read it with
   the password.
-- Every storage name the site uses is listed as either carried in the backup or not needed after
-  a restore, with the reason. A new one fails the test until someone decides which.
+- Every storage name the site uses (`veilcore.` names anywhere; `veilcore-` and `veilcore:` names
+  in files that touch browser storage, such as the offline worker's IndexedDB `veilcore-offline`)
+  is listed as either carried in the backup or not needed after a restore, with the reason. A new
+  one fails the test until someone decides which.
 
 **`e2e/backup-restore-drill.spec.ts`** (browser test, `npm run e2e:build` then
 `npx playwright test e2e/backup-restore-drill.spec.ts`). The same in a real browser, through the
@@ -88,7 +90,7 @@ Known gaps, not fixed here:
 
 ## The 10-minute manual drill (by hand, a real phone and laptop)
 
-Not done yet. Do it before the raise closes, then once a quarter. It checks what a test can't:
+Not done yet. Do it once before showing VeilCore to anyone new, then once a quarter. It checks what a test can't:
 a real phone, real downloads, a real password typed by a person.
 
 You need: your laptop, your phone, and 10 minutes. Use a practice record (put "(test data)" in
@@ -97,17 +99,19 @@ must have never opened VeilCore.
 
 1. **Laptop: make a practice record.** Open veilcore.org, log a plant named
    "Drill (test data) <today's date>". Wait until it shows as saved.
-2. **Laptop: save a backup with a password.** Menu → Back up. Leave "Lock it with a password"
-   on, type a password you will remember for the next 10 minutes, save the file, then "Open my
+2. **Laptop: save a backup with a password.** Open veilcore.org/backup (or Settings →
+   "Download a copy"). Leave "Lock it with a password (suggested)" on, type a password you will remember for the next 10 minutes, save the file, then "Open my
    saved copy" and type the password. It must say "It works."
 3. **Get the file to the phone** the way a real person would: AirDrop, email it to yourself, or
    a cloud drive. Note which.
 4. **Phone: a browser with nothing in it.** Use a browser you don't use for VeilCore, or a
    private tab. Open veilcore.org/restore.
-5. **Wrong password first.** "Open my backup file", pick the file, type a wrong password. It
-   must say the password doesn't open the backup and that nothing was changed.
-6. **Right password.** Pick the file again, type the right password. It must show when the
-   backup was made and how many records it holds. Tap to bring them back. It must say "Your
+5. **Wrong password first.** Tap "Open my backup file", pick the file, type a wrong password
+   under "The backup's password" and tap "Open it". It must say "That password doesn't open
+   this backup. Nothing was changed."
+6. **Right password.** Tap "Open my backup file" again, pick the file, type the right password
+   and tap "Open it". It must show when the
+   backup was made and how many records it holds. Tap "Bring them here". It must say "Your
    records are back."
 7. **Phone: open the record.** It must show its name and details (not "This record is locked").
    Tap "Open check page": it must find the record and say the name matches.

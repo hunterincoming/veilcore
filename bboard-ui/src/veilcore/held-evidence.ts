@@ -82,6 +82,10 @@ export const restoreHeldEvidence = async (fromFile: unknown, calls: RecordCalls)
     if (!r.labSignature && isObject(sig) && labSignatureChecks(sig, commitment)) {
       setLabSignature(id, sig);
       back++;
+      // The Midnight call that published the signature goes back only here, beside a signature
+      // that just passed: never on its own, and never with one that failed. It is not looked up on
+      // chain here (a restore needs no network); a claim link that names it is checked against
+      // the chain whenever it is opened (claim-link.ts), as for one the registry gives back.
       const on = raw.labOnChain;
       if (isObject(on) && isString(on.contract) && isString(on.txId)) {
         setLabOnChain(id, on as unknown as NonNullable<StrainRecord['labOnChain']>);

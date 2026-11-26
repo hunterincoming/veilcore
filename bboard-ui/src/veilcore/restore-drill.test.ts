@@ -649,6 +649,63 @@ describe('the backup restore drill', () => {
     }
   });
 
+  // The file's lab signatures and claims are never taken on its word (held-evidence.ts): each must
+  // check against the record it is put on. A doctored file, with the registry gone so nothing
+  // comes back from it instead, writes none of them.
+  const doctored = async (doctor: (ev: Record<string, Record<string, unknown>>, m: Made) => void) => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const inner = await opened(A, await backUp(A));
+    const ev = inner.heldEvidence as Record<string, Record<string, unknown>>;
+    expect(Object.keys(ev)).toEqual([made.doc]);
+    doctor(ev, made);
+    w.goDown();
+    const N = await browser('new-device');
+    const out = await N.run(() => N.m.backup.restoreAny(fileOf(JSON.stringify(inner))));
+    expect(out.fromFile).toMatchObject({ added: 5 });
+    expect(out.evidence ?? 0, 'nothing from the file was put back').toBe(0);
+    const written = await N.run(() =>
+      N.m.records
+        .allRecords()
+        .filter((r) => r.labSignature || r.labOnChain || r.claims?.length)
+        .map((r) => r.id),
+    );
+    expect(written, 'no lab signature, Midnight call or claim on any record').toEqual([]);
+  };
+  const sigOf = (ev: Record<string, Record<string, unknown>>, id: string) =>
+    ev[id].labSignature as Record<string, string>;
+  const claimOf = (ev: Record<string, Record<string, unknown>>, id: string) =>
+    (ev[id].claims as Record<string, unknown>[])[0];
+
+  it('a valid lab signature moved onto another record is not put back', async () => {
+    await doctored((ev, m) => {
+      // The document's real signature and Midnight call, said to be the plant's; no claims.
+      ev[m.plant] = { labSignature: ev[m.doc].labSignature, labOnChain: ev[m.doc].labOnChain };
+      delete ev[m.doc];
+    });
+  });
+
+  it('a changed lab signature is not put back', async () => {
+    await doctored((ev, m) => {
+      const sig = sigOf(ev, m.doc);
+      ev[m.doc] = { labSignature: { ...sig, s: (BigInt(sig.s) + 1n).toString() }, labOnChain: ev[m.doc].labOnChain };
+    });
+  });
+
+  it('a claim naming another record is not put back', async () => {
+    await doctored((ev, m) => {
+      const real = claimOf(ev, m.doc);
+      // On its own record, with that record's key binding, but naming another commitment.
+      ev[m.doc] = { claims: [{ ...real, record: 'ab'.repeat(32) }] };
+      // And the real claim moved onto the plant, with no key binding to give it away.
+      const { keyBinding: _k, ...unbound } = real;
+      void _k;
+      ev[m.plant] = { claims: [unbound] };
+    });
+  });
+
   it('a file whose records were changed puts back none of them, and says so', async () => {
     const A = await browser('breeder');
     const B = await browser('licensee');
@@ -840,6 +897,44 @@ const NOT_NEEDED: Readonly<Record<string, string>> = {
   'veilcore.note.old-links.v1': 'a note already shown',
   'veilcore.opened-results.v1': 'which reports were opened here',
   'veilcore.stamp-pressed.v1': 'which stamps were pressed here',
+  // Browser storage that isn't Web Storage, or isn't named veilcore.: still decided here.
+  'veilcore-offline':
+    'IndexedDB: a copy of the dating rows waiting in the send queue (outbox, in the file) and of the holder key (in the file), for the offline worker',
+  'veilcore-offline-meta': 'Cache Storage: the offline worker’s notes about the cached site',
+  'veilcore-shell-': 'Cache Storage: the cached site itself, fetched again',
+  'veilcore-': 'a prefix the offline worker and Start over clear caches by',
+  'veilcore:backup-return': 'sessionStorage: which page to go back to after the backup page',
+  'veilcore:intake': 'sessionStorage: an intake hand-over under way in this tab',
+  'veilcore:passkey-copy': 'what this browser remembered of an old passkey copy (the account copy is its own way back)',
+  'veilcore:onchain-sent': 'royalties paid on chain, off on veilcore.org; the payment itself is on chain',
+  'veilcore:onchain-counted': 'royalties paid on chain, off on veilcore.org; the payment itself is on chain',
+  // Not storage at all: names the scan finds in files that touch storage.
+  'veilcore-records': 'the records package’s import name',
+  'veilcore-ask-model': 'a Trusted Types policy name',
+  'veilcore-sw': 'a Trusted Types policy name',
+  'veilcore-send': 'the Background Sync tag',
+  'veilcore-send-now': 'a service worker message',
+  'veilcore-check': 'a service worker message',
+  'veilcore-active': 'a service worker message',
+  'veilcore-release': 'a service worker message',
+  'veilcore-account-copy': 'a Web Lock name',
+  'veilcore-bulk-row-v1': 'a record format name',
+  'veilcore-bulk-animal-row-v1': 'a record format name',
+  'veilcore-record-keys': 'a backup file format name',
+  'veilcore-records-': 'a download’s file name',
+  'veilcore-deal-record-': 'a download’s file name',
+  'veilcore-holder-key.txt': 'a download’s file name',
+  'veilcore:change-role': 'a page event',
+  'veilcore:lab-changed': 'a page event',
+  'veilcore:party:': 'a hashing label',
+  'veilcore:license-code:v1': 'a hashing label',
+  'veilcore:v1:lab-results:x25519': 'a hashing label',
+  'veilcore:v1:dnapair': 'a hashing label',
+  'veilcore:vault-id:v1:': 'a hashing label',
+  'veilcore:vault:records:v1': 'a hashing label',
+  'veilcore:vault:handle-tag:v1': 'a hashing label',
+  'veilcore:vault:beneficiary:v1': 'a hashing label',
+  'veilcore:offer-id:v1:': 'a hashing label',
 };
 
 const storageNamesInCode = (): Map<string, string> => {
@@ -851,16 +946,22 @@ const storageNamesInCode = (): Map<string, string> => {
       return /\.(ts|tsx|js|mjs)$/.test(d.name) && !/\.test\.tsx?$/.test(d.name) ? [p] : [];
     });
   const found = new Map<string, string>();
-  for (const f of [...walk(site), ...walk(path.resolve(site, '../offline'))])
-    for (const m of fs.readFileSync(f, 'utf8').matchAll(/['"`](veilcore\.[\w.:-]*)(?=['"`]|\$\{)/g))
-      found.set(m[1], path.relative(site, f));
+  for (const f of [...walk(site), ...walk(path.resolve(site, '../offline'))]) {
+    const code = fs.readFileSync(f, 'utf8');
+    // A `veilcore.` name anywhere; a `veilcore-` or `veilcore:` one in a file that touches browser
+    // storage (Web Storage, IndexedDB, Cache Storage), as the privacy policy's own scan counts them.
+    const touches = /localStorage|sessionStorage|indexedDB|caches\./.test(code);
+    for (const m of code.matchAll(/['"`](veilcore[.:-][\w.:-]*)(?=['"`]|\$\{)/g))
+      if (m[1].startsWith('veilcore.') || touches) found.set(m[1], path.relative(site, f));
+  }
   return found;
 };
 
 describe('every storage name is in the backup, or said not to be needed', () => {
   it('lists every name the code uses, and none it no longer uses', () => {
     const names = storageNamesInCode();
-    expect(names.has('veilcore.holder.v1') && names.has('veilcore.held-licenses.v1')).toBe(true);
+    for (const n of ['veilcore.holder.v1', 'veilcore.held-licenses.v1', 'veilcore-offline'])
+      expect(names.has(n), `the scan finds ${n}`).toBe(true);
     const unlisted = [...names]
       .filter(([n]) => !(n in IN_THE_FILE) && !(n in NOT_NEEDED))
       .map(([n, f]) => `${n} (${f})`);
