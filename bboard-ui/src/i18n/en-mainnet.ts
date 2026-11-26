@@ -181,7 +181,7 @@ const sendsStrings = (o: Overlay): Overlay => ({
   'm.hero.status': swapIn(
     o['m.hero.status'],
     'they go into batches that we anchor there by hand for now.',
-    'they go into batches that are anchored there automatically. Proving a record by link and dating a DNA report work here too, and VeilCore pays the network fee.',
+    'they go into batches that are anchored there automatically. Dating a DNA report works here too, and VeilCore pays the network fee.',
   ),
   'm.faq.3a': swapIn(
     o['m.faq.3a'],
@@ -215,7 +215,7 @@ const sendsStrings = (o: Overlay): Overlay => ({
     'On this website the pairing is saved with your record but not yet dated.',
     'On this website you can date the pairing from your browser, and nobody can copy it to their own record.',
   ),
-  'm.for.6p': swapIn(o['m.for.6p'], " This website can't do it yet.", ''),
+  'm.for.6p': swapIn(o['m.for.6p'], " This website can't do it yet.", ' Not yet tried on the main network.'),
   'm.live.stamp.main':
     "Yes. Batches are dated automatically, and that dates your record. Your browser also date stamps your record's own key, which dates only the key.",
   'm.live.dna.main': 'Yes, sent from your browser. VeilCore pays the fee.',
@@ -234,7 +234,7 @@ export const LIVE_SWAPS: LiveSwaps = {
   ],
   'm.get.2b': [
     "Built into the contract on Midnight's main network; simulated on this website.",
-    "Licenses are made from this website, on Midnight's main network. The contract can prove a license is in force without showing it; that needs a wallet, which this website doesn't use.",
+    "Licenses are made from this website, on Midnight's main network. A license holder can prove a license is in force without showing it, by answering a link made on the record's check page; that has not been tried on the main network yet.",
   ],
   'm.demo.lede': ['Licenses and lab agreements are simulated.', 'Licenses and lab agreements go on Midnight too.'],
   'm.for.3p': [

@@ -1606,13 +1606,61 @@ describe('what a walk of the live veilcore.org found (18 Nov 2026)', () => {
     }
   });
 
-  it('the home card does not say a live license is proved from this website (that needs a wallet)', () => {
+  it('proving a live license: says how, and that it has not been tried on mainnet until the flag says so', () => {
+    // The site offers it (/prove-license/:id, LicenseProof.tsx, proveLicense paid by the sponsor),
+    // so no string may say it needs a wallet or that the site doesn't offer it. It has no
+    // mainnet call yet (docs/contract-v2.md, section 0.1), so every string says so.
+    expect(copy).toMatch(/export const LICENSE_PROOF_RUN_ON_MAINNET = false;/);
     const live = mainnetStrings({ ...BUILD, chainSends: true, agreementsLive: true });
-    expect(live['m.get.2b']).not.toMatch(/made from this website\.$/);
-    expect(live['m.get.2b']).toMatch(
-      /The contract can prove a license is in force without showing it; that needs a wallet, which this website doesn[’']t use\.$/,
-    );
-    expect(copy).toMatch(/That needs a wallet, which this website doesn[’']t use, so it doesn[’']t offer it\./);
+    expect(live['m.get.2b']).not.toMatch(/wallet/);
+    expect(live['m.get.2b']).toMatch(/check page; that has not been tried on the main network yet\.$/);
+    expect(copy).not.toMatch(/That needs a wallet, which this website doesn[’']t use/);
+    expect(copy).toMatch(/This has not been tried on Midnight[’']s main network yet\./);
+    const NOT_TRIED: Record<string, RegExp> = {
+      en: /not been tried on Midnight[’']s main network yet/,
+      de: /noch nicht ausprobiert/,
+      es: /Aún no se ha probado/,
+      fr: /pas encore été essayé/,
+      ja: /まだ試していません/,
+    };
+    for (const [lang, a] of Object.entries(allApp)) {
+      const note = a['app.copy.licenseProofNote'];
+      expect(note, lang).toBeTruthy();
+      expect(note, lang).toMatch(NOT_TRIED[lang]);
+      expect(note, lang).not.toMatch(/wallet|Wallet|billetera|portefeuille|ウォレット/);
+    }
+  });
+
+  it('proving a record by link: nothing on veilcore.org says it has run there until the flag says so', () => {
+    // Offered on veilcore.org (the sponsor pays for proveOwnership), but the chain read on
+    // 23 Nov 2026 found no call on mainnet (docs/contract-v2.md, section 0.1).
+    expect(copy).toMatch(/export const PROVE_BY_LINK_RUN_ON_MAINNET = false;/);
+    const live = fs.readFileSync(path.join(SRC, 'components/site/LiveWhere.tsx'), 'utf8');
+    expect(live).toMatch(/PROVE_BY_LINK_RUN_ON_MAINNET\s*\?\s*'m\.live\.prove\.test'\s*:\s*'m\.live\.prove\.mainNext'/);
+    const NOT_TRIED: Record<Lang, RegExp> = {
+      en: /not yet tried on the main network/i,
+      de: /noch nicht ausprobiert/,
+      es: /aún no se ha probado en la red principal/i,
+      fr: /pas encore essayé sur le réseau principal/i,
+      ja: /メインネットワークではまだ試していません/,
+    };
+    const BY_LINK: Record<Lang, RegExp> = {
+      en: /prov(e|es|ing) a record by link/i,
+      de: /Datensatz per Link nach/,
+      es: /(demuestra|probar) un registro (por|con un) enlace/i,
+      fr: /prouv(e|er) un enregistrement par (un )?lien/i,
+      ja: /リンクでの証明|リンクによる記録の証明/,
+    };
+    for (const l of Object.keys(NOT_TRIED) as Lang[]) {
+      const site = {
+        ...(LANGUAGES[l].strings as Record<string, string>),
+        ...(networkOverlay({ ...MAINNET, chainSends: true, agreementsLive: true }, l) as Record<string, string>),
+      };
+      expect(site['m.live.prove.mainNext'], l).toMatch(NOT_TRIED[l]);
+      expect(site['m.for.6p'], l).toMatch(NOT_TRIED[l]);
+      expect(site['m.hero.status'], l).not.toMatch(BY_LINK[l]);
+      expect(site['m.postC.text'], l).not.toMatch(BY_LINK[l]);
+    }
   });
 
   it('a record kept on this device only is never told a copy of its keys goes to VeilCore', () => {

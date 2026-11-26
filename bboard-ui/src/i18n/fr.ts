@@ -466,7 +466,7 @@ export const fr: Strings = {
   'm.postC.tag': 'Site web',
   'm.postC.title': 'Votre navigateur envoie ses propres transactions',
   'm.postC.text':
-    'Sur veilcore.org, votre navigateur date désormais lui-même l’association d’un rapport ADN, prouve un enregistrement par lien et horodate la clé propre d’un enregistrement, et VeilCore paie les frais de réseau. Les enregistrements sont regroupés en lots et datés sur le réseau principal de Midnight. Aucun portefeuille nécessaire.',
+    'Sur veilcore.org, votre navigateur date désormais lui-même l’association d’un rapport ADN et horodate la clé propre d’un enregistrement, et VeilCore paie les frais de réseau. Les enregistrements sont regroupés en lots et datés sur le réseau principal de Midnight. Aucun portefeuille nécessaire.',
   'm.postB.date': '11 oct. 2026',
   'm.postB.tag': 'Registre',
   'm.postB.title': 'Premier lot daté aussi sur Bitcoin',
@@ -528,6 +528,7 @@ export const fr: Strings = {
   'm.live.dna.main': 'Conservée avec votre enregistrement, non datée.',
   'm.live.dna.test': 'Oui, envoyée depuis votre navigateur.',
   'm.live.prove.t': 'Le prouver par un lien',
+  'm.live.prove.mainNext': 'Construit, mais pas encore essayé sur le réseau principal.',
   'm.live.prove.test':
     'Oui. Leur page vérifie sur le réseau que vous contrôlez la clé propre à l’enregistrement. L’enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée.',
   'm.live.prove.not': 'Sur veilcore.org : il faut que votre navigateur envoie une transaction.',

@@ -575,7 +575,7 @@ export const en = {
   'm.postC.tag': 'Website',
   'm.postC.title': 'Your browser sends its own transactions',
   'm.postC.text':
-    "On veilcore.org your browser now dates a DNA report pairing, proves a record by link and stamps a record's own key itself, and VeilCore pays the network fee. Records are batched and dated on Midnight's main network. No wallet needed.",
+    "On veilcore.org your browser now dates a DNA report pairing and stamps a record's own key itself, and VeilCore pays the network fee. Records are batched and dated on Midnight's main network. No wallet needed.",
   'm.postB.date': '11 Oct 2026',
   'm.postB.tag': 'Registry',
   'm.postB.title': 'First batch dated on Bitcoin too',
@@ -699,6 +699,7 @@ export const en = {
   'm.live.dna.main': 'Saved with your record, not dated.',
   'm.live.dna.test': 'Yes, sent from your browser.',
   'm.live.prove.t': 'Prove it by link',
+  'm.live.prove.mainNext': 'Built, not yet tried on the main network.',
   'm.live.prove.test':
     "Yes. Their page checks on the network that you control the record's own key. The record named that key when it was sealed, so it can't be swapped.",
   'm.live.prove.not': 'On veilcore.org: it needs your browser to send a transaction.',

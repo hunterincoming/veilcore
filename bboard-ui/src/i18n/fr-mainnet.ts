@@ -7,7 +7,7 @@ import { buildMainnet } from './mainnet-overlay';
 
 const sendsCommon: Strings = {
   'm.hero.status':
-    'Le smart contract de VeilCore est sur le réseau principal de Midnight. Les enregistrements scellés sur ce site sont de vrais enregistrements : ils vont dans des lots qui y sont ancrés automatiquement. Prouver un enregistrement par un lien et dater un rapport ADN fonctionnent aussi ici, et VeilCore paie les frais du réseau. Les licences et les accords avec les laboratoires sont encore simulés ici.',
+    'Le smart contract de VeilCore est sur le réseau principal de Midnight. Les enregistrements scellés sur ce site sont de vrais enregistrements : ils vont dans des lots qui y sont ancrés automatiquement. Dater un rapport ADN fonctionne aussi ici, et VeilCore paie les frais du réseau. Les licences et les accords avec les laboratoires sont encore simulés ici.',
   'm.faq.3a':
     'Il est conçu pour servir de preuve, et notre note pour les juristes dit ce qu’un enregistrement prouve et ce qu’il ne prouve pas. Les enregistrements scellés ici vont dans des lots ancrés automatiquement sur le réseau principal de Midnight. Une fois le lot d’un enregistrement ancré, la date montre que l’enregistrement existait déjà à ce moment-là ; ce que cela vaut dans un litige, c’est au tribunal d’en juger.',
   'm.demo.lede':
@@ -21,7 +21,7 @@ const sendsCommon: Strings = {
   'm.for.1p':
     'Scellez un enregistrement et associez-y son rapport ADN. Si la plante réapparaît sous un autre nom, un laboratoire peut comparer un nouveau test avec votre rapport. Sur ce site, vous pouvez dater l’association depuis votre navigateur, et personne ne peut la copier sur son propre enregistrement. VeilCore ne fait pas de tests ADN.',
   'm.for.6p':
-    'On vous envoie un lien. Vous touchez une fois, et la page de votre interlocuteur vérifie sur le réseau que vous contrôlez la clé propre à votre enregistrement. Votre enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée. Cela ne dit rien de qui vous êtes ni de qui a obtenu la plante.',
+    'On vous envoie un lien. Vous touchez une fois, et la page de votre interlocuteur vérifie sur le réseau que vous contrôlez la clé propre à votre enregistrement. Votre enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée. Cela ne dit rien de qui vous êtes ni de qui a obtenu la plante. Pas encore essayé sur le réseau principal.',
   'm.live.stamp.main':
     'Oui. Les lots sont datés automatiquement, et cela date votre enregistrement. Votre navigateur appose aussi un horodatage sur la clé propre à votre enregistrement, qui ne date que la clé.',
   'm.live.dna.main': 'Oui, envoyé depuis votre navigateur. VeilCore paie les frais.',
@@ -125,7 +125,7 @@ export const frMainnet = buildMainnet({
     ],
     'm.get.2b': [
       'Intégré au smart contract sur le réseau principal de Midnight ; simulé sur ce site.',
-      'Les licences se font depuis ce site, sur le réseau principal de Midnight. Le smart contract peut prouver qu’une licence est en vigueur sans la montrer ; il faut pour cela un portefeuille, que ce site n’utilise pas.',
+      'Les licences se font depuis ce site, sur le réseau principal de Midnight. Le titulaire d’une licence peut prouver qu’elle est en vigueur sans la montrer, en répondant à un lien créé sur la page de vérification de l’enregistrement ; cela n’a pas encore été essayé sur le réseau principal.',
     ],
     'm.demo.lede': [
       'Les licences et les accords avec les laboratoires sont simulés.',

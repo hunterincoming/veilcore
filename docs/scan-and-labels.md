@@ -1,8 +1,8 @@
 # Scan, don't type, and QR labels
 
-Status: built in the site (`bboard-ui`), tested in a browser with a fake camera. Not live
-anywhere until a deploy carries it; it has not been tried on a real phone camera, a stick
-reader or an NFC tag yet.
+Status: built in the site (`bboard-ui`) and in the veilcore.org release of 25 November 2026
+(`releases/mainnet/ffc41a9b….json`); tested in a browser with a fake camera. Not called live:
+it has not been tried on veilcore.org with a real phone camera, a stick reader or an NFC tag yet.
 
 ## Scan
 
@@ -117,8 +117,9 @@ What a label carries:
 
 ## Proof code QR
 
-Status: built in the site, tested in a browser with a fake camera and typed key bursts. Not live
-anywhere until a deploy carries it; not yet tried with a real USB scanner or on a real phone.
+Status: built in the site and in the veilcore.org release of 25 November 2026; tested in a
+browser with a fake camera and typed key bursts. Not called live: not yet tried with a real USB
+scanner or on a real phone.
 
 A lab signing a result for a client needs the record's proof code (64 characters). Copying it was
 slow and easy to get wrong, so:

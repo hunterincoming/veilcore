@@ -4,7 +4,9 @@
 6 October and by Mako Steiner on 7 October 2026. In force from its publication with
 deployment record revision 4.**
 
-**Contract v2 (status, 25 November 2026: deployed on preprod only, not on mainnet).** This policy
+**Contract v2 (status, 25 November 2026: deployed on preprod and, the same day, on mainnet for
+VeilCore's own testing; not for records, not yet independently reviewed, and not the contract the
+site uses; [deployment record revision 5](deployment-record-revision-5.md)).** This policy
 applies to contract v2 from day one: the same reasons for use, the 14-day notice and publishing
 every use. v2 starts with a temporary single key, kept age-encrypted on the maintainer's Mac,
 until it is handed to the 2-of-3 committee ([contract-v2.md](contract-v2.md), section 5).

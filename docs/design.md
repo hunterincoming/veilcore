@@ -488,7 +488,8 @@ maintenance key can change the circuits ("Assumed" below, and "Governance").
 - **The VeilCore registry service is not the source of truth.** It stores records and
   answers lineage queries for the website, attested by VeilCore, not by the chain. Its
   lineage responses are labelled that way. It also holds what the website
-  never puts on chain: record contents, DNA pairings, licence terms and status. Anything
+  never puts on chain: record contents, the DNA report and its hash (a pairing the holder dates
+  on chain publishes only its salted binding, rule 9) and licence terms. Anything
   a decision rests on is checked against the contract with rules 1 to 8.
 
 ## Deployment in fragments

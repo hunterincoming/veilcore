@@ -461,7 +461,7 @@ export const es: Strings = {
   'm.postC.tag': 'Sitio web',
   'm.postC.title': 'Su navegador envía sus propias transacciones',
   'm.postC.text':
-    'En veilcore.org su navegador ahora fecha por sí mismo el emparejamiento de un informe de ADN, demuestra un registro por enlace y pone un sello de fecha a la clave propia de un registro, y VeilCore paga la tarifa de la red. Los registros se agrupan en lotes y se fechan en la red principal de Midnight. No hace falta billetera.',
+    'En veilcore.org su navegador ahora fecha por sí mismo el emparejamiento de un informe de ADN y pone un sello de fecha a la clave propia de un registro, y VeilCore paga la tarifa de la red. Los registros se agrupan en lotes y se fechan en la red principal de Midnight. No hace falta billetera.',
   'm.postB.date': '11 oct 2026',
   'm.postB.tag': 'Servidor de registros',
   'm.postB.title': 'Primer lote fechado también en Bitcoin',
@@ -523,6 +523,7 @@ export const es: Strings = {
   'm.live.dna.main': 'Se guarda con su registro, sin fecha.',
   'm.live.dna.test': 'Sí, enviada desde su navegador.',
   'm.live.prove.t': 'Probarlo con un enlace',
+  'm.live.prove.mainNext': 'Construido, pero aún no se ha probado en la red principal.',
   'm.live.prove.test':
     'Sí. La página de la otra persona comprueba en la red que usted controla la clave propia del registro. El registro nombró esa clave al sellarse, así que no se puede cambiar por otra.',
   'm.live.prove.not': 'En veilcore.org: requiere que su navegador envíe una transacción.',

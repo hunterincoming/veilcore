@@ -71,8 +71,12 @@ VeilCore says exactly what it can check and nothing more.
 ## Version 2: a result bound to its sample (7 November 2026)
 
 Status: built, behind the same `LAB_SIGNING_ENABLED` switch (on for veilcore.org too). Specified in the
-SDK's SPEC 11.12 (draft), with 158 vectors computed there from the text alone; this app checks
-them (`lab-result.test.ts`).
+SDK's SPEC 11.12 (draft), with vectors computed there from the text alone. This app checks its
+own copy of them (`bboard-ui/src/veilcore/fixtures/lab-result-v2.json`, in `lab-result.test.ts`
+and `lab-viability.test.ts`): 158 vectors (20 statements, 70 statements to refuse, 33 bindings,
+8 mark seals and refusals, 7 name bindings and refusals, 20 viability pairs) and the 7 schemas.
+That copy is older than the SDK's own file, which on 24 November 2026 (`97b8333`) had 184
+(28 statements, 82 to refuse and 39 bindings; the rest the same).
 
 Version 1 names the plant only by a name the lab typed; the link to the record lived in the
 registry binding, outside what the lab signed. Version 2 keeps the same record, signature and

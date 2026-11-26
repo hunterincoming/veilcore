@@ -7,7 +7,7 @@ import { buildMainnet } from './mainnet-overlay';
 
 const sendsCommon: Strings = {
   'm.hero.status':
-    'El contrato de VeilCore está en la red principal de Midnight. Los registros sellados en este sitio son registros reales: van a lotes que se anclan allí automáticamente. Probar un registro con un enlace y fechar un informe de ADN también funcionan aquí, y VeilCore paga la tarifa de la red. Las licencias y los acuerdos con laboratorios aquí siguen siendo simulados.',
+    'El contrato de VeilCore está en la red principal de Midnight. Los registros sellados en este sitio son registros reales: van a lotes que se anclan allí automáticamente. Fechar un informe de ADN también funciona aquí, y VeilCore paga la tarifa de la red. Las licencias y los acuerdos con laboratorios aquí siguen siendo simulados.',
   'm.faq.3a':
     'Está hecho para servir como prueba, y nuestra nota para abogados dice qué prueba un registro y qué no. Los registros sellados aquí van a lotes que se anclan automáticamente en la red principal de Midnight. Cuando el lote de un registro está anclado, la fecha muestra que el registro existía en ese momento; lo que eso valga en una disputa lo decide el tribunal.',
   'm.demo.lede':
@@ -21,7 +21,7 @@ const sendsCommon: Strings = {
   'm.for.1p':
     'Selle un registro y vincule su informe de ADN. Si la planta aparece con otro nombre, un laboratorio puede comparar un análisis nuevo con su informe. En este sitio web puede fechar el vínculo desde su navegador, y nadie puede copiarlo a su propio registro. VeilCore no hace análisis de ADN.',
   'm.for.6p':
-    'Le envían un enlace. Usted toca una vez, y la página de la otra persona comprueba en la red que usted controla la clave propia de su registro. Su registro nombró esa clave al sellarse, así que no se puede cambiar por otra. No dice nada sobre quién es usted ni sobre quién obtuvo la planta.',
+    'Le envían un enlace. Usted toca una vez, y la página de la otra persona comprueba en la red que usted controla la clave propia de su registro. Su registro nombró esa clave al sellarse, así que no se puede cambiar por otra. No dice nada sobre quién es usted ni sobre quién obtuvo la planta. Aún no se ha probado en la red principal.',
   'm.live.stamp.main':
     'Sí. Los lotes se fechan automáticamente, y eso fecha su registro. Su navegador además pone un sello de fecha a la clave propia de su registro, que solo fecha la clave.',
   'm.live.dna.main': 'Sí, enviado desde su navegador. VeilCore paga la tarifa.',
@@ -126,7 +126,7 @@ export const esMainnet = buildMainnet({
     ],
     'm.get.2b': [
       'Incorporado al contrato en la red principal de Midnight; simulado en este sitio web.',
-      'Las licencias se hacen desde este sitio web, en la red principal de Midnight. El contrato puede probar que una licencia está vigente sin mostrarla; para ello hace falta una billetera, que este sitio web no usa.',
+      'Las licencias se hacen desde este sitio web, en la red principal de Midnight. El titular de una licencia puede probar que está vigente sin mostrarla, respondiendo a un enlace creado en la página de comprobación del registro; aún no se ha probado en la red principal.',
     ],
     'm.demo.lede': [
       'Las licencias y los acuerdos con laboratorios son simulados.',
