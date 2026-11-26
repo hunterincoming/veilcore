@@ -28,6 +28,7 @@ import { color } from '../../config/tokens';
 import { recordDateRow } from '../../components/flow/plant-status-words';
 import { dateLines } from '../authority-pack';
 import { MAINNET_PINNED, PREPROD_PINNED, pinnedContractsFrom } from '../../../../api/src/pinned-contracts';
+import { MAINNET_CLAIMS_ADDRESS } from '../../../../api/src/deploy-guard';
 import { authorityReportOf, matchKeyState } from '../../../../api/src/key-states';
 import { makeTranslator, type Translator } from '../../i18n/translate';
 import { utcStamp } from '../time';
@@ -434,8 +435,6 @@ describe('a date from version 2 on mainnet always says it is for testing and not
       /\.caution\b|<V2Caution\b|v2CautionWords\(|anchorHistoryEvent\(|<DocumentDateView\b|<SettlementStatus\b/;
     /** Files that read the date and show none of it as a checked date, or pass it on, each with why. */
     const PASSES_ON: Record<string, string> = {
-      // Home's list row for a document: the holder's own records, dated through the site's v1 anchorer only.
-      'components/flow/AppHome.tsx': 'documentHomeDate',
       // Uses the look-up only to tell a failed or missing date apart; DocumentDate shows the date.
       'components/document/DocumentDetail.tsx': 'dateAnchor',
       // Hands each record's look-up to gatherPackFacts; dateLines words it (tested above).
@@ -475,6 +474,8 @@ describe('a date from version 2 on mainnet always says it is for testing and not
     const verdicts = files.filter((f) => /\brecordVerdict\(/.test(src(f)) && !f.endsWith('/verify/verdict.ts'));
     expect(verdicts.map(rel).sort()).toEqual(['components/document/document-verdict.ts', 'pages/VerifyPage.tsx']);
     for (const f of verdicts) expect(src(f), rel(f)).toMatch(/stillTesting: /);
+    // The claim check's top line too (its record's date can be a v2 date).
+    expect(read('../../components/document/ClaimCheck.tsx')).toMatch(/stillTesting: testingDate/);
   });
 });
 
@@ -549,5 +550,15 @@ describe('a date from version 2 on mainnet is never shown as a full gold or gree
     };
     walk(root);
     expect(users.sort()).toEqual(['components/flow/PlantParts.tsx', 'pages/VerifyPage.tsx']);
+  });
+});
+
+// The claim check reads only the pinned claims contract, and its verdict has no version check of
+// its own: it is a full success only because that pin is version 1. Moving the pin to a claims
+// contract still in testing must come with that check, so it can't happen silently.
+describe('the claims contract the claim check reads', () => {
+  it('is version 1 on mainnet', () => {
+    const pinned = MAINNET_PINNED.find((e) => e.address === MAINNET_CLAIMS_ADDRESS);
+    expect(pinned).toMatchObject({ kind: 'claims', version: 'v1' });
   });
 });

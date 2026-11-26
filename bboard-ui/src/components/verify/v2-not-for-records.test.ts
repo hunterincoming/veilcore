@@ -83,6 +83,11 @@ vi.mock('../../veilcore/records', async (orig) => ({
   waitsToBeSent: () => false,
   useRecords: () => [],
 }));
+// The certificate's saved-report sentence words a lab's signature: not what is tested here.
+vi.mock('../../veilcore/saved-report', async (orig) => ({
+  ...(await orig<typeof import('../../veilcore/saved-report')>()),
+  savedReportSentence: () => 'Lab report saved.',
+}));
 // The lab report page's bundle button reads the sealed records store: not what is tested here.
 vi.mock('../EvidenceBundle', () => ({ EvidenceBundle: () => null }));
 vi.mock('../flow/FlowFrame', async (orig) => ({
@@ -106,6 +111,11 @@ const { recordDateRow } = await import('../flow/plant-status-words');
 const { dnaDateOf, dnaTieRow, dnaTieSentence } = await import('../../veilcore/dna-tie');
 const { stillTesting, stampStateFor } = await import('./anchor-words');
 const { Fact } = await import('./DisclosedFacts');
+const { TieLine, DocumentDateLine } = await import('../flow/AppHome');
+const { CertificateDnaTie } = await import('../wizard/Step3Certificate');
+const { claimVerdict } = await import('./verdict');
+const { paper } = await import('../../config/tokens');
+const { DeletedRecord } = await import('../../pages/VerifyPage');
 
 const TX = 'ab'.repeat(32);
 const BLOCK = Date.UTC(2026, 10, 20, 9, 30);
@@ -279,7 +289,11 @@ describe('the document date, the document check and the claim check', () => {
 describe('the check page’s and the plant panel’s dated line', () => {
   it('checked, beside a v2 date: the warning mark, never the green tick', () => {
     const fact = (testing: boolean) =>
-      draw(React.createElement(Fact, { status: 'checked', testing, children: 'Dated' }), LANGS.en, state.date);
+      draw(
+        React.createElement(Fact, { status: 'checked', testing } as React.ComponentProps<typeof Fact>, 'Dated'),
+        LANGS.en,
+        state.date,
+      );
     expect(fact(true)).toContain(color.warn);
     expect(fact(true)).not.toContain(color.ok);
     expect(fact(true)).toContain('data-fact-testing');
@@ -315,8 +329,106 @@ describe('the DNA report’s dated line and the lab report’s page', () => {
   it('the lab report record’s own page: the line beside a v2 date', () => {
     const props = { record: RECORD, onShare: () => undefined, onBackup: () => undefined };
     const v2 = draw(React.createElement(LabReportOverview, props), LANGS.en, { proof: proofOn('mainnet'), anchor: V2 });
-    expect(v2).toContain(esc(words(LANGS.en)));
+    // Shown under "Record dated", not only in the copy folded under "Technical details".
+    const fold = v2.indexOf('id="record-technical-details"');
+    expect(fold).toBeGreaterThan(-1);
+    expect(v2.slice(0, fold)).toContain('data-v2-caution');
+    expect(v2.slice(0, fold)).toContain(esc(words(LANGS.en)));
     const v1 = draw(React.createElement(LabReportOverview, props), LANGS.en, { proof: proofOn('mainnet'), anchor: V1 });
+    expect(v1).not.toContain('data-v2-caution');
+  });
+});
+
+describe('Home and the certificate', () => {
+  /** A v2-dated DNA report's date, as useDnaTie hands it over, in the given language. */
+  const v2DnaDate = (tr: Translator) => dnaDateOf(true, recordDateRow(proofOn('mainnet'), V2, tr));
+  const v1DnaDate = () => dnaDateOf(true, recordDateRow(proofOn('mainnet'), V1));
+  /** The CSS emotion writes just before the element that carries data-v2-caution (its colour). */
+  const styleOfCaution = (html: string) => {
+    const at = html.indexOf('data-v2-caution');
+    expect(at).toBeGreaterThan(-1);
+    return html.slice(html.lastIndexOf('<style', at), at);
+  };
+
+  it('Home’s document row: the line in the warning colour beside a v2 date, in all five languages', () => {
+    for (const [lang, tr] of Object.entries(LANGS)) {
+      const html = draw(React.createElement(DocumentDateLine, { fingerprint: '12'.repeat(32), loggedAt: BLOCK }), tr, {
+        proof: proofOn('mainnet'),
+        anchor: V2,
+      });
+      expect(html, lang).toContain('data-home-document-date="testing"');
+      expect(styleOfCaution(html), lang).toContain(color.warn);
+      expect(html, lang).toContain(esc(words(tr)));
+    }
+    const v1 = draw(
+      React.createElement(DocumentDateLine, { fingerprint: '12'.repeat(32), loggedAt: BLOCK }),
+      LANGS.en,
+      {
+        proof: proofOn('mainnet'),
+        anchor: V1,
+      },
+    );
+    expect(v1).toContain('data-home-document-date="dated"');
+    expect(v1).not.toContain('data-v2-caution');
+  });
+
+  it('Home’s plant tie line: the line in the warning colour, not grey, beside a v2 DNA report date', () => {
+    for (const [lang, tr] of Object.entries(LANGS)) {
+      state.dna = { tie: { state: 'self' }, date: v2DnaDate(tr) };
+      const html = draw(React.createElement(TieLine, { record: RECORD }), tr, state.date);
+      expect(styleOfCaution(html), lang).toContain(color.warn);
+      expect(html.slice(html.indexOf('data-v2-caution')), lang).toContain(esc(words(tr)));
+    }
+    state.dna = { tie: { state: 'self' }, date: v1DnaDate() };
+    expect(draw(React.createElement(TieLine, { record: RECORD }), LANGS.en, state.date)).not.toContain(
+      'data-v2-caution',
+    );
+    state.dna = { tie: null, date: { state: 'not-dated' } };
+  });
+
+  it('the certificate: no ✓ and no green beside a v2 DNA report date, the line in the warning colour', () => {
+    const en = LANGS.en;
+    const record = { ...(RECORD as object), dnaFingerprint: '78'.repeat(32) } as never;
+    const saved = { kind: 'lab', sha: '56'.repeat(32) } as never;
+    const cert = (date: DnaDate) =>
+      renderToStaticMarkup(
+        React.createElement(CertificateDnaTie, {
+          record,
+          saved,
+          dna: { tie: { state: 'lab', lead: 'signed by a lab' }, date },
+          en,
+        }),
+      );
+    const v2 = cert(v2DnaDate(en));
+    expect(v2).not.toContain('✓');
+    expect(v2).not.toContain(paper.ok);
+    expect(styleOfCaution(v2)).toContain(paper.warn);
+    expect(v2.slice(v2.indexOf('data-v2-caution'))).toContain(esc(words(en)));
+    // Version 1 is unchanged: the lab's report is a ✓ in the quiet green.
+    const v1 = cert(v1DnaDate());
+    expect(v1).toContain('✓');
+    expect(v1).toContain(paper.ok);
+    expect(v1).not.toContain('data-v2-caution');
+  });
+
+  it('the claim check’s top line: never green when the record’s date is a v2 date', () => {
+    const ok = { ok: true, blockTime: BLOCK } as never;
+    expect(claimVerdict({ readable: true, off: false, verdict: ok, more: [], stillTesting: true })?.tone).toBe('warn');
+    expect(claimVerdict({ readable: true, off: false, verdict: ok, more: [], stillTesting: false })?.tone).toBe('ok');
+  });
+});
+
+describe('the check page for a deleted record', () => {
+  it('its checked date carries the line as a warning when it is a v2 date', () => {
+    const fp = '12'.repeat(32);
+    const props = { id: 'VEIL-TEST', anchored: true, fp, storedFp: fp };
+    for (const [lang, tr] of Object.entries(LANGS)) {
+      const html = draw(React.createElement(DeletedRecord, props), tr, { proof: proofOn('mainnet'), anchor: V2 });
+      expect(html, lang).toContain('data-v2-caution');
+      expect(html, lang).toContain('MuiAlert-colorWarning');
+      expect(html, lang).toContain(esc(words(tr)));
+    }
+    const v1 = draw(React.createElement(DeletedRecord, props), LANGS.en, { proof: proofOn('mainnet'), anchor: V1 });
     expect(v1).not.toContain('data-v2-caution');
   });
 });

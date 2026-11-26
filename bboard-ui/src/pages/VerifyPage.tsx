@@ -321,7 +321,7 @@ const isParentLine = (x: unknown): boolean =>
  * the record's own proof code (the registry still reports it); otherwise it is the registry's
  * word. Whether it was dated before or after the deletion is said only when known.
  */
-const DeletedRecord: React.FC<{
+export const DeletedRecord: React.FC<{
   id: string;
   deletedAt?: string;
   anchored: boolean;
@@ -329,9 +329,11 @@ const DeletedRecord: React.FC<{
   fp: string | null;
   storedFp?: string | null;
 }> = ({ id, deletedAt, anchored, relative, fp, storedFp }) => {
-  const { t } = useT();
+  const tr = useT();
+  const { t } = tr;
   const bound = !!fp && !!storedFp && fp === storedFp;
-  const { anchor } = useRecordDate(bound ? fp : undefined);
+  const { proof, anchor } = useRecordDate(bound ? fp : undefined);
+  const network = proof !== 'checking' && proof.status === 'anchor-reported' ? (proof.proof.anchor?.network ?? '') : '';
   const checked = bound && anchor !== undefined && anchor !== 'checking' && anchor.status === 'checked' ? anchor : null;
   const deletedMs = deletedAt ? Date.parse(deletedAt) : NaN;
   const key = deletedDateKey({ checkedBlockTime: checked?.blockTime, anchored, relative, deletedAt });
@@ -349,6 +351,8 @@ const DeletedRecord: React.FC<{
       <Typography variant="body2" color="text.secondary">
         {dated}
       </Typography>
+      {/* Its date from a contract still in testing (version 2 on mainnet): the line, as a warning. */}
+      <V2Caution check={checked ?? undefined} network={network} tr={tr} sx={{ mt: 2, textAlign: 'left' }} />
     </Paper>
   );
 };

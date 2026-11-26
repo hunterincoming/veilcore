@@ -21,7 +21,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopyOutlined';
 import ReportedIcon from '@mui/icons-material/ScheduleOutlined';
 import { QRCodeSVG } from 'qrcode.react';
 import { toPng } from 'html-to-image';
-import { getRecord, checkIntegrity, type IntegrityCheck } from '../../veilcore/records';
+import { getRecord, checkIntegrity, type IntegrityCheck, type StrainRecord } from '../../veilcore/records';
 import { proofFor, type ProofState } from '../../veilcore/proofs';
 import { CANONICAL_HOST, IS_MAINNET, NETWORK, networkLabel, canonicalUrl } from '../../config/network';
 import { useLicenses, activeLicenseCount, licensesForRecord } from '../../veilcore/licenses';
@@ -39,10 +39,10 @@ import { signerLabel } from '../../veilcore/attesters';
 import { NameCheckText } from '../NameCheckText';
 import { useBreederReceipt, useSavedReport } from '../flow/LabResults';
 import { savedReportSentence, type SavedReport } from '../../veilcore/saved-report';
-import { dnaTieMeaning, dnaTieSentence } from '../../veilcore/dna-tie';
+import { dnaTieMeaning, dnaTieParts, dnaTieSentence, type DnaDate, type DnaTie } from '../../veilcore/dna-tie';
 import { useDnaTie } from '../flow/useDnaTie';
 import { InEnglishNote, useRecordT } from '../../i18n/app';
-import { enT, forKind } from '../../i18n/translate';
+import { enT, forKind, type Translator } from '../../i18n/translate';
 import { certificateSummary } from './certificate-summary';
 import { damOf, isAnimal, parentLine, recordTitle, sireOf } from '../../veilcore/animal-profile';
 import { isStrain } from '../../veilcore/strain-profile';
@@ -63,6 +63,55 @@ const CERT = {
   error: paper.error,
   practice: paper.warn,
 } as const;
+
+/**
+ * The certificate's DNA report line: the tie in one sentence, then what the saved file is. A
+ * report a lab signed is a ✓ in the quiet green, unless the date that sentence gives is from a
+ * contract VeilCore is still testing (version 2 on mainnet, docs/contract-v2.md 7 condition 5):
+ * then no ✓ and no green, and that line in the warning colour, as on every other screen.
+ */
+export const CertificateDnaTie: React.FC<{
+  record: StrainRecord;
+  saved: SavedReport | null | undefined;
+  dna: { tie: DnaTie | null; date: DnaDate };
+  en: Translator;
+}> = ({ record, saved, dna, en }) => {
+  if (!record.dnaFingerprint)
+    return (
+      <Box component="span" data-dna-tie="none">
+        {dnaTieSentence({ state: 'none' }, dna.date, 'holder', en)}
+      </Box>
+    );
+  if (saved === null || saved === undefined || !dna.tie) return <>checking…</>;
+  if (saved.kind === 'replaced' || saved.kind === 'withdrawn')
+    return (
+      <Box component="span" sx={{ color: CERT.error }} data-saved-report={saved.kind} data-dna-tie={dna.tie.state}>
+        ✗ {dnaTieSentence(dna.tie, dna.date, 'holder', en)} {savedReportSentence(saved, en)}
+      </Box>
+    );
+  const { sentence, caution } = dnaTieParts(dna.tie, dna.date, 'holder', en);
+  const ticked = saved.kind === 'lab' && !caution;
+  return (
+    <Box
+      component="span"
+      sx={{ color: ticked ? CERT.ok : CERT.ink }}
+      data-saved-report={saved.kind}
+      data-dna-tie={dna.tie.state}
+    >
+      {caution ? '⚠ ' : ticked ? '✓ ' : ''}
+      {sentence}
+      {caution && (
+        <Box component="span" sx={{ color: CERT.practice, fontWeight: 700 }} data-v2-caution="">
+          {' '}
+          {caution}
+        </Box>
+      )}{' '}
+      Saved
+      {record.dnaPairedAt ? ` ${utcDate(record.dnaPairedAt)}` : ''}. {savedReportSentence(saved, en)}{' '}
+      {dnaTieMeaning(en)}
+    </Box>
+  );
+};
 
 /** The practice mark on a test-network certificate. */
 export const PRACTICE_BAND = 'TEST NETWORK — PRACTICE ONLY, NOT EVIDENCE';
@@ -362,34 +411,7 @@ export const Step3Certificate: React.FC<{
                       : 'Tied to the plant (DNA report)'
                 }
               >
-                {!record.dnaFingerprint ? (
-                  <Box component="span" data-dna-tie="none">
-                    {dnaTieSentence({ state: 'none' }, dna.date, 'holder', en)}
-                  </Box>
-                ) : saved === null || saved === undefined || !dna.tie ? (
-                  'checking…'
-                ) : saved.kind === 'replaced' || saved.kind === 'withdrawn' ? (
-                  <Box
-                    component="span"
-                    sx={{ color: CERT.error }}
-                    data-saved-report={saved.kind}
-                    data-dna-tie={dna.tie.state}
-                  >
-                    ✗ {dnaTieSentence(dna.tie, dna.date, 'holder', en)} {savedReportSentence(saved, en)}
-                  </Box>
-                ) : (
-                  <Box
-                    component="span"
-                    sx={{ color: saved.kind === 'lab' ? CERT.ok : CERT.ink }}
-                    data-saved-report={saved.kind}
-                    data-dna-tie={dna.tie.state}
-                  >
-                    {saved.kind === 'lab' ? '✓ ' : ''}
-                    {dnaTieSentence(dna.tie, dna.date, 'holder', en)} Saved
-                    {record.dnaPairedAt ? ` ${utcDate(record.dnaPairedAt)}` : ''}. {savedReportSentence(saved, en)}{' '}
-                    {dnaTieMeaning(en)}
-                  </Box>
-                )}
+                <CertificateDnaTie record={record} saved={saved} dna={dna} en={en} />
               </Field>
               <Field label="Unchanged since sealing">
                 <Box

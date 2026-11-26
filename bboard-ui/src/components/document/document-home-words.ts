@@ -6,11 +6,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { ProofState } from '../../veilcore/proofs';
-import type { AnchorState } from '../verify/anchor-words';
+import { v2CautionWords, type AnchorState } from '../verify/anchor-words';
 import { enT, type Translator } from '../../i18n/translate';
 
 /** What the line says, for tests and the page's data attribute. */
-export type DocumentHomeMark = 'checking' | 'waiting' | 'dated' | 'reported' | 'failed';
+export type DocumentHomeMark = 'checking' | 'waiting' | 'dated' | 'testing' | 'reported' | 'failed';
 
 /**
  * The same answer the document's page gives (recordDateRow): "Dated …" only once this browser
@@ -23,14 +23,26 @@ export const documentHomeDate = (
   anchor: AnchorState | undefined,
   loggedAt: number,
   tr: Translator = enT,
-): { mark: DocumentHomeMark; text: string } => {
+): {
+  mark: DocumentHomeMark;
+  text: string;
+  /**
+   * A date from a contract VeilCore is still testing (version 2 on mainnet, docs/contract-v2.md 7
+   * condition 5): its line, which the row draws in the warning colour. The mark is then `testing`.
+   */
+  caution?: string;
+} => {
   const sealed = tr.t('app.doc.home.sealedOn', { date: tr.date(loggedAt) });
   if (proof === 'checking') return { mark: 'checking', text: sealed };
   if (proof.status !== 'anchor-reported')
     return { mark: 'waiting', text: `${sealed} · ${tr.t('app.doc.home.waiting')}` };
   if (anchor !== undefined && anchor !== 'checking') {
-    if (anchor.status === 'checked')
-      return { mark: 'dated', text: tr.t('app.doc.home.dated', { date: tr.date(anchor.blockTime) }) };
+    if (anchor.status === 'checked') {
+      const text = tr.t('app.doc.home.dated', { date: tr.date(anchor.blockTime) });
+      // Fails closed (anchor-words.ts stillTesting): any contract but version 1 is still in testing.
+      const caution = v2CautionWords(anchor, proof.proof.anchor?.network ?? '', tr);
+      return caution ? { mark: 'testing', text, caution } : { mark: 'dated', text };
+    }
     if (anchor.status === 'failed') return { mark: 'failed', text: `${sealed} · ${tr.t('app.doc.home.notConfirmed')}` };
     const at = proof.proof.anchor?.anchoredAt;
     if (at && !Number.isNaN(Date.parse(at)))

@@ -135,6 +135,7 @@ export const ClaimCheck: React.FC = () => {
     off: viabilityOff,
     verdict,
     more: more.map((_, i) => moreVerdicts[i]),
+    stillTesting: testingDate,
   });
   // The lab's signer, with its key's level (docs/lab-identity-levels.md), when the registry tied it.
   const signer = verdict?.ok && verdict.lab?.ok ? verdict.lab.signer : undefined;

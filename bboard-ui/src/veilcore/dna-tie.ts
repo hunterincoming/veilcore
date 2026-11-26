@@ -124,28 +124,40 @@ export const dnaTieWhat = (tie: DnaTie, view: TieView = 'holder', tr: Translator
 };
 
 /**
- * One sentence: "Tied to the plant: DNA report signed by …, not dated yet." or "Not tied
- * to the plant yet: add a DNA report." On the check page (`public`) the "not yet" sentence
- * says only that none is saved: no blame, and no task for a stranger. Without a date (the
- * check page can't see the record that dates it) the sentence leaves the date out.
+ * The tie's sentence and, apart, the still-testing line when the date it says is from a
+ * contract VeilCore is still testing (docs/contract-v2.md 7, condition 5). A screen draws the
+ * line in the warning colour, never in the sentence's colour or under its tick (dnaTieSentence
+ * joins the two for plain text). "Tied to the plant: DNA report signed by …, not dated yet." or
+ * "Not tied to the plant yet: add a DNA report." On the check page (`public`) the "not yet"
+ * sentence says only that none is saved: no blame, and no task for a stranger. Without a date
+ * (the check page can't see the record that dates it) the sentence leaves the date out.
  */
+export const dnaTieParts = (
+  tie: DnaTie,
+  date: DnaDate | undefined,
+  view: TieView = 'holder',
+  tr: Translator = enT,
+): { sentence: string; caution?: string } => {
+  const what = dnaTieWhat(tie, view, tr);
+  if (isTied(tie)) {
+    if (!date) return { sentence: tr.t('app.plant.tie.sentenceNoDate', { what }) };
+    const sentence = tr.t('app.plant.tie.sentence', { what, date: dnaDateWords(date, tr) });
+    return date.state === 'dated' && date.caution ? { sentence, caution: date.caution } : { sentence };
+  }
+  if (tie.state === 'none') return { sentence: tr.t('app.plant.tie.sentenceNone', { what }) };
+  return { sentence: tr.t('app.plant.tie.sentenceNot', { what }) };
+};
+
+/** dnaTieParts as one line of plain text: the still-testing line, if any, after the sentence. */
 export const dnaTieSentence = (
   tie: DnaTie,
   date: DnaDate | undefined,
   view: TieView = 'holder',
   tr: Translator = enT,
 ): string => {
-  const what = dnaTieWhat(tie, view, tr);
-  if (isTied(tie))
-    return date
-      ? tr.t('app.plant.tie.sentence', { what, date: dnaDateWords(date, tr) }) + cautionAfter(date)
-      : tr.t('app.plant.tie.sentenceNoDate', { what });
-  if (tie.state === 'none') return tr.t('app.plant.tie.sentenceNone', { what });
-  return tr.t('app.plant.tie.sentenceNot', { what });
+  const { sentence, caution } = dnaTieParts(tie, date, view, tr);
+  return caution ? `${sentence} ${caution}` : sentence;
 };
-
-/** A still-testing date's line, after the sentence that says the date (never left out). */
-const cautionAfter = (date: DnaDate): string => (date.state === 'dated' && date.caution ? ` ${date.caution}` : '');
 
 /** What a DNA report shows and doesn't, in one line, said wherever the tie is. */
 export const dnaTieMeaning = (tr: Translator = enT): string => tr.t('app.plant.tie.means');

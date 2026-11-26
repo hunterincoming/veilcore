@@ -77,7 +77,7 @@ import {
   startOverLines,
 } from '../stage/record-kinds';
 import { useDnaTie, useSavedReports } from './useDnaTie';
-import { dnaTieSentence } from '../../veilcore/dna-tie';
+import { dnaTieParts } from '../../veilcore/dna-tie';
 import type { StrainRecord } from '../../veilcore/records';
 import type { SavedReport } from '../../veilcore/saved-report';
 import { PickUp } from './PickUp';
@@ -97,13 +97,20 @@ import { errorWords } from '../../i18n/error-words';
  * A plant's card line: "Tied to the plant: DNA report signed by …, not dated yet." or "Not
  * tied to the plant yet: add a DNA report." Nothing while a saved report is being checked.
  */
-const TieLine: React.FC<{ record: StrainRecord; saved?: SavedReport }> = ({ record, saved }) => {
+export const TieLine: React.FC<{ record: StrainRecord; saved?: SavedReport }> = ({ record, saved }) => {
   const tr = useRecordT(record);
   const { tie, date } = useDnaTie(record, saved, tr);
   if (!tie) return null;
+  const { sentence, caution } = dnaTieParts(tie, date, 'holder', tr);
   return (
     <Typography variant="body2" color="text.secondary" data-home-tie={tie.state}>
-      {dnaTieSentence(tie, date, 'holder', tr)}
+      {sentence}
+      {/* Its date is from a contract still in testing (version 2 on mainnet): the line, in the warning colour. */}
+      {caution && (
+        <Box component="span" sx={{ display: 'block', color: color.warn, fontWeight: 600 }} data-v2-caution="">
+          {caution}
+        </Box>
+      )}
     </Typography>
   );
 };
@@ -176,7 +183,7 @@ const OldLinksNote: React.FC<{ records: readonly StrainRecord[] }> = ({ records 
  * and cached briefly, and the Midnight look-up is one per batch, kept for the visit
  * (useAnchorCheck.ts, anchor-lookup.ts), so a long list doesn't ask the indexer once per row.
  */
-const DocumentDateLine: React.FC<{ fingerprint?: string; loggedAt: number }> = ({ fingerprint, loggedAt }) => {
+export const DocumentDateLine: React.FC<{ fingerprint?: string; loggedAt: number }> = ({ fingerprint, loggedAt }) => {
   const tr = useT();
   const { proof, anchor } = useRecordDate(fingerprint);
   const line = documentHomeDate(proof, anchor, loggedAt, tr);
@@ -184,6 +191,12 @@ const DocumentDateLine: React.FC<{ fingerprint?: string; loggedAt: number }> = (
     <span data-home-document-date={line.mark}>
       {' · '}
       {line.text}
+      {/* Dated on a contract still in testing (version 2 on mainnet): the line, in the warning colour. */}
+      {line.caution && (
+        <Box component="span" sx={{ display: 'block', color: color.warn, fontWeight: 600 }} data-v2-caution="">
+          {line.caution}
+        </Box>
+      )}
     </span>
   );
 };

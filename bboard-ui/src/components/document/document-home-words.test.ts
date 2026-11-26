@@ -38,6 +38,31 @@ describe('a document on the records list', () => {
     expect(line(reported, checked)).toEqual({ mark: 'dated', text: `Dated ${enT.date(blockTime)}` });
   });
 
+  it('a date from a contract still in testing (any but version 1, on mainnet): its line, never plain "Dated"', () => {
+    const blockTime = Date.parse('2026-11-19T04:00:00.000Z');
+    const onMainnet = {
+      status: 'anchor-reported',
+      proof: { root: 'ab', anchor: { network: 'mainnet', anchoredAt: at } },
+    } as never;
+    const checked = (version?: string) =>
+      ({
+        status: 'checked',
+        txHash: 'c3',
+        blockHeight: 1,
+        blockTime,
+        indexers: 1,
+        ...(version ? { contract: { version, address: 'cd' } } : {}),
+      }) as never;
+    const caution = enT.t('app.verify.anchor.v2Caution');
+    for (const v of ['v2', 'v3', undefined])
+      expect(line(onMainnet, checked(v)), String(v)).toEqual({
+        mark: 'testing',
+        text: `Dated ${enT.date(blockTime)}`,
+        caution,
+      });
+    expect(line(onMainnet, checked('v1'))).toEqual({ mark: 'dated', text: `Dated ${enT.date(blockTime)}` });
+  });
+
   it('a report not yet checked is never "Dated" alone', () => {
     expect(line(reported, 'checking')).toEqual({ mark: 'checking', text: `${sealed} · date reported, being checked` });
     expect(line(reported, undefined).mark).toBe('checking');
