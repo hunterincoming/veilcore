@@ -39,6 +39,8 @@ export const verify = {
   'app.verify.anchor.keys.committee':
     'このコントラクトを変更できるのは{committee}人中{threshold}人の委員会です（{committee}人のメンバーのうち{threshold}人の同意が必要）。',
   'app.verify.anchor.keys.retired': 'このコントラクトは誰も変更できません。',
+  'app.verify.anchor.v2Caution':
+    'VeilCoreコントラクトのバージョン2は、VeilCoreがテストのためにMidnightのメインネットワークにデプロイしたものです。まだ第三者による独立したレビューを受けておらず、あなたの記録には使えません。',
   'app.verify.anchor.checked':
     'Midnightで確認しました：このバッチのルートは、ブロック {block} のトランザクション {tx} により、{at}に書き込まれました。{contract}{two}{test}',
   'app.verify.anchor.failed':

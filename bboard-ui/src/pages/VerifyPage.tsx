@@ -112,6 +112,7 @@ import {
   anchorSummary,
   registryDateWords,
 } from '../components/verify/anchor-words';
+import { V2Caution } from '../components/verify/V2Caution';
 import { useAnchorCheck, useRecordDate } from '../components/verify/useAnchorCheck';
 import { useBitcoinCheck } from '../components/verify/useBitcoinCheck';
 import { BitcoinCheckAction } from '../components/verify/BitcoinCheckAction';
@@ -867,6 +868,10 @@ export const VerifyPage: React.FC = () => {
                   </Typography>
                 </Box>
               </Stack>
+
+              {/* A date from contract version 2 on mainnet: the caution the evidence bundle carries
+                (docs/contract-v2.md 7, condition 5), under the heading and never folded away. */}
+              <V2Caution check={anchor} network={reportedNetwork ?? NETWORK} tr={tr} sx={{ mb: 2 }} />
 
               {/* Its own timestamp, seconds after it was sealed, until its batch has a Midnight
                 date (veilcore/instant-stamp.ts): the authority's time, checked here, and that the

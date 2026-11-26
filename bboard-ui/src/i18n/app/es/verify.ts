@@ -45,6 +45,8 @@ export const verify = {
   'app.verify.anchor.keys.committee':
     ' Quién puede cambiar ese contrato: el comité de {threshold} de {committee} ({threshold} de sus {committee} miembros deben estar de acuerdo).',
   'app.verify.anchor.keys.retired': ' Quién puede cambiar ese contrato: nadie. Ya no se puede cambiar.',
+  'app.verify.anchor.v2Caution':
+    'El contrato de VeilCore, versión 2, está desplegado en la red principal de Midnight para pruebas de VeilCore. Aún no ha sido revisado de forma independiente y no es para sus registros.',
   'app.verify.anchor.checked':
     'Comprobado en Midnight: la raíz de este lote la escribió la transacción {tx} en el bloque {block} el {at}.{contract}{two}{test}',
   'app.verify.anchor.failed':

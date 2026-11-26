@@ -36,6 +36,7 @@
 
 import type { StrainRecord } from './records';
 import type { AnchorCheck } from './chain/anchor-check';
+import { v2CautionWords } from '../components/verify/anchor-words';
 import { aboutIdsOf } from './document-chain';
 import { documentKindOf } from './document-kind';
 import { isDocument } from './document-profile';
@@ -243,6 +244,8 @@ export const dateLines = (d: DateFacts | undefined, tr: Translator): string[] =>
           at: utc(c.blockTime) ?? '',
           test,
         }),
+        // Condition 5 of docs/contract-v2.md 7: a date from contract version 2 on mainnet says so.
+        ...[v2CautionWords(c, m.network, tr)].filter((w): w is string => w !== undefined),
       );
     // The look-up's reason is English and technical: the check link shows it; the pack says what it means.
     else if (c?.status === 'failed') out.push(tr.t('app.pack.date.failed', { where }));

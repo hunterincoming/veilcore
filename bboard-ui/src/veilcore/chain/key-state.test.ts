@@ -9,7 +9,7 @@
 // (v2's ledger data after one anchorBatch, inside a real ledger 9 state) with the maintenance
 // authority set to each case; v1's are real mainnet answers (fixtures/v1-mainnet-anchors.json).
 // SPDX-License-Identifier: Apache-2.0
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import * as Ledger9 from '@midnightntwrk/ledger-v9';
 import golden from './fixtures/v1-mainnet-anchors.json';
@@ -17,7 +17,12 @@ import v2 from './fixtures/v2-anchor-fixture.json';
 import { checkAnchorOnChain, type AnchorCheck, type AnchorCheckDeps } from './anchor-check';
 import { maintenanceAuthorityOf } from './anchor-decode';
 import { anchorContractsFor, countedContractsFor, type PinnedContract } from './config';
-import { anchorLine, keyStateWords } from '../../components/verify/anchor-words';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { anchorHistoryEvent, anchorLine, keyStateWords, v2CautionWords } from '../../components/verify/anchor-words';
+import { V2Caution } from '../../components/verify/V2Caution';
+import { recordDateRow } from '../../components/flow/plant-status-words';
+import { dateLines } from '../authority-pack';
 import { MAINNET_PINNED, PREPROD_PINNED, pinnedContractsFrom } from '../../../../api/src/pinned-contracts';
 import { authorityReportOf, matchKeyState } from '../../../../api/src/key-states';
 import { makeTranslator, type Translator } from '../../i18n/translate';
@@ -317,6 +322,116 @@ describe('keyStateWords', () => {
         tr.t('app.verify.anchor.keys.oneKey'),
       );
       expect(keyStateWords({ retired: false, committee: 3, threshold: 2 }, tr), lang).toMatch(/2[^0-9]+3|3[^0-9]+2/);
+    }
+  });
+});
+
+// Condition 5 of docs/contract-v2.md 7: every date from contract version 2 on mainnet carries
+// "deployed on mainnet for testing by VeilCore; not yet independently reviewed; not for your
+// records", on every surface that shows a checked date, as a caution and never as a tick.
+describe('a date from version 2 on mainnet always says it is for testing and not for your records', () => {
+  const BUNDLE =
+    'VeilCore contract version 2 is deployed on mainnet for testing by VeilCore. It is not yet independently reviewed and not for your records.';
+  const proofOn = (network: string) =>
+    ({ status: 'anchor-reported', proof: { batchId: 'B-1', root: v2.root, anchor: { network, txHash: TX } } }) as never;
+  const v2Checked = () => onMainnet(pinnedWithV2([SINGLE]), { address: V2, state: v2.stateHex }, v2.root);
+  const v1Checked = () => onMainnet(pinnedWithV2([SINGLE]), { address: V1, state: V1_STATE }, v1Tx.root);
+  /** The caution as each surface renders it: the check page and plant panel, the date row, the History and the authority pack. */
+  const surfaces = (r: AnchorCheck, network: string, tr: Translator) => ({
+    alert: renderToStaticMarkup(React.createElement(V2Caution, { check: r, network, tr })),
+    row: recordDateRow(proofOn(network), r, tr).sub ?? '',
+    history: anchorHistoryEvent(r, { network, txHash: TX, batchId: 'B-1' }, tr),
+    pack: dateLines({ state: 'anchored', midnight: { network, check: r } } as never, tr).join(' '),
+  });
+
+  it('uses the evidence bundle’s and verify.html’s exact English words', () => {
+    expect(LANGS.en.t('app.verify.anchor.v2Caution')).toBe(BUNDLE);
+    expect(read('../evidence/words.ts')).toContain(BUNDLE);
+    expect(read('../../../evidence-page/verify-core.js')).toContain(BUNDLE);
+  });
+
+  it('a v2 date on mainnet: the line on every surface, in all five languages, as a caution', async () => {
+    const r = await v2Checked();
+    expect(r).toMatchObject({ status: 'checked', contract: { version: 'v2' } });
+    for (const [lang, tr] of Object.entries(LANGS)) {
+      const words = tr.t('app.verify.anchor.v2Caution');
+      expect(words, lang).not.toBe(lang === 'en' ? '' : BUNDLE);
+      expect(v2CautionWords(r, 'mainnet', tr), lang).toBe(words);
+      const s = surfaces(r, 'mainnet', tr);
+      const html = words.replace(/'/g, '&#x27;');
+      expect(s.alert, lang).toContain(html);
+      expect(s.alert, lang).toContain('data-v2-caution');
+      // A caution, never the green of a passed check.
+      expect(s.alert, lang).toContain('MuiAlert-colorWarning');
+      expect(s.alert, lang).not.toMatch(/[Ss]uccess/);
+      expect(s.row, lang).toBe(words);
+      expect(s.history.detail, lang).toContain(words);
+      expect(s.history.strong, lang).toBe(false);
+      expect(s.pack, lang).toContain(words);
+    }
+  });
+
+  it('only there: no line for a v1 date, a v2 date off mainnet, or a date not checked', async () => {
+    const v1 = await v1Checked();
+    const v2r = await v2Checked();
+    for (const [lang, tr] of Object.entries(LANGS)) {
+      const words = tr.t('app.verify.anchor.v2Caution');
+      for (const [r, network] of [
+        [v1, 'mainnet'],
+        [v2r, 'preprod'],
+        [{ status: 'unreachable', reason: 'x' } as AnchorCheck, 'mainnet'],
+      ] as const) {
+        expect(v2CautionWords(r, network, tr), lang).toBeUndefined();
+        const s = surfaces(r, network, tr);
+        expect(s.alert, lang).toBe('');
+        for (const text of [s.row, s.history.detail, s.pack]) expect(text, lang).not.toContain(words);
+      }
+      expect(v2CautionWords('checking', 'mainnet', tr), lang).toBeUndefined();
+    }
+  });
+
+  // A new screen that shows a checked date must not be able to skip the line. The words come
+  // only through these: every file that renders anchorLine (the check page's and the plant
+  // panel's dated line) renders V2Caution beside it, and every other file that looks a record's
+  // date up goes through recordDateRow, the History, the authority pack or the bundle, which
+  // carry it (tested above and in evidence/bundle.test.ts).
+  it('every surface that shows a checked date carries it', () => {
+    const root = new URL('../../', import.meta.url);
+    const files: string[] = [];
+    const walk = (dir: URL) => {
+      for (const name of readdirSync(dir)) {
+        const u = new URL(name, dir);
+        if (statSync(u).isDirectory()) walk(new URL(`${name}/`, dir));
+        else if (/\.tsx?$/.test(name) && !/\.test\.tsx?$/.test(name)) files.push(u.pathname);
+      }
+    };
+    walk(root);
+    const src = (f: string) => readFileSync(f, 'utf8');
+    const rel = (f: string) => f.slice(root.pathname.length);
+    const lines = files.filter((f) => /\banchorLine\(/.test(src(f)) && !f.endsWith('anchor-words.ts'));
+    expect(lines.map(rel).sort()).toEqual(['components/SettlementStatus.tsx', 'pages/VerifyPage.tsx']);
+    for (const f of lines) expect(src(f), rel(f)).toMatch(/<V2Caution\b/);
+    // Every other reader of a record's date, and how its words reach the line.
+    const CARRIES =
+      /recordDateRow\(|<V2Caution\b|v2CautionWords\(|anchorHistoryEvent\(|DocumentDateView|<SettlementStatus\b/;
+    const readers = files.filter(
+      (f) =>
+        /\buseRecordDate\(|\blookUpAnchor\(|\bcheckAnchorOnChain\(/.test(src(f)) &&
+        !/(useAnchorCheck|anchor-lookup|anchor-check|proofs)\.ts$/.test(f),
+    );
+    /** Files that read the date and show none of it as a checked date, each with why. */
+    const NO_DATE_SHOWN: Record<string, string> = {
+      // Home's list row for a document: the holder's own records, dated through the site's v1 anchorer only.
+      'components/flow/AppHome.tsx': 'documentHomeDate',
+      // Uses the look-up only to tell a failed or missing date apart; DocumentDate shows the date.
+      'components/document/DocumentDetail.tsx': 'dateAnchor',
+      // Hands each record's look-up to gatherPackFacts; dateLines words it (tested above).
+      'components/authority-pack/AuthorityPackPage.tsx': 'gatherPackFacts',
+    };
+    for (const f of readers) {
+      const r = rel(f);
+      if (r in NO_DATE_SHOWN) expect(src(f), r).toContain(NO_DATE_SHOWN[r]);
+      else expect(src(f), r).toMatch(CARRIES);
     }
   });
 });

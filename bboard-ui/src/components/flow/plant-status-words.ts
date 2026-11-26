@@ -6,7 +6,7 @@ import type { LabReceipt } from '../../veilcore/custody';
 import type { RecordKeys } from '../../veilcore/record-keys';
 import type { StrainRecord, UnsavedReason } from '../../veilcore/records';
 import type { ProofState } from '../../veilcore/proofs';
-import type { AnchorState } from '../verify/anchor-words';
+import { v2CautionWords, type AnchorState } from '../verify/anchor-words';
 import { isTestNetwork } from '../../config/network';
 import { utcDate } from '../../veilcore/time';
 import { enT, type Translator } from '../../i18n/translate';
@@ -170,7 +170,8 @@ export const recordDateRow = (
     return {
       mark: 'done',
       value: tr.t('app.plant.checkedOnMidnight', { date: utcDay(anchor.blockTime) }),
-      sub: withTest(),
+      // A date from contract version 2 on mainnet carries condition 5's line (docs/contract-v2.md 7).
+      sub: v2CautionWords(anchor, a?.network ?? '', tr) ?? withTest(),
     };
   if (anchor !== undefined && anchor !== 'checking' && anchor.status === 'failed')
     return {

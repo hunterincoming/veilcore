@@ -31,6 +31,7 @@ import { anchorConfirmed, anchorLine } from './verify/anchor-words';
 import { useRecordDate } from './verify/useAnchorCheck';
 import { reportedText, settlementChip } from './settlement-words';
 import { Fact } from './verify/DisclosedFacts';
+import { V2Caution } from './verify/V2Caution';
 import { CODE_FONT } from '../config/theme';
 
 export const SettlementStatus: React.FC<{ record: StrainRecord }> = ({ record }) => {
@@ -88,6 +89,7 @@ export const SettlementStatus: React.FC<{ record: StrainRecord }> = ({ record })
           <Fact status={anchorText.status}>{anchorText.text}</Fact>
         </Box>
       )}
+      <V2Caution check={anchor} network={network} tr={tr} />
 
       <Box sx={{ fontFamily: CODE_FONT, fontSize: 12, color: 'text.secondary' }}>
         <div>{t('app.plant.date.batchLine', { batch: proof.batchId })}</div>

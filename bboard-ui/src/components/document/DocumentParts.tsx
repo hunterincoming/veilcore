@@ -19,6 +19,8 @@ import type { AboutTarget } from '../../veilcore/document-link';
 import { DOCUMENT_CHAIN_ENABLED } from '../../config/network';
 import { recordDateRow } from '../flow/plant-status-words';
 import { useRecordDate } from '../verify/useAnchorCheck';
+import { V2Caution } from '../verify/V2Caution';
+import { v2CautionWords } from '../verify/anchor-words';
 import { rich, useT } from '../../i18n/app';
 import type { Translator } from '../../i18n/translate';
 import type { AppKey } from '../../i18n/app/en';
@@ -193,14 +195,18 @@ export const DocumentDateView: React.FC<{
       proof !== 'checking' &&
       proof.status === 'anchor-reported' &&
       !!proof.proof.anchor?.txHash);
+  const network = proof !== 'checking' && proof.status === 'anchor-reported' ? (proof.proof.anchor?.network ?? '') : '';
+  // A date from contract version 2 on mainnet: its line as a caution, not as the row's grey sub.
+  const caution = v2CautionWords(anchor, network, tr) !== undefined;
   return (
     <Box data-document-date={row.mark}>
       <Fact label={tr.t('app.doc.k.dated')}>{row.value}</Fact>
-      {row.sub && (
+      {row.sub && !caution && (
         <Typography variant="caption" color="text.secondary">
           {row.sub}
         </Typography>
       )}
+      <V2Caution check={anchor} network={network} tr={tr} sx={{ mt: 1 }} />
       {/* Dated by VeilCore's word, not confirmed on Midnight from here: never "nothing dates it".
           Nothing while the lookup runs; "try again" only when Midnight couldn't be reached. */}
       {checker && row.mark === 'reported' && !anchorLookupPending && (

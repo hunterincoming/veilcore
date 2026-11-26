@@ -47,6 +47,8 @@ export const verify = {
   'app.verify.anchor.keys.committee':
     ' Wer diesen Smart-Contract ändern kann: das {threshold}-von-{committee}-Komitee ({threshold} seiner {committee} Mitglieder müssen zustimmen).',
   'app.verify.anchor.keys.retired': ' Wer diesen Smart-Contract ändern kann: niemand. Er lässt sich nicht mehr ändern.',
+  'app.verify.anchor.v2Caution':
+    'Der VeilCore-Smart-Contract, Version 2, ist von VeilCore zum Testen auf dem Hauptnetz von Midnight bereitgestellt. Er ist noch nicht unabhängig geprüft und nicht für Ihre Datensätze gedacht.',
   'app.verify.anchor.checked':
     'Auf Midnight geprüft: Diese Stapelwurzel wurde durch die Transaktion {tx} in Block {block} am {at} geschrieben.{contract}{two}{test}',
   'app.verify.anchor.failed':

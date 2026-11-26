@@ -95,6 +95,26 @@ export const anchorLine = (
   }
 };
 
+/**
+ * Condition 5 of docs/contract-v2.md 7: until its public switch, a date from VeilCore contract
+ * version 2 on mainnet always carries this line, in the evidence bundle's and verify.html's own
+ * words (evidence/words.ts midnightSteps). Undefined for any other date: version 1, a test
+ * network (its own note already says the date carries no weight), or nothing checked yet.
+ * Every surface that shows a checked date renders it through V2Caution (V2Caution.tsx).
+ */
+export const v2CautionWords = (
+  check: AnchorState | undefined,
+  network: string,
+  tr: Translator = enT,
+): string | undefined =>
+  check !== undefined &&
+  check !== 'checking' &&
+  check.status === 'checked' &&
+  check.contract?.version === 'v2' &&
+  network === 'mainnet'
+    ? tr.t('app.verify.anchor.v2Caution')
+    : undefined;
+
 /** Whether this browser confirmed the anchor itself. */
 export const anchorConfirmed = (check: AnchorState | undefined): boolean =>
   check !== undefined && check !== 'checking' && check.status === 'checked';
@@ -134,20 +154,22 @@ export const anchorHistoryEvent = (
   const where = networkWords(a.network, tr);
   const reportedAt = a.anchoredAt && !Number.isNaN(Date.parse(a.anchoredAt)) ? Date.parse(a.anchoredAt) : undefined;
   const test = isTestNetwork(a.network) ? tr.t('app.plant.date.testNote') : '';
+  const caution = v2CautionWords(check, a.network, tr);
   if (check !== undefined && check !== 'checking' && check.status === 'checked')
     return {
       at: check.blockTime,
       title: isTestNetwork(a.network)
         ? tr.t('app.verify.anchor.eventTestTitle')
         : tr.t('app.verify.anchor.headingChecked'),
-      detail: tr.t('app.verify.anchor.eventChecked', {
-        batch: a.batchId,
-        tx: check.txHash,
-        block: String(check.blockHeight),
-        where,
-        test,
-      }),
-      strong: !isTestNetwork(a.network),
+      detail:
+        tr.t('app.verify.anchor.eventChecked', {
+          batch: a.batchId,
+          tx: check.txHash,
+          block: String(check.blockHeight),
+          where,
+          test,
+        }) + (caution ? ` ${caution}` : ''),
+      strong: !isTestNetwork(a.network) && caution === undefined,
     };
   if (check !== undefined && check !== 'checking' && check.status === 'failed')
     return {
