@@ -22,7 +22,9 @@ export type LayersInput = {
 };
 
 const list = (items: string[], tr: Translator): string =>
-  new Intl.ListFormat(tr.locale, { style: 'long', type: 'conjunction' }).format(items);
+  // English pages have no locale of their own (translate.ts), so the list words would follow the
+  // browser's language ("und", "y"); the words around them are English, so the list is too.
+  new Intl.ListFormat(tr.locale ?? 'en', { style: 'long', type: 'conjunction' }).format(items);
 
 /** The two lines; `standard` is null when the record has nothing anyone can check yet. */
 export const evidenceLayers = (i: LayersInput, tr: Translator = enT): { standard: string | null; veilcore: string } => {

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { evidenceLayers, type LayersInput } from './evidence-layers';
 import { enT, makeTranslator } from '../../i18n/translate';
 import { appDe } from '../../i18n/app/de';
@@ -16,6 +16,12 @@ const none: LayersInput = {
   keyBound: false,
 };
 
+let restore = () => {};
+afterEach(() => {
+  restore();
+  restore = () => {};
+});
+
 describe('how someone who disagrees can check this', () => {
   it('lists only what the record has', () => {
     const r = evidenceLayers({ ...none, midnight: true, path: true });
@@ -26,6 +32,25 @@ describe('how someone who disagrees can check this', () => {
     expect(r.veilcore).toMatch(
       /^VeilCore-specific, not yet audited: the checks this page runs and reading the batch root from Midnight, which needs VeilCore’s compiled contract\.$/,
     );
+  });
+
+  it('English joins its list in English, whatever the browser’s own language', () => {
+    const Real = Intl.ListFormat;
+    const intl = Intl as { ListFormat: typeof Intl.ListFormat };
+    // A browser set to German: a list format with no locale named comes out in German.
+    intl.ListFormat = class extends Real {
+      constructor(locales?: Intl.LocalesArgument, options?: Intl.ListFormatOptions) {
+        super(locales ?? 'de', options);
+      }
+    };
+    restore = () => {
+      intl.ListFormat = Real;
+    };
+    expect(new Intl.ListFormat(undefined, { type: 'conjunction' }).format(['a', 'b'])).toBe('a und b');
+    const r = evidenceLayers({ ...none, bitcoin: true, midnight: true, keyBound: true });
+    expect(r.standard).toContain('(the OpenTimestamps client) and that the Midnight transaction');
+    expect(r.veilcore).toContain(', and how the record’s key is bound to it.');
+    expect(`${r.standard} ${r.veilcore}`).not.toMatch(/\bund\b/);
   });
 
   it('nothing to check yet: no first line', () => {

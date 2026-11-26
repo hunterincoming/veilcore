@@ -340,7 +340,7 @@ export const verify = {
     'Prüfbar mit Werkzeugen, die VeilCore nicht geschrieben hat: {list}. Das Beweispaket des Inhabers enthält die Dateien.',
   'app.verify.layers.btc': 'der Bitcoin-Stempel (der OpenTimestamps-Client)',
   'app.verify.layers.tsa': 'das Token einer Zeitstempelstelle (OpenSSL)',
-  'app.verify.layers.tx': 'dass die Midnight-Transaktion existiert, gelungen ist und wann (jeder Midnight-Explorer)',
+  'app.verify.layers.tx': 'dass die Midnight-Transaktion existiert, erfolgreich war und wann (jeder Midnight-Explorer)',
   'app.verify.layers.path': 'der Pfad vom Prüfcode zur Stapelwurzel (jedes SHA-256-Werkzeug)',
   'app.verify.layers.sigs': 'Signaturen von Laboren (jedes Ed25519-Werkzeug)',
   'app.verify.layers.veilcore': 'VeilCore-spezifisch, noch nicht unabhängig geprüft: {list}.',
