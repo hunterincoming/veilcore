@@ -25,6 +25,8 @@ export const twoRecords = {
   'app.tworec.unchanged.text':
     'Marque los números que la corrección podía cambiar. Esto prueba que todos los demás números son iguales en los dos registros. La lista que marca es pública; los números no.',
   'app.tworec.unchanged.list': 'Podía cambiar',
+  'app.tworec.unchanged.carries':
+    'Ya es público sobre el registro anterior: {list}. Probar esto hace que cada uno de esos hechos valga también para este registro, porque esos números quedan sin marcar.',
   'app.tworec.unchanged.changed': '{label} (cambió)',
   'app.tworec.preview.distinct':
     'Esto prueba: estos dos registros se diferencian en al menos {k} de los números que compara su formulario.',
@@ -65,7 +67,7 @@ export const twoRecords = {
   'app.tworec.not.examine':
     'Es un recuento, no una decisión. Si dos variedades o lotes son distintos lo decide quien los examina, por ejemplo una oficina examinadora. Esto no sustituye ese examen.',
   'app.tworec.not.which': 'No muestra qué números son diferentes, en cuánto ni cuántos.',
-  'app.tworec.not.typed': 'Los números son los del titular, tal como los escribió. Ningún laboratorio los firmó.',
+  'app.tworec.not.typed': 'Esto no muestra que un laboratorio haya medido o firmado los números.',
   'app.tworec.not.reference':
     'El titular eligió el otro registro. Para una comparación justa, alguien que no sea el titular debería decir con qué registro comparar.',
   'app.tworec.not.oneParty':

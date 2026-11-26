@@ -68,6 +68,8 @@ export type PairRecord = {
   readonly id: string;
   readonly recordFingerprint?: string;
   readonly fieldSet?: Pick<HeldFieldSet, 'schema' | 'values'>;
+  /** A lab's copy of its own result (records.ts StrainRecord.copy): never offered. */
+  readonly copy?: true;
 };
 
 /** Why a claim about two records can't be made, as an app key and its values. */
@@ -111,7 +113,8 @@ const samePair = (a: PairRecord, b: PairRecord): boolean =>
 /** The refusals both claims share: a form offered, numbers on both, two records, one form. */
 const pairRefusal = (a: PairRecord, b: PairRecord): TwoRefusal | undefined => {
   if (!a.fieldSet || !b.fieldSet) return { key: 'app.tworec.refuse.noNumbers' };
-  if (!twoRecordFormOffered(a.fieldSet.schema)) return { key: 'app.tworec.refuse.notOffered' };
+  if (!twoRecordFormOffered(a.fieldSet.schema) || a.copy === true || b.copy === true)
+    return { key: 'app.tworec.refuse.notOffered' };
   if (samePair(a, b)) return { key: 'app.tworec.refuse.sameRecord' };
   if (a.fieldSet.schema !== b.fieldSet.schema) return { key: 'app.tworec.refuse.otherForm' };
   return undefined;
@@ -161,6 +164,17 @@ export const unchangedRefusal = (
     return { key: 'app.tworec.refuse.undeclared', vars: { list: undeclared.map(words).join(', ') } };
   return undefined;
 };
+
+/**
+ * SPEC 4.5 disclosure accounting, for a correction: what earlier claims already published about
+ * the earlier record's numbers. Proving that every number outside the list is unchanged makes
+ * each of those claims true of the correction as well, for every number left unticked. The ones
+ * on ticked numbers don't carry over. Shown to the holder before anything is proved.
+ */
+export const carriedClaims = <C extends { readonly slot: number }>(
+  earlier: readonly C[] | undefined,
+  mayChange: readonly number[],
+): C[] => (earlier ?? []).filter((c) => !mayChange.includes(c.slot));
 
 /** The other records a claim with this one can be about: the same form, numbers sealed, not this one. */
 export const pairCandidates = <R extends PairRecord>(record: R, all: readonly R[], skip: (r: R) => boolean): R[] =>

@@ -190,13 +190,18 @@ test('two certificates: shown different, a correction shown to change only what 
   // Each link on its check page: the claim in plain words, both records, what it doesn't show.
   await page.goto(new URL(distinctLink).pathname + new URL(distinctLink).hash);
   await expect(page.locator('[data-two-check="distinct"]')).toBeVisible();
+  // Proved, but neither record is dated on Midnight here: a warning on top, never green.
+  await expect(page.locator('[data-verdict]')).toHaveAttribute('data-verdict', 'warn');
+  await expect(page.locator('[data-verdict]')).toContainText('no date on Midnight was confirmed for a record it names');
   await expect(page.locator('[data-claim-verdict="ok"]')).toBeVisible();
   await expect(page.locator('[data-claim-statement]')).toHaveText(
     'These two records, as sealed, differ in at least 1 of the numbers their form compares.',
   );
   await expect(page.locator('[data-two-record]')).toHaveCount(2);
   await shot(page, 'two-check-distinct');
-  await expect(page.locator('[data-two-limits="distinct"]')).toContainText('No laboratory signed them.');
+  await expect(page.locator('[data-two-limits="distinct"]')).toContainText(
+    'This doesn’t show that a laboratory measured or signed the numbers.',
+  );
   await page.goto(new URL(unchangedLink).pathname + new URL(unchangedLink).hash);
   await expect(page.locator('[data-claim-statement]')).toHaveText(
     'Apart from Total THC, the second record holds the same numbers as the first.',

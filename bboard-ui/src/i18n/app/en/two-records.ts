@@ -27,6 +27,8 @@ export const twoRecords = {
   'app.tworec.unchanged.text':
     'Tick the numbers the correction was allowed to change. This proves every other number is the same in both records. The list you tick is public; the numbers are not.',
   'app.tworec.unchanged.list': 'Allowed to change',
+  'app.tworec.unchanged.carries':
+    'Already public about the earlier record: {list}. Proving this makes each of those true of this record too, because those numbers are left unticked.',
   'app.tworec.unchanged.changed': '{label} (changed)',
   'app.tworec.preview.distinct':
     'This proves: these two records differ in at least {k} of the numbers their form compares.',
@@ -64,7 +66,7 @@ export const twoRecords = {
   'app.tworec.not.examine':
     'It is a count, not a decision. Whether two varieties or lots are distinct is for whoever examines them, such as an examining office. This doesn’t replace that examination.',
   'app.tworec.not.which': 'It doesn’t show which numbers differ, by how much, or how many.',
-  'app.tworec.not.typed': 'The numbers are the holder’s own, as typed. No laboratory signed them.',
+  'app.tworec.not.typed': 'This doesn’t show that a laboratory measured or signed the numbers.',
   'app.tworec.not.reference':
     'The holder chose the other record. For a fair comparison, someone other than the holder should say which record to compare with.',
   'app.tworec.not.oneParty':

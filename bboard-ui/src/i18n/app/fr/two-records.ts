@@ -26,6 +26,8 @@ export const twoRecords = {
   'app.tworec.unchanged.text':
     'Cochez les chiffres que la correction pouvait changer. Cela prouve que tous les autres chiffres sont identiques dans les deux enregistrements. La liste cochée est publique, pas les chiffres.',
   'app.tworec.unchanged.list': 'Pouvait changer',
+  'app.tworec.unchanged.carries':
+    'Déjà public sur l’enregistrement antérieur : {list}. Prouver ceci rend chacun de ces faits vrai pour cet enregistrement aussi, car ces chiffres ne sont pas cochés.',
   'app.tworec.unchanged.changed': '{label} (changé)',
   'app.tworec.preview.distinct':
     'Cela prouve : ces deux enregistrements diffèrent sur au moins {k} des chiffres que leur formulaire compare.',
@@ -67,7 +69,7 @@ export const twoRecords = {
   'app.tworec.not.examine':
     'C’est un comptage, pas une décision. C’est à qui les examine, par exemple un office d’examen, de décider si deux variétés ou lots sont distincts. Ceci ne remplace pas cet examen.',
   'app.tworec.not.which': 'Cela ne montre pas quels chiffres diffèrent, de combien, ni combien.',
-  'app.tworec.not.typed': 'Les chiffres sont ceux du détenteur, tels que saisis. Aucun laboratoire ne les a signés.',
+  'app.tworec.not.typed': 'Cela ne montre pas qu’un laboratoire a mesuré ou signé les chiffres.',
   'app.tworec.not.reference':
     'Le détenteur a choisi l’autre enregistrement. Pour une comparaison loyale, quelqu’un d’autre que le détenteur devrait indiquer avec quel enregistrement comparer.',
   'app.tworec.not.oneParty':

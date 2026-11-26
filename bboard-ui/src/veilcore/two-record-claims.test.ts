@@ -11,6 +11,7 @@ import { ClaimsSimulator } from '../../../contract/src/test/claims-simulator';
 import { claimFromCells } from '../../../contract/src/verify-claims';
 import {
   TWO_RECORD_FORMS,
+  carriedClaims,
   changedSlots,
   compareTwoClaim,
   datedCodesOf,
@@ -161,6 +162,17 @@ describe('"these two records are different" (proveDistinct)', () => {
     expect(distinctRefusal(m1, m2)?.key).toBe('app.tworec.refuse.tooFew');
   });
 
+  it('refuses a lab’s copy of its own result, from either side', async () => {
+    const a = await sealedNumbers(POTENCY, potency(210n, 11400n));
+    const copy = await sealedNumbers(POTENCY, potency(300n, 11400n), { copy: true } as never);
+    expect(distinctRefusal(a, copy)?.key).toBe('app.tworec.refuse.notOffered');
+    expect(distinctRefusal(copy, a)?.key).toBe('app.tworec.refuse.notOffered');
+    expect(unchangedRefusal(copy, a, [0])?.key).toBe('app.tworec.refuse.notOffered');
+    await expect(proveDistinct(copy, a, { sponsored: true, calls: {} as never })).rejects.toThrow(
+      /can’t be compared this way/,
+    );
+  });
+
   it('refuses two forms, and a lab’s result form', async () => {
     const a = await sealedNumbers(POTENCY, potency(210n, 11400n));
     const s = await sealedNumbers(SEED, [9500n]);
@@ -209,6 +221,13 @@ describe('"a correction only changed what it says" (proveUnchanged)', () => {
     expect(maskSaysNothing(POTENCY, [0])).toBe(false);
     expect(unchangedRefusal(original, corrected, every)?.key).toBe('app.tworec.refuse.saysNothing');
     expect(unchangedRefusal(original, original, [0])?.key).toBe('app.tworec.refuse.sameRecord');
+  });
+
+  it('earlier public claims on the earlier record carry over for every number left unticked', () => {
+    const on = (slot: number) => ({ slot });
+    expect(carriedClaims([on(0), on(3), on(5)], [0])).toEqual([on(3), on(5)]);
+    expect(carriedClaims([on(0)], [0])).toEqual([]);
+    expect(carriedClaims(undefined, [])).toEqual([]);
   });
 
   it('the check page refuses a claim whose list says nothing, though the contract took it', async () => {

@@ -105,7 +105,7 @@ a fact" says so before the button, for every record, in five languages (`app.cla
    (`marker-claims.ts` rule 4), and never for a record kept on this device only. The check page
    (`/check-claim#p=…`) reads the claim per call, compares it exactly with the link, refuses a
    list that covers every number the form describes (SPEC 4.5 check 8), dates both records and
-   says what the claim doesn't show. Checked here: the inputs pass the claims contract's compiled
+   says what the claim doesn't show. Its top line, like the one-number claim page's, is a warning and never green while a record the claim names has no date confirmed on Midnight (SPEC 4.5 check 2). Before a correction is proved, the panel lists what earlier claims on the earlier record already made public, which then holds for the correction too for every number left unticked (SPEC 4.5, disclosure accounting). Not offered on a lab's copy of its own result. Checked here: the inputs pass the claims contract's compiled
    circuits and Midnight's own circuit checker, and a pair the contract would refuse is refused
    in the browser first. **Not yet possible on any network:** the sponsor doesn't pay for these
    two circuits (`sponsor/src/policy.ts` `CLAIMS_CIRCUITS`), so the button stays off

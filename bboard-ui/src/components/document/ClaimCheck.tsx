@@ -24,7 +24,7 @@ import { anchoredFingerprintOf, claimsOf, readClaimLink, type ClaimVerdict } fro
 import { isMarkerSchema, joinedPlacement, markerSourceKey, offerOf } from '../../veilcore/marker-claims';
 import { DatedNotOrigin } from '../verify/DatedNotOrigin';
 import { CheckVerdict, CheckYourself, MakeYourOwn } from '../verify/CheckParts';
-import { claimVerdict, VERDICT_DATE } from '../verify/verdict';
+import { claimVerdict, namedRecordDate, VERDICT_DATE } from '../verify/verdict';
 import { useT } from '../../i18n/app';
 import { DocumentDateView, Fact } from './DocumentParts';
 import { useRecordDate } from '../verify/useAnchorCheck';
@@ -147,6 +147,7 @@ const OneClaimCheck: React.FC = () => {
     verdict,
     more: more.map((_, i) => moreVerdicts[i]),
     stillTesting: testingDate,
+    dates: [namedRecordDate(recordDate)],
   });
   // The lab's signer, with its key's level (docs/lab-identity-levels.md), when the registry tied it.
   const signer = verdict?.ok && verdict.lab?.ok ? verdict.lab.signer : undefined;

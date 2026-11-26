@@ -11,7 +11,7 @@ import { Alert, CircularProgress, Container, Paper, Stack, Typography, Box } fro
 import { comparedOf, datedCodesOf, readTwoClaimLink, type TwoVerdict } from '../../veilcore/two-record-claims';
 import { DatedNotOrigin } from '../verify/DatedNotOrigin';
 import { CheckVerdict, CheckYourself, MakeYourOwn } from '../verify/CheckParts';
-import { claimVerdict, VERDICT_DATE } from '../verify/verdict';
+import { claimVerdict, namedRecordDate, VERDICT_DATE } from '../verify/verdict';
 import { useT } from '../../i18n/app';
 import { DocumentDateView, Fact } from './DocumentParts';
 import { useRecordDate } from '../verify/useAnchorCheck';
@@ -75,7 +75,14 @@ export const TwoClaimCheck: React.FC = () => {
   const firstDate = useRecordDate(codes?.first);
   const secondDate = useRecordDate(codes?.second);
   const testingDate = testing(firstDate) || testing(secondDate);
-  const top = claimVerdict({ readable: !!link, off: false, verdict, more: [], stillTesting: testingDate });
+  const top = claimVerdict({
+    readable: !!link,
+    off: false,
+    verdict,
+    more: [],
+    stillTesting: testingDate,
+    dates: [namedRecordDate(firstDate), namedRecordDate(secondDate)],
+  });
   const statement = !link
     ? ''
     : link.kind === 'distinct'

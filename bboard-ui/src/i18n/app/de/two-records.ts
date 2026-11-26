@@ -5,7 +5,7 @@
 import type { AppTranslation } from '../../translate';
 
 export const twoRecords = {
-  'app.tworec.more.title': 'Weitere Belege',
+  'app.tworec.more.title': 'Weitere Beweismöglichkeiten',
   'app.tworec.more.text':
     'Vergleichen Sie die in diesem Datensatz versiegelten Zahlen mit einem anderen Ihrer Datensätze, ohne die Zahlen zu zeigen.',
   'app.tworec.more.distinct': 'Zeigen, dass diese zwei Datensätze verschieden sind',
@@ -26,6 +26,8 @@ export const twoRecords = {
   'app.tworec.unchanged.text':
     'Haken Sie die Zahlen an, die die Berichtigung ändern durfte. Das belegt, dass jede andere Zahl in beiden Datensätzen gleich ist. Die angehakte Liste ist öffentlich, die Zahlen nicht.',
   'app.tworec.unchanged.list': 'Durfte sich ändern',
+  'app.tworec.unchanged.carries':
+    'Über den früheren Datensatz ist schon öffentlich: {list}. Wenn Sie das belegen, gilt jedes davon auch für diesen Datensatz, weil diese Zahlen nicht angehakt sind.',
   'app.tworec.unchanged.changed': '{label} (geändert)',
   'app.tworec.preview.distinct':
     'Das belegt: Diese zwei Datensätze unterscheiden sich in mindestens {k} der Zahlen, die ihr Formular vergleicht.',
@@ -34,7 +36,7 @@ export const twoRecords = {
   'app.tworec.preview.unchangedNone': 'Das belegt: Jede Zahl in diesem Datensatz ist dieselbe wie im früheren.',
   'app.tworec.refuse.noNumbers': 'Einer dieser Datensätze hat keine versiegelten Zahlen.',
   'app.tworec.refuse.notOffered':
-    'Diese Art von Datensatz lässt sich so nicht vergleichen. Es geht bei Zahlen, die Sie selbst eingegeben haben, unter diesen Formularen: {forms}.',
+    'Diese Art von Datensatz lässt sich so nicht vergleichen. Das funktioniert bei Zahlen, die Sie selbst eingegeben haben, unter diesen Formularen: {forms}.',
   'app.tworec.refuse.sameRecord': 'Das ist derselbe Datensatz. Wählen Sie einen anderen.',
   'app.tworec.refuse.otherForm':
     'Die zwei Datensätze nutzen verschiedene Formulare, daher lassen sich ihre Zahlen nicht vergleichen.',
@@ -42,7 +44,7 @@ export const twoRecords = {
     'Diese zwei Datensätze unterscheiden sich in {n} der verglichenen Zahlen, nötig sind mindestens {k}. Daher lässt sich das nicht belegen. Es wurde nichts gesendet.',
   'app.tworec.refuse.undeclared':
     '{list} hat sich geändert, ist aber nicht angehakt. Haken Sie es an, sonst lässt sich das nicht belegen. Es wurde nichts gesendet.',
-  'app.tworec.refuse.saysNothing': 'Mit jeder Zahl angehakt sagt das nichts aus. Lassen Sie mindestens eine frei.',
+  'app.tworec.refuse.saysNothing': 'Wenn jede Zahl angehakt ist, sagt das nichts aus. Lassen Sie mindestens eine frei.',
   'app.tworec.err.unpaid':
     'Der Gebührendienst von VeilCore bezahlt diesen Beleg noch nicht, daher wurde nichts gesendet.',
   'app.tworec.err.deviceOnly':
@@ -68,7 +70,7 @@ export const twoRecords = {
   'app.tworec.not.examine':
     'Es ist eine Zählung, keine Entscheidung. Ob zwei Sorten oder Lose unterscheidbar sind, entscheidet, wer sie prüft, etwa eine Prüfstelle. Dies ersetzt diese Prüfung nicht.',
   'app.tworec.not.which': 'Es zeigt nicht, welche Zahlen sich unterscheiden, um wie viel oder wie viele.',
-  'app.tworec.not.typed': 'Die Zahlen sind die eigenen Eingaben des Inhabers. Kein Labor hat sie signiert.',
+  'app.tworec.not.typed': 'Das zeigt nicht, dass ein Labor die Zahlen gemessen oder signiert hat.',
   'app.tworec.not.reference':
     'Der Inhaber hat den anderen Datensatz gewählt. Für einen fairen Vergleich sollte jemand anderes als der Inhaber angeben, mit welchem Datensatz verglichen wird.',
   'app.tworec.not.oneParty':

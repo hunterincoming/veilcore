@@ -141,6 +141,25 @@ describe('the way in, on a record’s page', () => {
     expect(await render('en', React.createElement(TwoRecordWayIn, { record: lab, all: [lab] }))).toBe('');
     expect(await render('en', React.createElement(TwoRecordWayIn, { record: local, all: [local] }))).toBe('');
   });
+
+  it('isn’t there on a lab’s copy of its own result, open or not, nor its panel', async () => {
+    const { TwoRecordWayIn, TwoRecordPanel } = await import('./TwoRecordClaims');
+    const { a } = await pair();
+    const copy = await sealedNumbers(POTENCY, potency(300n, 11400n), {
+      copy: true,
+      labSignature: { record: 'ab'.repeat(32), key: '6f'.repeat(64) },
+    } as never);
+    for (const props of [{}, { initialOpen: true }, { initialKind: 'distinct' as const, ready: true }])
+      expect(await render('en', React.createElement(TwoRecordWayIn, { record: copy, all: [copy, a], ...props }))).toBe(
+        '',
+      );
+    const panel = await render(
+      'en',
+      React.createElement(TwoRecordPanel, { record: copy, all: [copy, a], ready: true }),
+    );
+    expect(panel).toContain('data-two-not-offered');
+    expect(panel).not.toContain('data-two-go');
+  });
 });
 
 describe('the panel, in all five languages', () => {
@@ -204,6 +223,50 @@ describe('the panel, in all five languages', () => {
       expect(html, lang).not.toContain('data-two-unpaid');
       expect(html, lang).not.toMatch(/data-two-go=""[^>]*disabled|disabled[^>]*data-two-go=""/);
     }
+  });
+
+  it('"correction": what earlier claims on the earlier record made public, and that it carries over', async () => {
+    const { TwoRecordPanel } = await import('./TwoRecordClaims');
+    const claim = (slot: number, bound: string) => ({
+      kind: 'range' as const,
+      contract: 'c1'.repeat(32),
+      txId: String(slot).padStart(2, '0').repeat(32),
+      record: 'ab'.repeat(32),
+      schema: POTENCY,
+      slot,
+      op: 'at-most' as const,
+      bound,
+    });
+    // On the earlier record: a claim on total THC (which changed, and is ticked) and on total CBD (left unticked).
+    const original = await sealedNumbers(POTENCY, potency(210n, 11400n), {
+      claims: [claim(0, '300'), claim(3, '12000')],
+    });
+    const corrected = await sealedNumbers(POTENCY, potency(300n, 11400n));
+    for (const lang of Object.keys(LANGS) as Lang[]) {
+      const d = LANGS[lang] as Record<string, string>;
+      const html = await render(
+        lang,
+        React.createElement(TwoRecordPanel, {
+          record: corrected,
+          all: [corrected, original],
+          initialKind: 'unchanged',
+          ready: false,
+        }),
+      );
+      // Only the one on an unticked number carries over.
+      expect(html, lang).toContain('data-two-carries="1"');
+      const lead = d['app.tworec.unchanged.carries'].split('{list}')[0];
+      expect(html, lang).toContain(escape(lead));
+      expect(html, lang).toContain(escape(d['app.doc.slot.totalCbd']));
+      expect(html, lang).toContain('12');
+    }
+    // With nothing published about it before, nothing is said.
+    const plain = await sealedNumbers(POTENCY, potency(210n, 11400n));
+    const none = await render(
+      'en',
+      React.createElement(TwoRecordPanel, { record: corrected, all: [corrected, plain], initialKind: 'unchanged' }),
+    );
+    expect(none).not.toContain('data-two-carries');
   });
 
   it('with no other record under the form, or on a form not offered: says so', async () => {

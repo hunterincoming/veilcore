@@ -23,6 +23,8 @@ export const twoRecords = {
   'app.tworec.unchanged.text':
     '訂正で変えてよかった数値にチェックを入れてください。それ以外の数値がすべて二つの記録で同じであることを証明します。チェックしたリストは公開され、数値は公開されません。',
   'app.tworec.unchanged.list': '変えてよい数値',
+  'app.tworec.unchanged.carries':
+    '以前の記録について、すでに公開されていること：{list}。これを証明すると、それらの数値にはチェックが入っていないため、どれもこの記録にも当てはまることになります。',
   'app.tworec.unchanged.changed': '{label}（変更あり）',
   'app.tworec.preview.distinct':
     'これで証明されること：この二つの記録は、そのフォームで比べる数値のうち少なくとも{k}個で異なる。',
@@ -60,7 +62,7 @@ export const twoRecords = {
   'app.tworec.not.examine':
     'これは数であって、判断ではありません。二つの品種やロットが区別できるかどうかは、審査機関など、それを審査する人が判断します。これはその審査に代わるものではありません。',
   'app.tworec.not.which': 'どの数値が、どれだけ、いくつ異なるかは示しません。',
-  'app.tworec.not.typed': '数値は保有者が入力したものです。どのラボも署名していません。',
+  'app.tworec.not.typed': 'ラボが数値を測定または署名したことは示しません。',
   'app.tworec.not.reference':
     'もう一方の記録は保有者が選びました。公正に比べるには、保有者以外の人が比べる記録を指定するべきです。',
   'app.tworec.not.oneParty':

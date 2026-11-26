@@ -32,6 +32,7 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { isKeptOnDeviceOnly, type StrainRecord } from '../../veilcore/records';
 import {
+  carriedClaims,
   changedSlots,
   comparedOf,
   formSlots,
@@ -55,11 +56,12 @@ import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 import { DatingPausedNotice } from '../DatingPausedNotice';
 import { DATING_PAUSED } from '../../veilcore/chain/paused';
 import { errorWords } from '../../i18n/error-words';
+import { claimRawWords } from './ProveNumber';
 
 /**
  * The way in, on a record's page: "More ways to prove", folded. Inside, the two claims as plain
  * sentences; either opens the panel. Shown only on the forms these claims are offered on, and
- * never for a record kept on this device only.
+ * never for a record kept on this device only or a lab's copy.
  */
 export const TwoRecordWayIn: React.FC<{
   record: StrainRecord;
@@ -72,7 +74,8 @@ export const TwoRecordWayIn: React.FC<{
   const { t } = useT();
   const [kind, setKind] = useState<TwoKind | undefined>(initialKind);
   const [open, setOpen] = useState(initialOpen || initialKind !== undefined);
-  if (!twoRecordFormOffered(record.fieldSet?.schema) || isKeptOnDeviceOnly(record)) return null;
+  // Never on a lab's copy (records.ts StrainRecord.copy): its numbers are the lab's, not this holder's.
+  if (!twoRecordFormOffered(record.fieldSet?.schema) || isKeptOnDeviceOnly(record) || record.copy === true) return null;
   return (
     <Accordion
       disableGutters
@@ -137,7 +140,7 @@ export const TwoRecordPanel: React.FC<{
   const [made, setMade] = useState<HeldTwoClaim>();
   const [copied, setCopied] = useState(false);
 
-  if (!twoRecordFormOffered(schema) || isKeptOnDeviceOnly(record))
+  if (!twoRecordFormOffered(schema) || isKeptOnDeviceOnly(record) || record.copy === true)
     return (
       <Alert severity="info" variant="outlined" data-two-not-offered="">
         {refusalWords({ key: 'app.tworec.refuse.notOffered' }, tr)}
@@ -265,6 +268,19 @@ export const TwoRecordPanel: React.FC<{
               </Stack>
             </Box>
           )}
+          {kind === 'unchanged' &&
+            (() => {
+              // What earlier claims on the earlier record's numbers already made public carries over
+              // to this record for every number left unticked (SPEC 4.5, disclosure accounting).
+              const carried = carriedClaims(other.claims, mayChange);
+              return carried.length > 0 ? (
+                <Alert severity="info" variant="outlined" data-two-carries={String(carried.length)}>
+                  {t('app.tworec.unchanged.carries', {
+                    list: carried.map((c) => claimRawWords(c, tr)).join('; '),
+                  })}
+                </Alert>
+              ) : null;
+            })()}
           {refusal ? (
             <Alert severity="error" variant="outlined" data-two-refusal={refusal.key.split('.').pop()}>
               {refusalWords(refusal, tr)}
