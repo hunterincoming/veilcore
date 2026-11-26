@@ -82,6 +82,12 @@ export const LabReportOverview: React.FC<{
               {row.sub}
             </Typography>
           )}
+          {/* Dated on a contract still in testing (version 2 on mainnet): its line, as a warning. */}
+          {row.caution && (
+            <Alert severity="warning" variant="outlined" data-v2-caution="">
+              {row.caution}
+            </Alert>
+          )}
         </Stack>
       </Paper>
 

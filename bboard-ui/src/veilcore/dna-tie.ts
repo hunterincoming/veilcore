@@ -42,11 +42,19 @@ export type DnaTie =
 export type DnaDate =
   | { readonly state: 'not-dated' }
   | { readonly state: 'dating'; readonly status: string }
-  | { readonly state: 'dated'; readonly date: string }
+  /**
+   * `caution`: the record dating it was dated on a contract VeilCore is still testing (version 2
+   * on mainnet, docs/contract-v2.md 7 condition 5): its line goes wherever this date is said.
+   */
+  | { readonly state: 'dated'; readonly date: string; readonly caution?: string }
   | { readonly state: 'unconfirmed'; readonly status: string };
 
 /** A record's date row (components/flow/plant-status-words.ts recordDateRow), as far as this needs it. */
-export type DateRowLike = { readonly mark: 'done' | 'reported' | 'wait' | 'failed'; readonly value: string };
+export type DateRowLike = {
+  readonly mark: 'done' | 'testing' | 'reported' | 'wait' | 'failed';
+  readonly value: string;
+  readonly caution?: string;
+};
 
 /** The tie, from where the saved report stands. */
 export const dnaTieOf = (saved: SavedReport, tr: Translator = enT): DnaTie => {
@@ -73,6 +81,8 @@ export const isTied = (tie: DnaTie): boolean => tie.state === 'self' || tie.stat
 export const dnaDateOf = (dated: boolean, row?: DateRowLike): DnaDate => {
   if (!dated) return { state: 'not-dated' };
   if (!row) return { state: 'dating', status: '' };
+  if (row.mark === 'testing')
+    return { state: 'dated', date: row.value, ...(row.caution ? { caution: row.caution } : {}) };
   if (row.mark === 'done' || row.mark === 'reported') return { state: 'dated', date: row.value };
   if (row.mark === 'failed') return { state: 'unconfirmed', status: row.value };
   return { state: 'dating', status: row.value };
@@ -128,11 +138,14 @@ export const dnaTieSentence = (
   const what = dnaTieWhat(tie, view, tr);
   if (isTied(tie))
     return date
-      ? tr.t('app.plant.tie.sentence', { what, date: dnaDateWords(date, tr) })
+      ? tr.t('app.plant.tie.sentence', { what, date: dnaDateWords(date, tr) }) + cautionAfter(date)
       : tr.t('app.plant.tie.sentenceNoDate', { what });
   if (tie.state === 'none') return tr.t('app.plant.tie.sentenceNone', { what });
   return tr.t('app.plant.tie.sentenceNot', { what });
 };
+
+/** A still-testing date's line, after the sentence that says the date (never left out). */
+const cautionAfter = (date: DnaDate): string => (date.state === 'dated' && date.caution ? ` ${date.caution}` : '');
 
 /** What a DNA report shows and doesn't, in one line, said wherever the tie is. */
 export const dnaTieMeaning = (tr: Translator = enT): string => tr.t('app.plant.tie.means');
@@ -148,17 +161,29 @@ export const dnaTieRow = (
   date: DnaDate,
   opts: { waiting?: number; openedNotSaved?: boolean } = {},
   tr: Translator = enT,
-): { id: string; mark: DateRowLike['mark']; done: boolean; label: string; value: string; sub?: string } => {
+): {
+  id: string;
+  mark: DateRowLike['mark'];
+  done: boolean;
+  label: string;
+  value: string;
+  sub?: string;
+  caution?: string;
+} => {
   const id = 'DNA report';
-  if (isTied(tie))
+  if (isTied(tie)) {
+    // Its date from a contract still in testing: ⚠ and the line, never the green tick.
+    const caution = date.state === 'dated' ? date.caution : undefined;
     return {
       id,
-      mark: 'done',
+      mark: caution ? 'testing' : 'done',
       done: true,
       label: tr.t('app.plant.tie.tied'),
       value: dnaTieWhat(tie, 'holder', tr),
       sub: tr.t('app.plant.tie.sub', { date: dnaDateWords(date, tr) }),
+      ...(caution ? { caution } : {}),
     };
+  }
   if (tie.state === 'none')
     return {
       id,

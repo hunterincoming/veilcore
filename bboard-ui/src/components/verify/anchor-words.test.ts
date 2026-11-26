@@ -17,6 +17,8 @@ const OK = {
   blockHeight: 2973563,
   blockTime: Date.UTC(2026, 9, 11, 14, 3, 7),
   indexers: 1,
+  // Version 1, the public contract: only its dates are a full success (anchor-words.ts stillTesting).
+  contract: { version: 'v1', address: 'ab'.repeat(32) },
 } as const;
 
 describe('anchorLine', () => {

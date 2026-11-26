@@ -61,21 +61,31 @@ const DatedLine: React.FC<{ dating: StrainRecord }> = ({ dating }) => {
   const line = labReportDatedLine(dating.id, recordDateRow(proof, anchor));
   const row = recordDateRow(proof, anchor, tr);
   const status =
-    row.mark === 'done' || row.mark === 'reported' ? tr.t('app.plant.dated.dated', { value: row.value }) : row.value;
+    row.mark === 'done' || row.mark === 'testing' || row.mark === 'reported'
+      ? tr.t('app.plant.dated.dated', { value: row.value })
+      : row.value;
   return (
-    <Typography variant="body2" sx={{ fontWeight: 700, overflowWrap: 'anywhere' }} data-lab-report-dated={line}>
-      {rich(
-        tr.t('app.plant.dated.line'),
-        {
-          link: () => (
-            <Link component={RouterLink} to={`/record/${dating.id}`}>
-              {dating.id}
-            </Link>
-          ),
-        },
-        { status },
+    <>
+      <Typography variant="body2" sx={{ fontWeight: 700, overflowWrap: 'anywhere' }} data-lab-report-dated={line}>
+        {rich(
+          tr.t('app.plant.dated.line'),
+          {
+            link: () => (
+              <Link component={RouterLink} to={`/record/${dating.id}`}>
+                {dating.id}
+              </Link>
+            ),
+          },
+          { status },
+        )}
+      </Typography>
+      {/* Dated on a contract still in testing (version 2 on mainnet): its line, as a warning. */}
+      {row.caution && (
+        <Alert severity="warning" variant="outlined" data-v2-caution="">
+          {row.caution}
+        </Alert>
       )}
-    </Typography>
+    </>
   );
 };
 

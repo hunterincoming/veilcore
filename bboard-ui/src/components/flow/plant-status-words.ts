@@ -137,8 +137,12 @@ export const labSentPhrase = (facts?: { sent: number; sentEver: number }, tr: Tr
         ? tr.t('app.home.reportWithdrawn')
         : undefined;
 
-/** A status line's mark: ✓ checked, ○ reported or waiting (neutral), ⊗ failed. */
-export type RowMark = 'done' | 'reported' | 'wait' | 'failed';
+/**
+ * A status line's mark: ✓ checked, ○ reported or waiting (neutral), ⊗ failed, and ⚠ testing: a
+ * date checked on Midnight from a contract VeilCore is still testing (anchor-words.ts
+ * stillTesting). Dated, but never the green tick of a full success.
+ */
+export type RowMark = 'done' | 'testing' | 'reported' | 'wait' | 'failed';
 
 /**
  * The plant page's "Record dated" line. One source of truth with the check page and the
@@ -156,7 +160,13 @@ export const recordDateRow = (
    * when known: dating-words.ts nextBatchRow). Without it, "waiting for a batch".
    */
   nextBatch?: { value: string; sub?: string },
-): { mark: RowMark; value: string; sub?: string } => {
+): {
+  mark: RowMark;
+  value: string;
+  sub?: string;
+  /** The still-testing line (docs/contract-v2.md 7, condition 5): every surface shows it as a warning. */
+  caution?: string;
+} => {
   if (proof === 'checking') return { mark: 'wait', value: tr.t('app.plant.checking') };
   if (proof.status === 'none')
     return nextBatch
@@ -166,13 +176,18 @@ export const recordDateRow = (
   const a = proof.proof.anchor;
   const test = a && isTestNetwork(a.network) ? tr.t('app.plant.onTestNetwork') : '';
   const withTest = (sub?: string) => (sub ? `${sub}${test}` : test.trim() || undefined);
-  if (anchor !== undefined && anchor !== 'checking' && anchor.status === 'checked')
+  if (anchor !== undefined && anchor !== 'checking' && anchor.status === 'checked') {
+    // A date from a contract still in testing (version 2 on mainnet) carries condition 5's line
+    // (docs/contract-v2.md 7), and its mark is ⚠, never ✓.
+    const caution = v2CautionWords(anchor, a?.network ?? '', tr);
+    const sub = withTest();
     return {
-      mark: 'done',
+      mark: caution ? 'testing' : 'done',
       value: tr.t('app.plant.checkedOnMidnight', { date: utcDay(anchor.blockTime) }),
-      // A date from contract version 2 on mainnet carries condition 5's line (docs/contract-v2.md 7).
-      sub: v2CautionWords(anchor, a?.network ?? '', tr) ?? withTest(),
+      ...(sub ? { sub } : {}),
+      ...(caution ? { caution } : {}),
     };
+  }
   if (anchor !== undefined && anchor !== 'checking' && anchor.status === 'failed')
     return {
       mark: 'failed',

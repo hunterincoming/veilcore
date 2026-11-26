@@ -109,7 +109,7 @@ export const labReportSealInput = (
  * the record's own date row (plant-status-words.ts recordDateRow), never made up here.
  */
 export const labReportDatedLine = (recordId: string, row: { mark: RowMark; value: string }): string =>
-  `DNA report dated: in ${recordId} (${row.mark === 'done' || row.mark === 'reported' ? `dated ${row.value}` : row.value})`;
+  `DNA report dated: in ${recordId} (${row.mark === 'done' || row.mark === 'testing' || row.mark === 'reported' ? `dated ${row.value}` : row.value})`;
 
 // --- sealing it once ---------------------------------------------------------------------
 

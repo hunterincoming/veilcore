@@ -1192,7 +1192,7 @@ export const VerifyPage: React.FC = () => {
                               )}
                               {anchorText && (
                                 <Box data-anchor-check={anchor === 'checking' ? 'checking' : anchor?.status}>
-                                  <Fact status={anchorText.status}>
+                                  <Fact status={anchorText.status} testing={v2Dated}>
                                     {anchor === 'checking' ? '' : forWhom}
                                     {anchorText.text}
                                   </Fact>

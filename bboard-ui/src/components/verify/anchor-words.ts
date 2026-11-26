@@ -96,24 +96,31 @@ export const anchorLine = (
 };
 
 /**
+ * Whether a checked date on mainnet comes from a contract VeilCore is still testing. Fails
+ * closed: only version 1 is public, so version 2, any later version, and a check that names no
+ * contract all count as still testing until this line is changed on purpose (a contract's
+ * public switch, docs/contract-v2.md 7). Never gold, never green, never "make a record" beside it.
+ */
+export const stillTesting = (check: AnchorState | undefined, network: string): boolean =>
+  check !== undefined &&
+  check !== 'checking' &&
+  check.status === 'checked' &&
+  check.contract?.version !== 'v1' &&
+  network === 'mainnet';
+
+/**
  * Condition 5 of docs/contract-v2.md 7: until its public switch, a date from VeilCore contract
- * version 2 on mainnet always carries this line, in the evidence bundle's and verify.html's own
- * words (evidence/words.ts midnightSteps). Undefined for any other date: version 1, a test
- * network (its own note already says the date carries no weight), or nothing checked yet.
- * Every surface that shows a checked date renders it through V2Caution (V2Caution.tsx).
+ * version 2 (or any contract other than version 1, see stillTesting) on mainnet always carries
+ * this line, in the evidence bundle's and verify.html's own words (evidence/words.ts
+ * midnightSteps). Undefined for any other date: version 1, a test network (its own note already
+ * says the date carries no weight), or nothing checked yet. Every surface that shows a checked
+ * date renders it through V2Caution (V2Caution.tsx) or recordDateRow's `caution`.
  */
 export const v2CautionWords = (
   check: AnchorState | undefined,
   network: string,
   tr: Translator = enT,
-): string | undefined =>
-  check !== undefined &&
-  check !== 'checking' &&
-  check.status === 'checked' &&
-  check.contract?.version === 'v2' &&
-  network === 'mainnet'
-    ? tr.t('app.verify.anchor.v2Caution')
-    : undefined;
+): string | undefined => (stillTesting(check, network) ? tr.t('app.verify.anchor.v2Caution') : undefined);
 
 /**
  * The stamp for a checked date: gold `dated` only for a real date on a contract that is not

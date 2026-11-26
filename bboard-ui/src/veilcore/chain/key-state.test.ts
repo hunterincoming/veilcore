@@ -343,7 +343,8 @@ describe('a date from version 2 on mainnet always says it is for testing and not
   /** The caution as each surface renders it: the check page and plant panel, the date row, the History and the authority pack. */
   const surfaces = (r: AnchorCheck, network: string, tr: Translator) => ({
     alert: renderToStaticMarkup(React.createElement(V2Caution, { check: r, network, tr })),
-    row: recordDateRow(proofOn(network), r, tr).sub ?? '',
+    row: recordDateRow(proofOn(network), r, tr).caution ?? '',
+    mark: recordDateRow(proofOn(network), r, tr).mark,
     history: anchorHistoryEvent(r, { network, txHash: TX, batchId: 'B-1' }, tr),
     pack: dateLines({ state: 'anchored', midnight: { network, check: r } } as never, tr).join(' '),
   });
@@ -369,6 +370,8 @@ describe('a date from version 2 on mainnet always says it is for testing and not
       expect(s.alert, lang).toContain('MuiAlert-colorWarning');
       expect(s.alert, lang).not.toMatch(/[Ss]uccess/);
       expect(s.row, lang).toBe(words);
+      // The date row's mark is ⚠ testing, never the ✓ of a full success.
+      expect(s.mark, lang).toBe('testing');
       expect(s.history.detail, lang).toContain(words);
       expect(s.history.strong, lang).toBe(false);
       expect(s.pack, lang).toContain(words);
@@ -388,6 +391,7 @@ describe('a date from version 2 on mainnet always says it is for testing and not
         expect(v2CautionWords(r, network, tr), lang).toBeUndefined();
         const s = surfaces(r, network, tr);
         expect(s.alert, lang).toBe('');
+        expect(s.mark, lang).not.toBe('testing');
         for (const text of [s.row, s.history.detail, s.pack]) expect(text, lang).not.toContain(words);
       }
       expect(v2CautionWords('checking', 'mainnet', tr), lang).toBeUndefined();
@@ -418,28 +422,59 @@ describe('a date from version 2 on mainnet always says it is for testing and not
     // On the check page the caution takes the invitation's place, so the page stays within its
     // word budget (complexity-budget.json "check") with the line shown.
     expect(read('../../pages/VerifyPage.tsx')).toMatch(/!v2Dated && <MakeYourOwn \/>/);
-    // Every other reader of a record's date, and how its words reach the line.
-    const CARRIES =
-      /recordDateRow\(|<V2Caution\b|v2CautionWords\(|anchorHistoryEvent\(|DocumentDateView|<SettlementStatus\b/;
+    // Every other reader of a record's date, and how its words reach the line. Calling
+    // recordDateRow is not enough on its own: the file must show the row's `caution` (or hand
+    // the row to something that does). A file that only reads the mark says why.
     const readers = files.filter(
       (f) =>
-        /\buseRecordDate\(|\blookUpAnchor\(|\bcheckAnchorOnChain\(/.test(src(f)) &&
-        !/(useAnchorCheck|anchor-lookup|anchor-check|proofs)\.ts$/.test(f),
+        /\buseRecordDate\(|\blookUpAnchor\(|\bcheckAnchorOnChain\(|\brecordDateRow\(/.test(src(f)) &&
+        !/(useAnchorCheck|anchor-lookup|anchor-check|proofs|plant-status-words)\.ts$/.test(f),
     );
-    /** Files that read the date and show none of it as a checked date, each with why. */
-    const NO_DATE_SHOWN: Record<string, string> = {
+    const SHOWS =
+      /\.caution\b|<V2Caution\b|v2CautionWords\(|anchorHistoryEvent\(|<DocumentDateView\b|<SettlementStatus\b/;
+    /** Files that read the date and show none of it as a checked date, or pass it on, each with why. */
+    const PASSES_ON: Record<string, string> = {
       // Home's list row for a document: the holder's own records, dated through the site's v1 anchorer only.
       'components/flow/AppHome.tsx': 'documentHomeDate',
       // Uses the look-up only to tell a failed or missing date apart; DocumentDate shows the date.
       'components/document/DocumentDetail.tsx': 'dateAnchor',
       // Hands each record's look-up to gatherPackFacts; dateLines words it (tested above).
       'components/authority-pack/AuthorityPackPage.tsx': 'gatherPackFacts',
+      // Hands the row to dnaDateOf, which keeps its caution (tested in v2-not-for-records.test.ts).
+      'components/flow/useDnaTie.ts': 'dnaDateOf(',
+      // Reads the row's mark only; its date line is DocumentDateView, its verdict document-verdict.ts.
+      'components/document/DocumentCheck.tsx': '<DocumentDateView',
     };
     for (const f of readers) {
       const r = rel(f);
-      if (r in NO_DATE_SHOWN) expect(src(f), r).toContain(NO_DATE_SHOWN[r]);
-      else expect(src(f), r).toMatch(CARRIES);
+      if (r in PASSES_ON) expect(src(f), r).toContain(PASSES_ON[r]);
+      else expect(src(f), r).toMatch(SHOWS);
     }
+    // Every "Make a record, free" box on a page that shows a record's date is kept from beside a
+    // still-testing date; the two that show none say why.
+    const NO_DATE: Record<string, string> = {
+      // A lab result's signature check: no record date on the page.
+      'components/lab/LabResultCheck.tsx': 'useSigner',
+      // The example check page: a made-up record, never a looked-up date.
+      'components/verify/VerifyExample.tsx': 'VerifyExample',
+    };
+    const invites = files.filter((f) => /<MakeYourOwn\b/.test(src(f)));
+    expect(invites.length).toBeGreaterThan(0);
+    for (const f of invites) {
+      const r = rel(f);
+      if (r in NO_DATE) {
+        expect(src(f), r).toContain(NO_DATE[r]);
+        expect(src(f), r).not.toMatch(/useRecordDate\(|useAnchorCheck\(|DocumentDate/);
+      } else
+        for (const line of src(f)
+          .split('\n')
+          .filter((l) => /<MakeYourOwn\b/.test(l)))
+          expect(line, r).toMatch(/!(v2Dated|testingDate) && <MakeYourOwn \/>/);
+    }
+    // Every verdict on a record's date says whether that date is still in testing.
+    const verdicts = files.filter((f) => /\brecordVerdict\(/.test(src(f)) && !f.endsWith('/verify/verdict.ts'));
+    expect(verdicts.map(rel).sort()).toEqual(['components/document/document-verdict.ts', 'pages/VerifyPage.tsx']);
+    for (const f of verdicts) expect(src(f), rel(f)).toMatch(/stillTesting: /);
   });
 });
 
@@ -500,6 +535,8 @@ describe('a date from version 2 on mainnet is never shown as a full gold or gree
     }
     expect(page).toMatch(/\.\.\.\(plainSeal\s*\?\s*\{ bgcolor: color\.accent/);
     expect(page).toMatch(/stillTesting: v2Dated/);
+    // The fold's dated line beside a v2 date: the warning mark, not the green tick.
+    expect(page).toMatch(/<Fact status=\{anchorText\.status\} testing=\{v2Dated\}>/);
     const root = new URL('../../', import.meta.url).pathname;
     const users: string[] = [];
     const walk = (dir: string) => {
