@@ -229,6 +229,34 @@ Posted on the page, with the date, before they apply.
 
 ---
 
+## Plant and animal DNA, and what still is personal data
+
+Not on the published page yet; for the lawyer to confirm before it goes there.
+
+- **Plant and animal DNA isn't "genetic data" under the GDPR.** Article 4(13) defines it as
+  "personal data relating to the inherited or acquired genetic characteristics of a natural
+  person which give unique information about the physiology or the health of that natural person
+  and which result, in particular, from an analysis of a biological sample from the natural person
+  in question". Article 4(1) defines personal data as information relating to "an identified or
+  identifiable natural person", and Recital 34 gives chromosomal, DNA and RNA analysis as
+  examples ([GDPR on EUR-Lex](https://eur-lex.europa.eu/eli/reg/2016/679/oj)). A plant's or animal's genotype is about the plant or animal, so the special
+  category rules for genetic data (Article 9) don't reach it. VeilCore never receives the DNA
+  file anyway: the browser sends only a SHA-256 of it.
+- **What still is personal data at VeilCore**, and is treated that way:
+  - **Holder keys.** The registry stores a digest of each (`h1:` + SHA-256), with every proof
+    code the key has held and when. It is a stable identifier for one person's records.
+  - **IP addresses.** Seen by the registry, the fee sponsor and the relay (rate limits in memory
+    only), and kept in Vercel's and Railway's request logs for their periods.
+  - **Names typed into records** (breeder, witness, recipient, the other party to a licence), the
+    asker's name on a prove request, lab contact names and a licence invite's label (question 4).
+    Most of these are locked; the ones the registry can read are listed above.
+  - **Account email.** VeilCore has no sign-up and asks for no email (the
+    "Saved with VeilCore" copy opens with a passkey or the recovery sheet, not an email). An email address reaches
+    VeilCore only if someone writes to hunter@veilcore.org, or, once paid plans are on, through
+    billing.
+  - A human's own DNA would be genetic data. VeilCore isn't built for human records, and the
+    browser never sends a DNA file. Should the terms say records must not be about people?
+
 ## Open questions for the lawyer
 
 1. **Who is responsible.** VeilCore isn't incorporated yet; the founders personally run the

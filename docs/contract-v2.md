@@ -649,6 +649,31 @@ Still open:
 - **If outside v1 records appear** before the switch (the re-count), how many reopen the carry
   design (Appendix A) for those identities only.
 
+### Legal notes kept with these decisions (25 November 2026)
+
+Not contract decisions, but they bound what v2 and the site may add later. Drafts, for counsel
+to confirm.
+
+- **Sanctions.** VeilCore runs a free front end and moves no money: royalties go from one party
+  to the other outside VeilCore ([legal/token-and-custody-facts.md](legal/token-and-custody-facts.md)).
+  veilcore.org doesn't screen people against sanctions lists or block countries today. Why:
+  there is no payment to screen, it keeps no list of who its users are or where they live, and
+  blocking by address would need a location service that sees every visitor, which the privacy
+  rules don't allow. **Revisit before** stablecoin pay (`STABLECOIN_PAY_ON_MAINNET`) or paid
+  plans are switched on. The stablecoin pay already built checks both addresses against OFAC's
+  list of Cardano addresses in the browser (`bboard-ui/src/veilcore/sanctions.ts`); it is a list
+  check only, and is off on veilcore.org.
+- **EU product liability.** The new Product Liability Directive, (EU) 2024/2853, treats software
+  as a product however it is supplied. It applies to products placed on the market or put into
+  service after **9 December 2026**, which is also the date EU countries must have it in their
+  own law; products placed before then stay under the 1985 directive. Free and open-source
+  software developed outside a commercial activity is generally outside it, but software
+  supplied for payment, or for personal data used for more than security or compatibility, is
+  in. So it becomes relevant once VeilCore is supplied commercially (paid plans, a managed
+  service), and each release supplied that way after 9 December 2026 would fall under it.
+  Sources: [the directive on EUR-Lex](https://eur-lex.europa.eu/eli/dir/2024/2853) (published
+  18 November 2024), [Sidley, October 2026](https://www.sidley.com/en/insights/newsupdates/2026/10/revised-eu-product-liability-directive).
+
 ## 10. Review history
 
 All of these were **design reviews** of this document and its plan: independent, read-only
