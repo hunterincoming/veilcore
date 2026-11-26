@@ -90,12 +90,23 @@ test('a link with its proof code: the date and the code rest on this page’s ow
   await openCheck(page, `?fp=${fixture.fingerprint}`);
   const box = page.locator('[data-who-vouches]');
   await expect(box.getByRole('heading', { name: 'What each fact rests on' })).toBeVisible();
-  await expect(row(page, 'The date')).toHaveAttribute('data-who-row', 'checked');
+  await expect(row(page, 'The Midnight date')).toHaveAttribute('data-who-row', 'checked');
   // The e2e build reads a test network: checked there, and said to be practice.
-  await expect(row(page, 'The date')).toContainText('A Midnight test network. This page checked it there itself');
+  await expect(row(page, 'The Midnight date')).toContainText(
+    'A Midnight test network. This page checked it there itself',
+  );
   await expect(row(page, 'The proof code')).toHaveAttribute('data-who-row', 'checked');
   await expect(row(page, 'The proof code')).toContainText('it matches the one in the link you were sent');
   await expect(row(page, 'The name and details')).toHaveAttribute('data-who-row', 'holder');
+  // How someone who disagrees can check this: the tools VeilCore didn't write, then what is
+  // VeilCore's own; and the Midnight date's one line after the box, not above it (summit 5b item 13).
+  const layers = page.locator('[data-evidence-layers]');
+  await expect(layers.getByRole('heading', { name: 'How someone who disagrees can check this' })).toBeVisible();
+  await expect(layers.locator('[data-layer="standard"]')).toContainText('Checkable with tools VeilCore didn’t write');
+  await expect(layers.locator('[data-layer="veilcore"]')).toContainText('VeilCore-specific, not yet audited');
+  const top = async (sel: string) => (await page.locator(sel).first().boundingBox())?.y ?? -1;
+  expect(await top('[data-who-vouches]')).toBeLessThan(await top('[data-date-summary]'));
+  await page.locator('#verify-checks').screenshot({ path: test.info().outputPath('check-details-en.png') });
   await expect(row(page, 'A laboratory')).toContainText('This page hasn’t checked any laboratory’s signature.');
   // Never VeilCore's word for a lab, a name or a plant.
   await expect(box).not.toContainText(/VeilCore (vouches|confirms|certifies)/);
@@ -109,7 +120,7 @@ test('a link without its proof code: the code is the registry’s word, never th
   await expect(row(page, 'The proof code')).toHaveAttribute('data-who-row', 'registry');
   await expect(row(page, 'The proof code')).toContainText('The link you were sent carries no proof code');
   // Whatever Midnight says of the batch, only the registry puts this record in it.
-  await expect(row(page, 'The date')).toHaveAttribute('data-who-row', 'registry');
+  await expect(row(page, 'The Midnight date')).toHaveAttribute('data-who-row', 'registry');
   await expect(page.locator('[data-who-vouches] [data-who-row="checked"]')).toHaveCount(0);
   expectNoErrors(errors);
 });

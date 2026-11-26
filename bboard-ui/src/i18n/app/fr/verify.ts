@@ -333,8 +333,23 @@ export const verify = {
   'app.verify.unnamedReceipt':
     'Un accusé de réception de laboratoire pour un échantillon de cet enregistrement, selon le registre. Le détenteur n’a pas montré quel laboratoire l’a signé.',
   // who-vouches.ts: who stands behind each fact on a check page
+  'app.verify.who.viaRelay': 'Lue en passant par le relais de VeilCore.',
+  'app.verify.layers.standard':
+    'Vérifiable avec des outils que VeilCore n’a pas écrits : {list}. Le dossier de preuve du détenteur contient les fichiers.',
+  'app.verify.layers.btc': 'l’horodatage Bitcoin (le client OpenTimestamps)',
+  'app.verify.layers.tsa': 'le jeton d’une autorité d’horodatage (OpenSSL)',
+  'app.verify.layers.tx':
+    'que la transaction sur Midnight existe, a réussi, et quand (n’importe quel explorateur Midnight)',
+  'app.verify.layers.path': 'le chemin du code de preuve à la racine du lot (n’importe quel outil SHA-256)',
+  'app.verify.layers.sigs': 'les signatures de laboratoires (n’importe quel outil Ed25519)',
+  'app.verify.layers.veilcore': 'Propre à VeilCore, pas encore audité : {list}.',
+  'app.verify.layers.page': 'les vérifications que fait cette page',
+  'app.verify.layers.root': 'la lecture de la racine du lot sur Midnight, qui demande le contrat compilé de VeilCore',
+  'app.verify.layers.key': 'la façon dont la clé de l’enregistrement lui est liée',
+  'app.verify.layers.title': 'Comment quelqu’un qui conteste peut le vérifier',
+  'app.verify.signerClock': 'Daté seulement par l’horloge du signataire.',
   'app.verify.who.title': 'Sur quoi repose chaque fait',
-  'app.verify.who.date': 'La date',
+  'app.verify.who.date': 'La date sur Midnight',
   'app.verify.who.date.chain': 'Midnight. Cette page l’a vérifiée elle-même sur Midnight.',
   'app.verify.who.date.chainTest':
     'Un réseau de test Midnight. Cette page l’a vérifiée elle-même : un exercice, pas une date sur laquelle compter.',

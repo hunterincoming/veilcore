@@ -4,6 +4,9 @@
 //
 // Every row comes from something the page already worked out; nothing here checks anything or
 // adds a claim. A row says the strongest thing the page has, never more:
+// The dates come in the order a court trusts them (summit 5b item 13): the Bitcoin stamp, then
+// each timestamp authority's token, then Midnight, which says when it was read through
+// VeilCore's relay.
 //   - the date is Midnight's only once this page found the batch's anchor on Midnight itself
 //     (anchorConfirmed), and a test network says it is practice;
 //   - the proof code is this page's only when the link carried it and the registry reported
@@ -130,33 +133,16 @@ export type WhoInput = {
   readonly file?: 'none' | 'waiting' | 'match' | 'no-match';
   /** The batch's Bitcoin stamp; no row when the registry reports none. */
   readonly bitcoin?: BitcoinRow;
+  /** This page reads Midnight through VeilCore's relay (chain/config.ts READS_THROUGH_RELAY). */
+  readonly relay?: boolean;
 };
 
 const t = (tr: Translator, k: string, v?: Record<string, string>) => tr.t(k as AppKey, v);
 
 export const whoVouches = (i: WhoInput, tr: Translator = enT): WhoRow[] => {
   const rows: WhoRow[] = [];
-  const date = t(tr, 'app.verify.who.date');
-  if (i.proof === 'anchor-reported' && i.anchorFailed) {
-    rows.push({ fact: date, who: t(tr, 'app.verify.who.date.failed'), basis: 'none' });
-  } else if (i.proof === 'anchor-reported') {
-    rows.push(
-      i.anchorConfirmed && i.bound
-        ? {
-            fact: date,
-            who: t(tr, i.testNetwork ? 'app.verify.who.date.chainTest' : 'app.verify.who.date.chain'),
-            basis: 'checked',
-          }
-        : i.anchorConfirmed
-          ? // The batch's date was checked on Midnight; only the registry ties this record to that batch.
-            { fact: date, who: t(tr, 'app.verify.who.date.batchOnly'), basis: 'registry' }
-          : { fact: date, who: t(tr, 'app.verify.who.date.registry'), basis: 'registry' },
-    );
-  } else if (i.proof === 'pending') {
-    rows.push({ fact: date, who: t(tr, 'app.verify.who.date.pending'), basis: 'none' });
-  } else if (i.proof === 'none') {
-    rows.push({ fact: date, who: t(tr, 'app.verify.who.date.none'), basis: 'none' });
-  }
+  // Bitcoin first, then the timestamp authorities, then Midnight (summit 5b item 13).
+  if (i.bitcoin) rows.push(bitcoinRow(i.bitcoin, i.bound || !!i.document, tr));
   for (const tok of i.instant ?? [])
     rows.push({
       fact: t(tr, 'app.verify.who.tsa', { tsa: tok.tsa }),
@@ -165,7 +151,29 @@ export const whoVouches = (i: WhoInput, tr: Translator = enT): WhoRow[] => {
         (i.instantDisagree ? `${t(tr, 'app.signer.sep')}${t(tr, 'app.verify.who.tsa.disagree')}` : ''),
       basis: i.bound ? 'signed' : 'registry',
     });
-  if (i.bitcoin) rows.push(bitcoinRow(i.bitcoin, i.bound || !!i.document, tr));
+  const date = t(tr, 'app.verify.who.date');
+  // Said beside a date this page read on Midnight, when it read it through VeilCore's relay.
+  const relay = i.relay ? ` ${t(tr, 'app.verify.who.viaRelay')}` : '';
+  if (i.proof === 'anchor-reported' && i.anchorFailed) {
+    rows.push({ fact: date, who: t(tr, 'app.verify.who.date.failed'), basis: 'none' });
+  } else if (i.proof === 'anchor-reported') {
+    rows.push(
+      i.anchorConfirmed && i.bound
+        ? {
+            fact: date,
+            who: t(tr, i.testNetwork ? 'app.verify.who.date.chainTest' : 'app.verify.who.date.chain') + relay,
+            basis: 'checked',
+          }
+        : i.anchorConfirmed
+          ? // The batch's date was checked on Midnight; only the registry ties this record to that batch.
+            { fact: date, who: t(tr, 'app.verify.who.date.batchOnly') + relay, basis: 'registry' }
+          : { fact: date, who: t(tr, 'app.verify.who.date.registry'), basis: 'registry' },
+    );
+  } else if (i.proof === 'pending') {
+    rows.push({ fact: date, who: t(tr, 'app.verify.who.date.pending'), basis: 'none' });
+  } else if (i.proof === 'none') {
+    rows.push({ fact: date, who: t(tr, 'app.verify.who.date.none'), basis: 'none' });
+  }
   if (i.document) {
     rows.push({ fact: t(tr, 'app.verify.who.code'), who: t(tr, 'app.verify.who.code.recomputed'), basis: 'checked' });
     const file = i.file ?? 'waiting';

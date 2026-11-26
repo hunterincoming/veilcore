@@ -139,6 +139,15 @@ export const READ_INDEXERS: readonly string[] = readIndexersFor(NETWORK, {
   indexer: INDEXER_HTTP,
 });
 
+/**
+ * True when the check page reads Midnight through VeilCore's own relay rather than one of
+ * Midnight's public indexers: the first indexer it reads is not one Midnight runs (INDEXERS).
+ * The check page says so beside a date it checked there (summit 5b item 13).
+ */
+export const readsThroughRelay = (indexers: readonly string[]): boolean =>
+  indexers.length > 0 && !Object.values(INDEXERS).some((i) => sameIndexer(i.http, indexers[0]));
+export const READS_THROUGH_RELAY: boolean = readsThroughRelay(READ_INDEXERS);
+
 /** True when the check page has an indexer to read Midnight with (the landing copy says so). */
 export const CHAIN_READS: boolean = READ_INDEXERS.length > 0;
 

@@ -17,6 +17,7 @@ import {
   carriesKey,
   countedContractsFor,
   readIndexersFor,
+  readsThroughRelay,
   sameIndexer,
 } from './config';
 import { contractStateAfter } from './test-chain';
@@ -432,6 +433,13 @@ describe('which indexers and contract the page uses', () => {
     expect(sameIndexer(I1, `${I1}/`)).toBe(true);
     expect(sameIndexer(I1, 'https://relay.example/other')).toBe(false);
     expect(readIndexersFor('mainnet', { relay: I1, second: I2 })).toEqual([I1, I2]);
+  });
+
+  it('says it reads through VeilCore’s relay unless the first indexer is one Midnight runs', () => {
+    expect(readsThroughRelay([I1])).toBe(true);
+    expect(readsThroughRelay([])).toBe(false);
+    expect(readsThroughRelay(['https://indexer.preview.midnight.network/api/v4/graphql/'])).toBe(false);
+    expect(readsThroughRelay(['https://indexer.preview.midnight.network/api/v4/graphql', I1])).toBe(false);
   });
 
   it('the contract: mainnet’s pinned address, else the test build’s demo contract', () => {

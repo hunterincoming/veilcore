@@ -335,8 +335,23 @@ export const verify = {
   'app.verify.unnamedReceipt':
     'Eine Empfangsbestätigung eines Labors für eine Probe aus diesem Datensatz, wie das Register meldet. Der Inhaber hat nicht gezeigt, welches Labor sie signiert hat.',
   // who-vouches.ts: who stands behind each fact on a check page
+  'app.verify.who.viaRelay': 'Über das Relais von VeilCore gelesen.',
+  'app.verify.layers.standard':
+    'Prüfbar mit Werkzeugen, die VeilCore nicht geschrieben hat: {list}. Das Beweispaket des Inhabers enthält die Dateien.',
+  'app.verify.layers.btc': 'der Bitcoin-Stempel (der OpenTimestamps-Client)',
+  'app.verify.layers.tsa': 'das Token einer Zeitstempelstelle (OpenSSL)',
+  'app.verify.layers.tx': 'dass die Midnight-Transaktion existiert, erfolgreich war und wann (jeder Midnight-Explorer)',
+  'app.verify.layers.path': 'der Pfad vom Prüfcode zur Stapelwurzel (jedes SHA-256-Werkzeug)',
+  'app.verify.layers.sigs': 'Signaturen von Laboren (jedes Ed25519-Werkzeug)',
+  'app.verify.layers.veilcore': 'VeilCore-spezifisch, noch nicht unabhängig geprüft: {list}.',
+  'app.verify.layers.page': 'die Prüfungen dieser Seite',
+  'app.verify.layers.root':
+    'das Lesen der Stapelwurzel auf Midnight, wofür der kompilierte Smart Contract von VeilCore nötig ist',
+  'app.verify.layers.key': 'wie der Schlüssel des Datensatzes an ihn gebunden ist',
+  'app.verify.layers.title': 'Wie jemand, der widerspricht, das prüfen kann',
+  'app.verify.signerClock': 'Nur nach der Uhr des Unterzeichners datiert.',
   'app.verify.who.title': 'Worauf jede Angabe beruht',
-  'app.verify.who.date': 'Das Datum',
+  'app.verify.who.date': 'Das Datum auf Midnight',
   'app.verify.who.date.chain': 'Midnight. Diese Seite hat es dort selbst geprüft.',
   'app.verify.who.date.chainTest':
     'Ein Midnight-Testnetz. Diese Seite hat es dort selbst geprüft: eine Übung, kein Datum, auf das man sich verlassen kann.',

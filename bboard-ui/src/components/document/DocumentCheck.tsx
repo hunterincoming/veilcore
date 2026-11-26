@@ -23,6 +23,7 @@ import {
 } from '../../veilcore/document-link';
 import { verifyPath } from '../../veilcore/verify-link';
 import { DOCUMENT_CHAIN_ENABLED, NETWORK, isTestNetwork } from '../../config/network';
+import { READS_THROUGH_RELAY } from '../../veilcore/chain/config';
 import { useT } from '../../i18n/app';
 import { recordDateRow } from '../flow/plant-status-words';
 import { DocumentDateView, DocumentFacts, Fact, FileCompare, seen } from './DocumentParts';
@@ -182,6 +183,7 @@ export const DocumentCheck: React.FC = () => {
                     ),
                     signers: [],
                     document: true,
+                    relay: READS_THROUGH_RELAY,
                     file: !read.fields.files.length
                       ? 'none'
                       : picked === null

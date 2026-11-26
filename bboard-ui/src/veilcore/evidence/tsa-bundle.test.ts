@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { strFromU8 } from 'fflate';
 import { buildEvidence, bundleFiles, readmeText, reconcile } from './bundle';
+import { examinerSummaryHtml } from './examiner';
 import { practiceBatch, practiceRecord } from './test-records';
 
 let dir = '';
@@ -112,6 +113,38 @@ describe('RFC 3161 token in the bundle', () => {
     expect(readme).toContain('names its signer as');
     expect(readme).toMatch(/or step 3 checks out/);
     expect(readme).toContain('(or the time the token states)');
+    // The examiner summary: the token among the dates, before Midnight, with its legal standing
+    // and the OpenSSL steps; and OpenSSL among the tools VeilCore didn't write.
+    const html = examinerSummaryHtml(ev, [], false);
+    const summary = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    expect(html.indexOf('<h3>RFC 3161 token from a Time Stamping Authority</h3>')).toBeGreaterThan(0);
+    expect(html.indexOf('<h3>RFC 3161 token from a Time Stamping Authority</h3>')).toBeLessThan(
+      html.indexOf('<h3>Midnight</h3>'),
+    );
+    expect(summary).toContain(`Time the token states ${g.batch!.rfc3161.genTime!.replace('T', ' ').slice(0, 16)}`);
+    expect(summary).toContain('https://tsa.example/');
+    expect(summary).toMatch(/Legal standing: VeilCore’s registry stated this authority is qualified under eIDAS/);
+    expect(summary).toContain('openssl ts -verify -data root.bin -in root.tst -token_in');
+    expect(summary).toContain('The RFC 3161 token: OpenSSL');
+    expect(summary).not.toMatch(/certif/i);
+    // No stale "nothing dates it" beside a token, and no line denying the token's standing.
+    expect(summary).toContain(
+      'This record is not dated on Midnight yet. The RFC 3161 token below dates its batch root.',
+    );
+    expect(summary).not.toMatch(/nothing here dates it/);
+    expect(summary).not.toMatch(/any other legally/);
+    expect(summary).toContain('The RFC 3161 token’s standing is in its own line in section 2.');
+    expect(summary).toContain('The timestamp authority’s token, then Midnight once it is dated there.');
+    // Unqualified as far as VeilCore records: it says so and sends the reader to check.
+    const plain = examinerSummaryHtml(
+      { ...ev, batch: { ...ev.batch!, rfc3161: { ...ev.batch!.rfc3161, qualified: undefined } } },
+      [],
+      false,
+    )
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ');
+    expect(plain).toContain('VeilCore doesn’t record whether this authority is qualified. Check its status yourself');
+    expect(plain).not.toMatch(/carries no legal presumption/);
     const files = await bundleFiles(ev, g, { includeKey: false });
     const tst = Object.entries(files).find(([k]) => k.endsWith('proof/root.tst'));
     expect(tst).toBeTruthy();
