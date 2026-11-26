@@ -9,6 +9,13 @@
 //     banner (OfflineBar) and the install card (InstallCard).
 //   - When signal comes back, or the worker says Background Sync fired, tells the record sync
 //     (records.ts startRecordSync) to send now. It never sends anything itself.
+//   - Doesn't start the offline download (about 13 MB in Nov 2026; the build writes the exact
+//     size into /offline-shell.json) by itself on a page someone was sent a link to (every page
+//     in the stranger's frame, CheckFrame in App.tsx, and the prove pages), when the browser asks
+//     to save data, or on a 2G connection (summit fix 5b.3). There it waits to be asked, for the
+//     whole visit: the install card on Home and "Use VeilCore with no signal" in Settings offer
+//     it, with its size; a later visit that opens on an app page downloads as usual. A browser
+//     that already has the worker keeps it, and its updates, as before.
 // SPDX-License-Identifier: Apache-2.0
 
 import { useSyncExternalStore } from 'react';
@@ -57,6 +64,10 @@ export type OfflineState = {
   readonly canInstall: boolean;
   /** A worker controls this page, so it would open with no signal. */
   readonly ready: boolean;
+  /** The offline download wasn't started by itself here (offlineHeldBack): it waits to be asked. */
+  readonly held: boolean;
+  /** The person asked for it (getOfflineCopy) and it isn't ready yet. */
+  readonly getting: boolean;
 };
 
 type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
@@ -67,6 +78,8 @@ let state: OfflineState = {
   installed: false,
   canInstall: false,
   ready: false,
+  held: false,
+  getting: false,
 };
 const listeners = new Set<() => void>();
 const set = (next: Partial<OfflineState>) => {
@@ -92,11 +105,74 @@ export const askToInstall = async (): Promise<boolean> => {
   set({ canInstall: false });
   try {
     await p.prompt();
-    return (await p.userChoice).outcome === 'accepted';
+    const yes = (await p.userChoice).outcome === 'accepted';
+    // Installing is asking for VeilCore with no signal: the download starts, if it was held.
+    if (yes && state.held) getOfflineCopy();
+    return yes;
   } catch {
     return false;
   }
 };
+
+// ---- when the offline download starts by itself (summit fix 5b.3) ----------------------------
+
+/**
+ * Pages someone is sent a link to: every page drawn in the stranger's frame (CheckFrame in
+ * App.tsx: the check pages, a licence invite or signing link, the lender's and claim pages, the
+ * lab door) and the prove pages. Opening a link from a message shouldn't cost a download nobody
+ * asked for. offline-gate.test.ts fails if a CheckFrame route in App.tsx isn't matched here.
+ */
+const LINK_PAGE =
+  /^\/(?:(?:verify|prove|prove-license|license-invite|lender|claim|for-labs|check-[a-z-]+)(?:\/|$)|license\/[^/]+\/sign\/?$)/;
+
+/** What the browser says about the connection (Network Information API; Chrome, Edge, Samsung Internet). */
+export type ConnectionHint = { readonly saveData?: boolean; readonly effectiveType?: string } | undefined;
+
+/** Why the offline download didn't start by itself, or null when it does. */
+export type HeldBack = 'link-page' | 'save-data' | 'slow-network';
+
+/**
+ * Whether the offline download waits to be asked on this page load.
+ *   - `existing`: this browser already has the worker. It keeps it and its updates, everywhere.
+ *   - `installed`: opened from the Home Screen, which is asking for it.
+ *   - Otherwise it waits on a link page, when the browser asks to save data (`saveData`), and on
+ *     a 2G connection (`effectiveType` 2g or slow-2g).
+ */
+export const offlineHeldBack = (o: {
+  path: string;
+  connection: ConnectionHint;
+  existing: boolean;
+  installed: boolean;
+}): HeldBack | null => {
+  if (o.existing || o.installed) return null;
+  if (LINK_PAGE.test(o.path)) return 'link-page';
+  if (o.connection?.saveData === true) return 'save-data';
+  if (o.connection?.effectiveType === '2g' || o.connection?.effectiveType === 'slow-2g') return 'slow-network';
+  return null;
+};
+
+const connectionHint = (): ConnectionHint => {
+  try {
+    return (navigator as Navigator & { connection?: ConnectionHint }).connection;
+  } catch {
+    return undefined;
+  }
+};
+
+/** How big the download is, from the build's own list (/offline-shell.json `bytes`), or null. */
+export const offlineDownloadBytes = async (fetchImpl: typeof fetch = fetch): Promise<number | null> => {
+  try {
+    const res = await fetchImpl('/offline-shell.json', { cache: 'no-cache' });
+    if (!res.ok) return null;
+    const bytes = ((await res.json()) as { bytes?: unknown } | null)?.bytes;
+    return typeof bytes === 'number' && Number.isFinite(bytes) && bytes > 0 ? bytes : null;
+  } catch {
+    return null;
+  }
+};
+
+/** "13 MB": whole megabytes (1,000,000 bytes), at least 1. */
+export const megabytes = (bytes: number): string => `${Math.max(1, Math.round(bytes / 1_000_000))} MB`;
 
 const standalone = (): boolean => {
   try {
@@ -162,15 +238,41 @@ export const startOffline = (): void => {
   }
   // `npm run dev` serves source files, not a release: no worker there.
   if (import.meta.env.DEV) return;
-  sw.addEventListener('message', (e: MessageEvent) => {
-    if (e.origin && e.origin !== location.origin) return;
-    const data = e.data as { type?: unknown; stale?: unknown } | null;
-    // Only a page the worker answered from an older copy is told it is older: a page from the
-    // network is the new release already.
-    if (data?.type === 'veilcore-release' && data.stale === true) set({ updateReady: true });
-    else if (data?.type === 'veilcore-send-now') window.dispatchEvent(new Event(SEND_NOW_EVENT));
-  });
-  sw.addEventListener('controllerchange', () => set({ ready: true }));
+  void (async () => {
+    let existing = !!sw.controller;
+    if (!existing)
+      try {
+        existing = !!(await sw.getRegistration('/'));
+      } catch {
+        /* none that this page can see */
+      }
+    if (
+      offlineHeldBack({ path: location.pathname, connection: connectionHint(), existing, installed: state.installed })
+    )
+      set({ held: true });
+    else registerWorker();
+  })();
+};
+
+let registering = false;
+let listening = false;
+
+/** Register /sw.js: the offline download starts (the worker copies the release when it installs). */
+const registerWorker = (): void => {
+  const sw = typeof navigator === 'undefined' ? undefined : navigator.serviceWorker;
+  if (registering || !sw || !OFFLINE_ON || import.meta.env.DEV) return;
+  registering = true;
+  // Asked for after being held back: if the browser refuses, the offer comes back to try again.
+  const asked = state.held;
+  const refused = () => {
+    registering = false;
+    set({ getting: false, held: asked });
+  };
+  set({ held: false });
+  if (!listening) {
+    listening = true;
+    listen(sw);
+  }
   set({ ready: !!sw.controller });
   try {
     void sw
@@ -182,10 +284,34 @@ export const startOffline = (): void => {
           (sw.controller ?? reg.active)?.postMessage({ type: 'veilcore-check' });
         }
       })
-      .catch(() => undefined);
+      .catch(refused);
   } catch {
     /* refused by this browser: no offline copy */
+    refused();
   }
+};
+
+/** What the worker tells the page: a newer release is ready, or send now; and when it takes over. */
+const listen = (sw: ServiceWorkerContainer): void => {
+  sw.addEventListener('message', (e: MessageEvent) => {
+    if (e.origin && e.origin !== location.origin) return;
+    const data = e.data as { type?: unknown; stale?: unknown } | null;
+    // Only a page the worker answered from an older copy is told it is older: a page from the
+    // network is the new release already.
+    if (data?.type === 'veilcore-release' && data.stale === true) set({ updateReady: true });
+    else if (data?.type === 'veilcore-send-now') window.dispatchEvent(new Event(SEND_NOW_EVENT));
+  });
+  sw.addEventListener('controllerchange', () => set({ ready: true, getting: false }));
+};
+
+/**
+ * The person asked for VeilCore with no signal (the install card, Settings): start the download
+ * now, wherever this page is and whatever the connection.
+ */
+export const getOfflineCopy = (): void => {
+  if (!state.held) return;
+  set({ getting: true });
+  registerWorker();
 };
 
 /**

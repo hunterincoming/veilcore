@@ -29,6 +29,11 @@ export const offline = {
   'app.install.dismiss': 'Nicht jetzt',
   'app.install.showHow': 'So geht’s',
   'app.install.gotIt': 'Verstanden',
+  'app.install.offer':
+    'VeilCore kann eine Kopie von sich auf diesem Gerät behalten, damit es sich auch ohne Netz öffnet.',
+  'app.install.offerSize': 'Dafür werden einmal etwa {size} geladen. Danach laden Updates nur, was sich geändert hat.',
+  'app.install.get': 'VeilCore offline nutzbar machen',
+  'app.install.getting': 'VeilCore wird für die Nutzung ohne Netz geladen. Sie können weiterarbeiten.',
 
   'app.instant.pending':
     'Zeitstempel {time} von {tsa} — das Datum auf Midnight, der Blockchain, folgt mit dem nächsten Stapel.',

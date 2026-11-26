@@ -22,12 +22,15 @@ import { PasskeyCheckLink } from './PasskeyCheckLink';
 import { openRecoverySheet } from './RecoverySheet';
 import type { AppKey } from '../../i18n/app/en';
 import { hydrate } from '../../veilcore/records';
+import { OFFLINE_ON, useOfflineState } from '../../offline/register';
+import { OfflineOffer } from '../offline/OfflineOffer';
 
 export const SettingsPage: React.FC = () => {
   const tr = useT();
   const { t, tp } = tr;
   const navigate = useNavigate();
   const s = useAccountState();
+  const o = useOfflineState();
   const word = useUnlockWord();
   const lockHint = useDeviceLockHint();
   const [busy, setBusy] = useState(false);
@@ -254,6 +257,17 @@ export const SettingsPage: React.FC = () => {
           )}
 
           <Divider />
+
+          {/* The offline download, where it didn't start by itself (offline/register.ts): always
+              findable here, even after "Not now" on Home's install card. */}
+          {OFFLINE_ON && (o.held || o.getting) && !o.ready && (
+            <Paper variant="outlined" sx={{ p: 2 }} data-settings-offline="">
+              <Typography variant="h6" component="h2" sx={{ mb: 1 }}>
+                {t('app.install.title')}
+              </Typography>
+              <OfflineOffer />
+            </Paper>
+          )}
 
           <Paper variant="outlined" sx={{ p: 2 }} data-settings-file="">
             <Typography variant="h6" component="h2" sx={{ mb: 1 }}>

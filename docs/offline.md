@@ -26,8 +26,27 @@ The line always says "this device": guessing phone or computer from the screen t
 
 - **What it keeps.** The files the build lists in `/offline-shell.json` (`vite.config.ts`
   `offlineWorker`): the app's code and styles, its fonts and icons, and WebAssembly under 2 MB.
-  About 11 MB. Never the proving keys, Ask's model, videos, or the large Midnight and Cardano
+  About 13 MB (Nov 2026; the build writes the exact total into `/offline-shell.json` as `bytes`).
+  Never the proving keys, Ask's model, videos, or the large Midnight and Cardano
   libraries: proving needs the network anyway.
+- **When the download starts.** By itself on the app's own pages, as before, but not where
+  someone may pay for data they didn't ask to spend (summit fix 5b.3, 25 Nov 2026,
+  `src/offline/register.ts` `offlineHeldBack`): not on a page someone was sent a link to (every
+  page in the stranger's frame, `CheckFrame` in `App.tsx`: check pages, licence invites and
+  signing links, the lender's and claim pages, the lab door; and the prove pages; a unit test
+  fails if a `CheckFrame` route is missed), not when the browser asks to save data
+  (`navigator.connection.saveData`), and not on 2G or slow 2G. There the worker isn't registered
+  at all, and the install card on Home and "Use VeilCore with no signal" in Settings offer "Make
+  VeilCore work offline" (an outlined button, never a second filled one), with the size (the
+  build writes the total into `/offline-shell.json` as `bytes`). It stays held for the rest of
+  that visit, even if the person goes on into the app: someone who just checked a record is
+  often only looking, and the offer is one tap away. A later visit that opens on an app page
+  downloads as usual, and opening VeilCore from the Home Screen counts as asking. If the browser
+  refuses the worker when asked, the offer stays so it can be tried again. A browser that already has the worker keeps it, and its updates, on every page and
+  connection. This follows the usual advice for workers: precaching competes with the page for
+  bandwidth on a first visit (web.dev, "Service worker registration"), and Save-Data is the
+  person's own request for fewer bytes (web.dev, "Delivering fast and light applications with
+  Save-Data").
 - **Only what the release list says.** It copies nothing unless the site has a release list
   (`/release.json` and `/releases/<network>/<commit>.json`, written by every release deploy,
   `scripts/release-manifest.mjs`). Every file is checked against its listed SHA-256 before it is

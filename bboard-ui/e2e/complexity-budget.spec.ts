@@ -354,6 +354,24 @@ for (const { lang, locale, words } of LANGS) {
       await page.goto('/records');
       await expect(page.locator('main h1')).toBeVisible();
       await check('home.records');
+      // The same Home when the browser asks to save data: the offline download waits, and the
+      // install card offers it (offline/register.ts). Held to the same budget: never a second
+      // filled button, nor more words or taps than Home is allowed.
+      await page.addInitScript(() =>
+        Object.defineProperty(Navigator.prototype, 'connection', {
+          configurable: true,
+          get: () => ({ saveData: true, effectiveType: '4g', addEventListener() {}, removeEventListener() {} }),
+        }),
+      );
+      await page.goto('/records');
+      await expect(page.locator('main h1')).toBeVisible();
+      await expect(page.locator('[data-offline-offer]')).toBeVisible();
+      await page.waitForLoadState('networkidle').catch(() => undefined);
+      await page.waitForTimeout(800);
+      const { text: heldText, ...held } = await measureDefault(page, lang, 'main');
+      const heldResult: Measure = { ...held, moreDepth: await moreDepth(page, 'main') };
+      console.log(`home.records with Save-Data (${lang}): ${JSON.stringify(heldResult)} (${heldText.length} chars)`);
+      over.push(...overBudget('home.records', lang, heldResult));
       // Keeping records safe: the sheet Home's account line opens.
       const keepSafe = page.locator('[data-account-line] button').first();
       await expect(keepSafe).toBeVisible();

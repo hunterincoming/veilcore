@@ -429,12 +429,18 @@ const offlineWorker = (mode: string): Plugin => {
       const out = resolve(config.root, config.build.outDir);
       const swFile = join(out, 'sw.js');
       if (!existsSync(swFile)) return;
-      const shell = JSON.parse(readFileSync(join(out, 'offline-shell.json'), 'utf8')) as { files: string[] };
+      const shellFile = join(out, 'offline-shell.json');
+      const shell = JSON.parse(readFileSync(shellFile, 'utf8')) as { format: string; files: string[] };
       const hashes: Record<string, string> = {};
-      for (const p of ['/index.html', ...shell.files].sort())
-        hashes[p] = createHash('sha256')
-          .update(readFileSync(join(out, p.slice(1))))
-          .digest('hex');
+      let bytes = 0;
+      for (const p of ['/index.html', ...shell.files].sort()) {
+        const body = readFileSync(join(out, p.slice(1)));
+        bytes += body.byteLength;
+        hashes[p] = createHash('sha256').update(body).digest('hex');
+      }
+      // How big the download is, so the page can say so before anyone starts it (summit fix 5b.3,
+      // offline/register.ts offlineDownloadBytes). The worker reads only `format` and `files`.
+      writeFileSync(shellFile, `${JSON.stringify({ format: shell.format, files: shell.files, bytes }, null, 2)}\n`);
       const text = readFileSync(swFile, 'utf8');
       if (!text.includes("'__VEILCORE_SHELL_FILES__'")) throw new Error('offline/sw.js lost its shell placeholder');
       writeFileSync(swFile, text.replace("'__VEILCORE_SHELL_FILES__'", JSON.stringify(hashes)));
