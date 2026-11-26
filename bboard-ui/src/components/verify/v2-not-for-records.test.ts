@@ -115,7 +115,7 @@ const { TieLine, DocumentDateLine } = await import('../flow/AppHome');
 const { CertificateDnaTie } = await import('../wizard/Step3Certificate');
 const { claimVerdict } = await import('./verdict');
 const { paper } = await import('../../config/tokens');
-const { DeletedRecord } = await import('../../pages/VerifyPage');
+const { DeletedRecord, CheckPageInvite, useDeletedRecordDate } = await import('../../pages/VerifyPage');
 
 const TX = 'ab'.repeat(32);
 const BLOCK = Date.UTC(2026, 10, 20, 9, 30);
@@ -419,16 +419,64 @@ describe('Home and the certificate', () => {
 });
 
 describe('the check page for a deleted record', () => {
-  it('its checked date carries the line as a warning when it is a v2 date', () => {
-    const fp = '12'.repeat(32);
-    const props = { id: 'VEIL-TEST', anchored: true, fp, storedFp: fp };
+  const fp = '12'.repeat(32);
+  /**
+   * The deleted-record check page as VerifyPage puts it together: its card, with the date the
+   * page looked up (useDeletedRecordDate), and the page's foot invite, which sees that date and
+   * the record's own (none for a deleted record: the page has no proof of it).
+   */
+  const DeletedPage: React.FC = () => {
+    const date = useDeletedRecordDate(fp, fp);
+    return React.createElement(
+      React.Fragment,
+      null,
+      React.createElement(DeletedRecord, { id: 'VEIL-TEST', anchored: true, fp, storedFp: fp, date }),
+      React.createElement(CheckPageInvite, {
+        loading: false,
+        dates: [
+          { check: undefined, network: 'preprod' },
+          { check: date.anchor, network: date.network },
+        ],
+      }),
+    );
+  };
+
+  it('a v2 date: the line as a warning, and no "Make a record, free" box', () => {
     for (const [lang, tr] of Object.entries(LANGS)) {
-      const html = draw(React.createElement(DeletedRecord, props), tr, { proof: proofOn('mainnet'), anchor: V2 });
+      const html = draw(React.createElement(DeletedPage), tr, { proof: proofOn('mainnet'), anchor: V2 });
+      expect(html, lang).toContain('data-deleted-record');
       expect(html, lang).toContain('data-v2-caution');
       expect(html, lang).toContain('MuiAlert-colorWarning');
       expect(html, lang).toContain(esc(words(tr)));
+      expect(html, lang).not.toContain('data-make-your-own');
     }
-    const v1 = draw(React.createElement(DeletedRecord, props), LANGS.en, { proof: proofOn('mainnet'), anchor: V1 });
+  });
+
+  it('a v1 date: unchanged, no line and the box', () => {
+    const v1 = draw(React.createElement(DeletedPage), LANGS.en, { proof: proofOn('mainnet'), anchor: V1 });
     expect(v1).not.toContain('data-v2-caution');
+    expect(v1).toContain('data-make-your-own');
+  });
+
+  it('the foot invite: hidden while loading or beside any date still in testing, fails closed', () => {
+    const invite = (dates: { check: AnchorCheck | undefined; network: string }[], loading = false) =>
+      draw(React.createElement(CheckPageInvite, { loading, dates }), LANGS.en, state.date);
+    expect(invite([{ check: V1, network: 'mainnet' }])).toContain('data-make-your-own');
+    expect(invite([{ check: V1, network: 'mainnet' }], true)).toBe('');
+    for (const r of [V2, checkedOn('v3'), checkedOn(undefined)]) {
+      expect(invite([{ check: r, network: 'mainnet' }])).toBe('');
+      expect(
+        invite([
+          { check: V1, network: 'mainnet' },
+          { check: r, network: 'mainnet' },
+        ]),
+      ).toBe('');
+      expect(
+        invite([
+          { check: undefined, network: 'mainnet' },
+          { check: r, network: 'mainnet' },
+        ]),
+      ).toBe('');
+    }
   });
 });

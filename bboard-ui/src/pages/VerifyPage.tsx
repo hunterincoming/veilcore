@@ -113,7 +113,9 @@ import {
   registryDateWords,
   STAMP_WORD,
   stampStateFor,
+  stillTesting,
   v2CautionWords,
+  type AnchorState,
 } from '../components/verify/anchor-words';
 import { V2Caution } from '../components/verify/V2Caution';
 import { useAnchorCheck, useRecordDate } from '../components/verify/useAnchorCheck';
@@ -316,6 +318,30 @@ const isParentLine = (x: unknown): boolean =>
     typeof (x as Record<string, unknown>).name === 'string' &&
     typeof (x as Record<string, unknown>).individualId === 'string');
 
+/** Whether a deleted record's link carries its own proof code (the registry still reports it). */
+const deletedBound = (fp: string | null, storedFp?: string | null): boolean => !!fp && !!storedFp && fp === storedFp;
+
+type DeletedDate = { anchor: AnchorState | undefined; network: string };
+
+/** A deleted record's date, looked up by its proof code only when the link carries it. */
+export const useDeletedRecordDate = (fp: string | null, storedFp?: string | null): DeletedDate => {
+  const { proof, anchor } = useRecordDate(deletedBound(fp, storedFp) ? (fp ?? undefined) : undefined);
+  const network = proof !== 'checking' && proof.status === 'anchor-reported' ? (proof.proof.anchor?.network ?? '') : '';
+  return { anchor, network };
+};
+
+/**
+ * The "Make a record, free" box at the foot of the check page, unless the page is loading or
+ * ANY date it shows (the record's, or a deleted record's) is from a contract VeilCore is still
+ * testing (version 2 on mainnet, docs/contract-v2.md 7 condition 5). Fails closed with
+ * stillTesting: any contract but version 1. Its caution takes this invitation's place within
+ * the check page's word budget.
+ */
+export const CheckPageInvite: React.FC<{
+  loading: boolean;
+  dates: readonly { readonly check: AnchorState | undefined; readonly network: string }[];
+}> = ({ loading, dates }) => (loading || dates.some((d) => stillTesting(d.check, d.network)) ? null : <MakeYourOwn />);
+
 /**
  * A record its holder deleted. Its date is checked on Midnight here only when the link carries
  * the record's own proof code (the registry still reports it); otherwise it is the registry's
@@ -328,12 +354,16 @@ export const DeletedRecord: React.FC<{
   relative?: string;
   fp: string | null;
   storedFp?: string | null;
-}> = ({ id, deletedAt, anchored, relative, fp, storedFp }) => {
+  /**
+   * Its date, looked up by the page (deletedRecordDate) so the page's "Make a record" box sees
+   * the same date this card shows.
+   */
+  date: DeletedDate;
+}> = ({ id, deletedAt, anchored, relative, fp, storedFp, date }) => {
   const tr = useT();
   const { t } = tr;
-  const bound = !!fp && !!storedFp && fp === storedFp;
-  const { proof, anchor } = useRecordDate(bound ? fp : undefined);
-  const network = proof !== 'checking' && proof.status === 'anchor-reported' ? (proof.proof.anchor?.network ?? '') : '';
+  const bound = deletedBound(fp, storedFp);
+  const { anchor, network } = date;
   const checked = bound && anchor !== undefined && anchor !== 'checking' && anchor.status === 'checked' ? anchor : null;
   const deletedMs = deletedAt ? Date.parse(deletedAt) : NaN;
   const key = deletedDateKey({ checkedBlockTime: checked?.blockTime, anchored, relative, deletedAt });
@@ -570,6 +600,9 @@ export const VerifyPage: React.FC = () => {
   // (chain/anchor-lookup.ts), so the two never disagree. Undefined until the inclusion
   // proof names a transaction to look up.
   const anchor = useAnchorCheck(proof);
+  // A deleted record's own date, which its card shows (DeletedRecord): the page's "Make a
+  // record" box is kept from beside it too when it is still in testing.
+  const deletedDate = useDeletedRecordDate(!result?.found && result?.deleted ? fp : null, result?.recordFingerprint);
   // The batch's Bitcoin stamp: the registry's word until the visitor asks this browser to
   // check it (useBitcoinCheck.ts; docs/bitcoin-header-check.md).
   const bitcoin = useBitcoinCheck(proof);
@@ -749,6 +782,7 @@ export const VerifyPage: React.FC = () => {
             relative={result.anchoredRelativeToDeletion}
             fp={fp}
             storedFp={result.recordFingerprint}
+            date={deletedDate}
           />
         ) : !result?.found ? (
           <Paper sx={{ p: 4, textAlign: 'center' }} data-verify-not-found="">
@@ -1400,9 +1434,15 @@ export const VerifyPage: React.FC = () => {
             ),
           })}
         </Typography>
-        {/* Not beside a version 2 date: that contract is not for anyone's records yet, and its
-          caution takes this invitation's place within the check page's word budget. */}
-        {!loading && !v2Dated && <MakeYourOwn />}
+        {/* Not beside any date from a contract still in testing: the record's, or a deleted
+          record's. That contract is not for anyone's records yet. */}
+        <CheckPageInvite
+          loading={loading}
+          dates={[
+            { check: anchor, network: reportedNetwork ?? NETWORK },
+            { check: deletedDate.anchor, network: deletedDate.network },
+          ]}
+        />
       </Container>
     </Box>
   );

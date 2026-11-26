@@ -167,6 +167,10 @@ export const pack = {
     'One date is VeilCore’s registry’s report, not checked on Midnight’s main network by this browser.',
   'app.pack.gap.unchecked.other':
     '{count} dates are VeilCore’s registry’s report, not checked on Midnight’s main network by this browser.',
+  'app.pack.gap.testing.one':
+    'One VeilCore record was dated with VeilCore contract version 2, which is for VeilCore’s testing only and not for records, so its date can’t be relied on.',
+  'app.pack.gap.testing.other':
+    '{count} VeilCore records were dated with VeilCore contract version 2, which is for VeilCore’s testing only and not for records, so their dates can’t be relied on.',
   'app.pack.gap.locked.one':
     'One VeilCore record in this browser is locked (sealed with a key it doesn’t have) and is left out.',
   'app.pack.gap.locked.other':

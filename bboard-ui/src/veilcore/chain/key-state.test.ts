@@ -422,7 +422,19 @@ describe('a date from version 2 on mainnet always says it is for testing and not
     for (const f of lines) expect(src(f), rel(f)).toMatch(/<V2Caution\b/);
     // On the check page the caution takes the invitation's place, so the page stays within its
     // word budget (complexity-budget.json "check") with the line shown.
-    expect(read('../../pages/VerifyPage.tsx')).toMatch(/!v2Dated && <MakeYourOwn \/>/);
+    // The page's one invite is CheckPageInvite (its rule is drawn in v2-not-for-records.test.ts),
+    // and it is handed every date the page looks up: the record's (useAnchorCheck) and a deleted
+    // record's (useDeletedRecordDate, the same value its card shows). No other look-up of a date.
+    const page = read('../../pages/VerifyPage.tsx');
+    expect(page.match(/<MakeYourOwn \/>/g)).toHaveLength(1);
+    expect(page).toMatch(/stillTesting\(d\.check, d\.network\)\) \? null : <MakeYourOwn \/>/);
+    expect(page.match(/\buse(RecordDate|AnchorCheck)\(/g)).toHaveLength(2);
+    expect(page.match(/\buseDeletedRecordDate\(/g)).toHaveLength(1);
+    expect(page).toMatch(/const deletedDate = useDeletedRecordDate\(/);
+    expect(page).toMatch(/date=\{deletedDate\}/);
+    expect(page).toMatch(
+      /<CheckPageInvite\s+loading=\{loading\}\s+dates=\{\[\s*\{ check: anchor, network: reportedNetwork \?\? NETWORK \},\s*\{ check: deletedDate\.anchor, network: deletedDate\.network \},\s*\]\}/,
+    );
     // Every other reader of a record's date, and how its words reach the line. Calling
     // recordDateRow is not enough on its own: the file must show the row's `caution` (or hand
     // the row to something that does). A file that only reads the mark says why.
@@ -464,11 +476,13 @@ describe('a date from version 2 on mainnet always says it is for testing and not
       if (r in NO_DATE) {
         expect(src(f), r).toContain(NO_DATE[r]);
         expect(src(f), r).not.toMatch(/useRecordDate\(|useAnchorCheck\(|DocumentDate/);
-      } else
+      } else if (r === 'pages/VerifyPage.tsx')
+        continue; // CheckPageInvite, above
+      else
         for (const line of src(f)
           .split('\n')
           .filter((l) => /<MakeYourOwn\b/.test(l)))
-          expect(line, r).toMatch(/!(v2Dated|testingDate) && <MakeYourOwn \/>/);
+          expect(line, r).toMatch(/!testingDate && <MakeYourOwn \/>/);
     }
     // Every verdict on a record's date says whether that date is still in testing.
     const verdicts = files.filter((f) => /\brecordVerdict\(/.test(src(f)) && !f.endsWith('/verify/verdict.ts'));

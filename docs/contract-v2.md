@@ -610,24 +610,31 @@ key. The tool changes (Stage A item 7) are needed for the handover.
   - condition 5's line on the site. **Built, 26 November 2026, not deployed; must merge before
     the next site deploy:** a date from version 2 on mainnet carries the evidence bundle's own
     words ("VeilCore contract version 2 is deployed on mainnet for testing by VeilCore. It is not
-    yet independently reviewed and not for your records."), in all five languages, in the
-    warning colour, never a tick. Where: the check page (under its heading, not folded away, and
-    on a deleted record's date); the record's date panel; the plant page's "Record dated" and DNA
-    report rows (beside the record's own timestamp lines, never in their place); the document
-    date (document page, document check, claim check); the "DNA report dated" line and the lab
-    report record's page (outside its "Technical details"); Home's document rows and plant DNA
-    lines; the certificate's DNA line; the History; and the authority pack
+    yet independently reviewed and not for your records."), in all five languages, as a warning,
+    never a tick. Where: the check page (under its heading, not folded away, and on a deleted
+    record's date); the record's date panel; the plant page's "Record dated" and DNA report rows
+    (beside the record's own timestamp lines, never in their place); the document date (document
+    page, document check, claim check); the "DNA report dated" line and the lab report record's
+    page (outside its "Technical details"); Home's document rows and plant DNA lines; the
+    certificate's DNA line; the History; and the authority pack
     (`stillTesting` and `v2CautionWords` in `components/verify/anchor-words.ts`, `recordDateRow`'s
-    `caution`, `dnaTieParts`). Beside a v2 date nothing is shown as a full success: the stamp is
-    a dashed TESTING stamp in the warning colour, never the gold DATED one (`stampStateFor`);
-    rows, dated lines and the certificate get the warning mark, never a green tick; the verdict
-    at the top of the check page, the document check and the claim check is the warning's, not
-    green; and the "Make a record, free" box is not shown (check page, document check, claim
-    check). It fails closed: only version 1 is public, so any other version (or a check naming
-    none) on mainnet is treated as still in testing until it is switched on purpose. The claim
-    check's own claim result has no version check: it is a full success only because the pinned
-    mainnet claims contract is version 1, and a test fails if that pin changes. A test fails if
-    any of these regresses (`components/verify/v2-not-for-records.test.ts` draws each screen;
+    `caution`, `dnaTieParts`). Beside a v2 date: the stamp is a dashed TESTING stamp in the
+    warning colour, never the gold DATED one (`stampStateFor`); rows, dated lines and the
+    certificate get the warning mark, never a green tick; the verdict at the top of the check
+    page, the document check and the claim check is the warning's, not green; and the "Make a
+    record, free" box is not shown on the check page (whenever any date it shows is still in
+    testing, a deleted record's included: `CheckPageInvite`), the document check or the claim
+    check. In the authority pack such a date is never counted as checked: it is a gap of its own
+    at the top ("… dated with VeilCore contract version 2, which is for VeilCore's testing only
+    and not for records, so its date can't be relied on"), so the pack never says "Nothing
+    missing" beside it, and its line under the record is printed with a ⚠ mark, in bold, in a
+    bordered box, so it reads on a black-and-white printout. It fails closed: only version 1 is
+    public, so any other version (or a check naming none) on mainnet is treated as still in
+    testing until it is switched on purpose; the words say "version 2", the only other version
+    pinned. The claim check's own claim result has no version check: it is a full success only
+    because the pinned mainnet claims contract is version 1, and a test fails if that pin
+    changes. A test fails if any of these regresses (`components/verify/v2-not-for-records.test.ts`
+    draws each screen; `veilcore/authority-pack.test.ts` draws the pack;
     `veilcore/chain/key-state.test.ts` checks that every file reading a record's date shows the
     line, and that every "Make a record" box and every verdict is still-testing aware);
 - rule 10 in SPEC.md (3.1). **At the pin:** still open, with the SDK release after 0.18.1 (the

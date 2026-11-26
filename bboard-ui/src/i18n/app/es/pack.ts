@@ -168,6 +168,10 @@ export const pack = {
     'Una fecha es lo que informa el servidor de registros de VeilCore, no comprobada en la red principal de Midnight por este navegador.',
   'app.pack.gap.unchecked.other':
     '{count} fechas son lo que informa el servidor de registros de VeilCore, no comprobadas en la red principal de Midnight por este navegador.',
+  'app.pack.gap.testing.one':
+    'Un registro VeilCore se fechó con el contrato de VeilCore, versión 2, que es solo para pruebas de VeilCore y no para registros, así que no se puede confiar en esa fecha.',
+  'app.pack.gap.testing.other':
+    '{count} registros VeilCore se fecharon con el contrato de VeilCore, versión 2, que es solo para pruebas de VeilCore y no para registros, así que no se puede confiar en esas fechas.',
   'app.pack.gap.locked.one':
     'Un registro VeilCore de este navegador está bloqueado (sellado con una clave que este navegador no tiene) y queda fuera.',
   'app.pack.gap.locked.other':

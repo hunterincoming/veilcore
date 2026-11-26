@@ -36,7 +36,7 @@
 
 import type { StrainRecord } from './records';
 import type { AnchorCheck } from './chain/anchor-check';
-import { v2CautionWords } from '../components/verify/anchor-words';
+import { stillTesting, v2CautionWords } from '../components/verify/anchor-words';
 import { aboutIdsOf } from './document-chain';
 import { documentKindOf } from './document-kind';
 import { isDocument } from './document-profile';
@@ -207,9 +207,22 @@ export type DateFacts = {
   readonly tsa?: { readonly genTime?: string; readonly tsa?: string; readonly qualified?: string };
 };
 
-/** Checked on Midnight's main network by this browser: the only date the pack calls checked. */
+/**
+ * Dated on a contract VeilCore is still testing (version 2 on mainnet, or any contract but
+ * version 1: anchor-words.ts stillTesting): checked on Midnight, but not for anyone's records.
+ */
+export const dateTesting = (d: DateFacts | undefined): boolean =>
+  d?.state === 'anchored' && !!d.midnight && stillTesting(d.midnight.check, d.midnight.network);
+
+/**
+ * Checked on Midnight's main network by this browser, on a contract that is not still in
+ * testing: the only date the pack calls checked (docs/contract-v2.md 7, condition 5).
+ */
 export const dateChecked = (d: DateFacts | undefined): boolean =>
-  d?.state === 'anchored' && d.midnight?.check?.status === 'checked' && d.midnight.network === 'mainnet';
+  d?.state === 'anchored' &&
+  d.midnight?.check?.status === 'checked' &&
+  d.midnight.network === 'mainnet' &&
+  !dateTesting(d);
 
 const utc = (t: number | string | undefined): string | undefined => {
   if (t === undefined) return undefined;
@@ -225,7 +238,24 @@ const utc = (t: number | string | undefined): string | undefined => {
  * registry's report, said as such. A test network says it is practice data. Bitcoin and RFC 3161
  * are the batch root's, linked to this record by its inclusion proof, and are worded that way.
  */
-export const dateLines = (d: DateFacts | undefined, tr: Translator): string[] => {
+export const dateLines = (d: DateFacts | undefined, tr: Translator): string[] =>
+  dateLineItems(d, tr).map((l) => l.text);
+
+/**
+ * dateLines, with the still-testing line marked `warn` (docs/contract-v2.md 7, condition 5): the
+ * printed pack draws it as a warning that reads in black and white too (PackDocument.tsx).
+ */
+export const dateLineItems = (
+  d: DateFacts | undefined,
+  tr: Translator,
+): { readonly text: string; readonly warn?: true }[] =>
+  dateLineTexts(d, tr).map((text) =>
+    d?.state === 'anchored' && d.midnight && text === v2CautionWords(d.midnight.check, d.midnight.network, tr)
+      ? { text, warn: true }
+      : { text },
+  );
+
+const dateLineTexts = (d: DateFacts | undefined, tr: Translator): string[] => {
   if (!d || d.state === 'unsealed') return [tr.t('app.pack.date.unsealed')];
   if (d.state === 'none') return [tr.t('app.pack.date.none')];
   if (d.state === 'pending') return [tr.t('app.pack.date.pending')];
@@ -367,6 +397,8 @@ export type Gap =
   | { readonly kind: 'patients' }
   | { readonly kind: 'undated'; readonly n: number }
   | { readonly kind: 'unchecked'; readonly n: number }
+  /** Dated on a contract VeilCore is still testing: never counted as checked. */
+  | { readonly kind: 'testing'; readonly n: number }
   | { readonly kind: 'locked'; readonly n: number };
 
 /**
@@ -502,7 +534,12 @@ export const buildPack = (
   if (!whole(form.patients)) gaps.push({ kind: 'patients' });
   const undated = items.filter((i) => !i.date || i.date.state !== 'anchored').length;
   if (undated) gaps.push({ kind: 'undated', n: undated });
-  const unchecked = items.filter((i) => i.date?.state === 'anchored' && !dateChecked(i.date)).length;
+  // A date on a contract still in testing is its own gap: checked on Midnight, but not for records.
+  const testing = items.filter((i) => dateTesting(i.date)).length;
+  if (testing) gaps.push({ kind: 'testing', n: testing });
+  const unchecked = items.filter(
+    (i) => i.date?.state === 'anchored' && !dateChecked(i.date) && !dateTesting(i.date),
+  ).length;
   if (unchecked) gaps.push({ kind: 'unchecked', n: unchecked });
   if (ctx.locked) gaps.push({ kind: 'locked', n: ctx.locked });
 
@@ -536,6 +573,8 @@ export const gapWords = (g: Gap, tr: Translator): string => {
       return tr.tp('app.pack.gap.undated', g.n);
     case 'unchecked':
       return tr.tp('app.pack.gap.unchecked', g.n);
+    case 'testing':
+      return tr.tp('app.pack.gap.testing', g.n);
     case 'locked':
       return tr.tp('app.pack.gap.locked', g.n);
   }

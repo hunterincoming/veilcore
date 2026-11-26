@@ -166,6 +166,10 @@ export const pack = {
     'Une date est celle que donne le registre de VeilCore, non vérifiée sur le réseau principal de Midnight par ce navigateur.',
   'app.pack.gap.unchecked.other':
     '{count} dates sont celles que donne le registre de VeilCore, non vérifiées sur le réseau principal de Midnight par ce navigateur.',
+  'app.pack.gap.testing.one':
+    'Un enregistrement VeilCore a été daté avec le smart contract de VeilCore, version 2, réservé aux tests de VeilCore et non destiné aux enregistrements : on ne peut pas se fier à cette date.',
+  'app.pack.gap.testing.other':
+    '{count} enregistrements VeilCore ont été datés avec le smart contract de VeilCore, version 2, réservé aux tests de VeilCore et non destiné aux enregistrements : on ne peut pas se fier à ces dates.',
   'app.pack.gap.locked.one':
     'Un enregistrement VeilCore de ce navigateur est verrouillé (scellé avec une clé qu’il n’a pas) et est laissé de côté.',
   'app.pack.gap.locked.other':

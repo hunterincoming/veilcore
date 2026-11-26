@@ -12,6 +12,7 @@ import {
   countsOf,
   dateChecked,
   dateLines,
+  dateTesting,
   dayOf,
   gapWords,
   isChromatographyReport,
@@ -36,6 +37,13 @@ import { stageNotes } from '../components/stage/stage-notes';
 import type { StrainRecord } from './records';
 import { enT, makeTranslator } from '../i18n/translate';
 import { appEs } from '../i18n/app/es';
+import { appDe } from '../i18n/app/de';
+import { appFr } from '../i18n/app/fr';
+import { appJa } from '../i18n/app/ja';
+import React from 'react';
+import { readFileSync } from 'node:fs';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { PackDocument } from '../components/authority-pack/PackDocument';
 
 const es = makeTranslator('es', appEs);
 /** Sealed after, and before, the plant form started writing "Variety registration:" lines. */
@@ -375,7 +383,8 @@ describe('a lab’s numbers, only when a lab stands behind them (labStands)', ()
 
 describe('what each date rests on', () => {
   const tx = 'ab'.repeat(32);
-  const checked = (network: string): DateFacts => ({
+  /** A date checked on Midnight; version 1, the public contract, unless said. */
+  const checked = (network: string, version: string | undefined = 'v1'): DateFacts => ({
     state: 'anchored',
     midnight: {
       network,
@@ -387,7 +396,8 @@ describe('what each date rests on', () => {
         blockHeight: 4242,
         blockTime: Date.parse('2026-09-21T10:02:00Z'),
         indexers: 2,
-      },
+        ...(version ? { contract: { version, address: 'cd'.repeat(32) } } : {}),
+      } as never,
     },
   });
   const reported: DateFacts = {
@@ -454,6 +464,96 @@ describe('what each date rests on', () => {
     const dates = new Map(packRecords(s).map((r, i) => [r.id, i === 0 ? reported : checked('mainnet')]));
     const p = buildPack(s, { ...noFacts, dates }, { patients: 1 }, ctx);
     expect(p.gaps.filter((g) => g.kind === 'undated' || g.kind === 'unchecked')).toEqual([{ kind: 'unchecked', n: 1 }]);
+  });
+});
+
+// Condition 5 of docs/contract-v2.md 7: a date on a contract VeilCore is still testing (version 2
+// on mainnet, or any contract but version 1) is never "checked" in the pack. It is a gap of its
+// own, so "Before sending: what is missing" never says nothing is missing, and its line under the
+// record is a warning that reads on a black-and-white printout too.
+describe('a date on a contract still in testing, in the pack for the authority', () => {
+  const tx = 'ab'.repeat(32);
+  const dated = (version: string | undefined): DateFacts => ({
+    state: 'anchored',
+    midnight: {
+      network: 'mainnet',
+      txHash: tx,
+      reportedAt: '2026-11-21T10:00:00Z',
+      check: {
+        status: 'checked',
+        txHash: tx,
+        blockHeight: 4242,
+        blockTime: Date.parse('2026-11-21T10:02:00Z'),
+        indexers: 2,
+        ...(version ? { contract: { version, address: 'cd'.repeat(32) } } : {}),
+      } as never,
+    },
+  });
+  const LANGS = {
+    en: enT,
+    de: makeTranslator('de', appDe),
+    es,
+    fr: makeTranslator('fr', appFr),
+    ja: makeTranslator('ja', appJa),
+  };
+  /** A pack with no other gap: every record dated on `version`, but one on `other`. */
+  const pack = (other: string | undefined, version = 'v1') => {
+    const c = chain();
+    const s = selectPack([c.source, c.b1, c.lot1, c.coa], PERIOD);
+    const dates = new Map(packRecords(s).map((r, i) => [r.id, dated(i === 0 ? other : version)]));
+    return buildPack(s, { ...noFacts, dates }, { patients: 1, plants: 120, inFlower: 80 }, ctx);
+  };
+  const draw = (p: ReturnType<typeof pack>, tr = enT) =>
+    renderToStaticMarkup(React.createElement(PackDocument, { pack: p, tr }));
+
+  it('version 2, a later version or none named: not checked, and its own gap; version 1 unchanged', () => {
+    for (const v of ['v2', 'v3', undefined]) {
+      expect(dateChecked(dated(v)), String(v)).toBe(false);
+      expect(dateTesting(dated(v)), String(v)).toBe(true);
+      const p = pack(v);
+      expect(p.gaps, String(v)).toEqual([{ kind: 'testing', n: 1 }]);
+    }
+    expect(dateChecked(dated('v1'))).toBe(true);
+    expect(dateTesting(dated('v1'))).toBe(false);
+    expect(pack('v1').gaps).toEqual([]);
+  });
+
+  it('the gap says it plainly, in all five languages', () => {
+    for (const [lang, tr] of Object.entries(LANGS)) {
+      const one = gapWords({ kind: 'testing', n: 1 }, tr);
+      const two = gapWords({ kind: 'testing', n: 2 }, tr);
+      expect(one, lang).toMatch(/2/);
+      expect(one, lang).not.toMatch(/\{|\}|app\.pack/);
+      expect(two, lang).toContain('2');
+      expect(one, lang).not.toBe(gapWords({ kind: 'unchecked', n: 1 }, tr));
+    }
+    expect(gapWords({ kind: 'testing', n: 1 }, enT)).toBe(
+      'One VeilCore record was dated with VeilCore contract version 2, which is for VeilCore’s testing only and not for records, so its date can’t be relied on.',
+    );
+  });
+
+  it('the printed pack never says "Nothing missing" beside a v2 date, and marks it in black and white', () => {
+    for (const [lang, tr] of Object.entries(LANGS)) {
+      const html = draw(pack('v2'), tr);
+      expect(html, lang).toContain('data-pack-gaps="some"');
+      expect(html, lang).not.toContain(tr.t('app.pack.doc.gapsNone'));
+      // The gap, with the ⚠ mark in bold.
+      expect(html, lang).toMatch(/data-gap="testing"><strong>⚠ /);
+      // Its line under the record: the ⚠ mark, bold, in a bordered box (class warn-line).
+      expect(html, lang).toMatch(/class="warn-line" data-v2-caution=""><strong>⚠ /);
+      expect(html, lang).toContain(tr.t('app.verify.anchor.v2Caution').replace(/'/g, '&#x27;'));
+    }
+    const v1 = draw(pack('v1'));
+    expect(v1).toContain('data-pack-gaps="none"');
+    expect(v1).toContain(enT.t('app.pack.doc.gapsNone'));
+    expect(v1).not.toContain('class="warn-line"');
+    expect(v1).not.toContain('data-v2-caution');
+    expect(v1).not.toContain('⚠');
+  });
+
+  it('the warning look is not colour alone: a border and bold', () => {
+    const src = readFileSync(new URL('../components/authority-pack/PackDocument.tsx', import.meta.url), 'utf8');
+    expect(src).toMatch(/'& \.warn-line': \{[^}]*fontWeight: 700[^}]*border: `1\.5px solid \$\{WARN\}`/s);
   });
 });
 
