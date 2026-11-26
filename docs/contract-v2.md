@@ -613,9 +613,12 @@ key. The tool changes (Stage A item 7) are needed for the handover.
     yet independently reviewed and not for your records."), in all five languages, as a warning,
     never a tick: under the check page's heading (not folded away), on the record's date panel,
     on the date row (plant page, documents, lab reports), in the History and in the authority
-    pack (`components/verify/V2Caution.tsx`, `v2CautionWords` in `anchor-words.ts`). A test
-    fails if any of these shows a v2 date without it, or if a new screen renders the dated line
-    without it (`veilcore/chain/key-state.test.ts`);
+    pack (`components/verify/V2Caution.tsx`, `v2CautionWords` in `anchor-words.ts`). Nothing
+    beside a v2 date looks like a full success: its stamp is a dashed TESTING stamp in the
+    warning colour, never the gold DATED one (`stampStateFor`), and the check page's verdict and
+    mark are the warning's, not green or gold. A test fails if any of these shows a v2 date
+    without the line or with the gold stamp, or if a new screen renders the dated line or a
+    stamp without them (`veilcore/chain/key-state.test.ts`);
 - rule 10 in SPEC.md (3.1). **At the pin:** still open, with the SDK release after 0.18.1 (the
   installed 0.18.1 has neither SPEC 9.2.1 nor `verify.py`'s list, so the comparison in
   `scripts/deployments.test.mjs` does not run yet).

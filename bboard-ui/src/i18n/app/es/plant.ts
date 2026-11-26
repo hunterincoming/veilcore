@@ -123,6 +123,7 @@ export const plant = {
   'app.plant.hold.cannot': 'en espera: no se puede hacer aquí ahora (vea abajo)',
   'app.plant.stamp.dated': 'Fechado',
   'app.plant.stamp.practice': 'Práctica',
+  'app.plant.stamp.testing': 'Prueba',
   'app.plant.labReport': 'Informe de laboratorio',
   'app.plant.dnaReport': 'Informe de ADN',
   'app.plant.tie.tied': 'Vinculado a la planta',

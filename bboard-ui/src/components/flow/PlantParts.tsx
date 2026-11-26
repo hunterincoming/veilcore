@@ -15,8 +15,9 @@ import { useOfflineState } from '../../offline/register';
 import { useStampRetries } from '../chain/useKeyStamp';
 import type { RecordKeys } from '../../veilcore/record-keys';
 import { REAL_CHAIN } from '../../veilcore/chain/config';
-import { LAB_RESULTS_ENABLED, isTestNetwork } from '../../config/network';
+import { LAB_RESULTS_ENABLED } from '../../config/network';
 import { useRecordDate } from '../verify/useAnchorCheck';
+import { STAMP_WORD, stampStateFor } from '../verify/anchor-words';
 import { SECTIONS, useSectionName, type Section } from './FlowFrame';
 import { color } from '../../config/tokens';
 import { DatedStamp } from '../DatedStamp';
@@ -332,13 +333,14 @@ export const PlantStatus: React.FC<{
   const anchored = proof !== 'checking' && proof.status === 'anchor-reported' ? proof.proof.anchor : undefined;
   const checkedAt =
     anchor !== undefined && anchor !== 'checking' && anchor.status === 'checked' ? anchor.blockTime : undefined;
+  // Gold DATED only for a date not on a test network and not from a contract still in testing.
+  const stampState = stampStateFor(anchor, anchored?.network ?? '') ?? 'dated';
   const stamp = received
     ? undefined
     : checkedAt !== undefined
       ? {
-          state: anchored && isTestNetwork(anchored.network) ? ('practice' as const) : ('dated' as const),
-          word:
-            anchored && isTestNetwork(anchored.network) ? t('app.plant.stamp.practice') : t('app.plant.stamp.dated'),
+          state: stampState,
+          word: t(STAMP_WORD[stampState]),
           date: tr.date(checkedAt, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }),
         }
       : undefined;

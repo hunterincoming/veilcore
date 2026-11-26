@@ -65,6 +65,11 @@ export const recordVerdict = (f: {
   /** A lab withdrew a signature shown on this page (valid, but no longer stood behind). */
   withdrawn?: boolean;
   testNetwork: boolean;
+  /**
+   * The date is from a contract VeilCore is still testing (contract version 2 on mainnet,
+   * docs/contract-v2.md 7 condition 5): the same words, never the green of a full success.
+   */
+  stillTesting?: boolean;
   /** When the registry says the batch was dated (its word). */
   reportedAt?: string;
   /**
@@ -94,7 +99,7 @@ export const recordVerdict = (f: {
     if (f.failed) return { tone: 'warn', key: 'app.verify.verdict.datedButFailed', date: a.blockTime };
     if (f.withdrawn) return { tone: 'warn', key: 'app.verify.verdict.datedWithdrawn', date: a.blockTime };
     if (f.testNetwork) return { tone: 'warn', key: 'app.verify.verdict.datedTest', date: a.blockTime };
-    return { tone: 'ok', key: 'app.verify.verdict.dated', date: a.blockTime };
+    return { tone: f.stillTesting ? 'warn' : 'ok', key: 'app.verify.verdict.dated', date: a.blockTime };
   }
   // Not looked up, or no indexer answered: the date is VeilCore's server's word.
   const reported = f.reportedAt && !Number.isNaN(Date.parse(f.reportedAt)) ? f.reportedAt : undefined;

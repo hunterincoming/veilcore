@@ -441,8 +441,8 @@ describe('the palette: pollen and ink; red only for errors; no green brand', () 
       }
   });
 
-  it('the DATED stamp is pollen only when real: a test network gets a dashed PRACTICE stamp', () => {
-    expect(stampTsx).toMatch(/export type StampState = 'dated' \| 'practice' \| 'waiting'/);
+  it('the DATED stamp is pollen only when real: a test network gets a dashed PRACTICE stamp, a contract still in testing a dashed TESTING one', () => {
+    expect(stampTsx).toMatch(/export type StampState = 'dated' \| 'practice' \| 'testing' \| 'waiting'/);
     expect(stampTsx).toMatch(/background: dated\s*\?[^:]*color\.accent/);
     // It presses once, and not at all with reduced motion.
     expect(stampTsx).toMatch(/REDUCED_MOTION/);

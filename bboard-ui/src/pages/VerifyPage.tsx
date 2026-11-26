@@ -111,6 +111,8 @@ import {
   anchorLine,
   anchorSummary,
   registryDateWords,
+  STAMP_WORD,
+  stampStateFor,
   v2CautionWords,
 } from '../components/verify/anchor-words';
 import { V2Caution } from '../components/verify/V2Caution';
@@ -649,7 +651,11 @@ export const VerifyPage: React.FC = () => {
   // A date checked on a test network is practice data: its own amber mark and a PRACTICE
   // stamp, never mainnet's gold DATED stamp.
   const testSeal = seal && isTestNetwork(reportedNetwork ?? NETWORK);
-  const sealColor = testSeal ? TEST_MARK : color.text;
+  // The stamp (stampStateFor): gold DATED only for a date that is neither practice nor from a
+  // contract still in testing (version 2 on mainnet: TESTING, in the warning colour).
+  const stampState = stampStateFor(anchor, reportedNetwork ?? NETWORK) ?? 'dated';
+  const plainSeal = seal && stampState === 'dated';
+  const sealColor = plainSeal ? color.text : TEST_MARK;
   const sealedAt =
     seal && anchor !== undefined && anchor !== 'checking' && anchor.status === 'checked' ? anchor.blockTime : undefined;
   // The name (round 6): the one the holder published wins (or a record saved before names
@@ -692,6 +698,7 @@ export const VerifyPage: React.FC = () => {
           withdrawn,
           anchoredReported: result.anchored === true,
           testNetwork: isTestNetwork(reportedNetwork ?? NETWORK),
+          stillTesting: v2Dated,
           reportedAt,
         })
       : undefined;
@@ -815,8 +822,8 @@ export const VerifyPage: React.FC = () => {
                 stamp on a test network. */}
               {seal && sealedAt !== undefined && (
                 <DatedStamp
-                  state={testSeal ? 'practice' : 'dated'}
-                  word={testSeal ? t('app.plant.stamp.practice') : t('app.plant.stamp.dated')}
+                  state={stampState}
+                  word={t(STAMP_WORD[stampState])}
                   date={tr.date(sealedAt, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })}
                   pressKey={`check:${result.id ?? ''}`}
                   size={{ xs: 72, sm: 88 }}
@@ -840,9 +847,7 @@ export const VerifyPage: React.FC = () => {
                       sx={{
                         color: seal ? sealColor : 'text.disabled',
                         fontSize: 30,
-                        ...(seal && !testSeal
-                          ? { bgcolor: color.accent, borderRadius: '50%', p: 0.375, fontSize: 34 }
-                          : {}),
+                        ...(plainSeal ? { bgcolor: color.accent, borderRadius: '50%', p: 0.375, fontSize: 34 } : {}),
                       }}
                     />
                   );

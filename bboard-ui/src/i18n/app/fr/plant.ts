@@ -124,6 +124,7 @@ export const plant = {
   'app.plant.hold.cannot': 'en attente : impossible ici pour l’instant (voir ci-dessous)',
   'app.plant.stamp.dated': 'Daté',
   'app.plant.stamp.practice': 'Essai',
+  'app.plant.stamp.testing': 'Test',
   'app.plant.labReport': 'Rapport de laboratoire',
   'app.plant.dnaReport': 'Rapport ADN',
   'app.plant.tie.tied': 'Lié à la plante',

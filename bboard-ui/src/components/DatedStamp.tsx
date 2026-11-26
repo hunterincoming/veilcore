@@ -4,8 +4,10 @@
 // arrives while the page is open, the stamp comes down with a short thunk (a quarter of a
 // second, scale and turn, then still). With reduced motion it is simply there.
 //
-// Three states, never confused: `dated` (gold, the real thing), `practice` (a date on a test
-// network: no gold, an ink ring drawn dashed, the word PRACTICE), and `waiting` (the dashed
+// Four states, never confused: `dated` (gold, the real thing), `practice` (a date on a test
+// network: no gold, an ink ring drawn dashed, the word PRACTICE), `testing` (a real date from a
+// contract VeilCore is still testing, docs/contract-v2.md 7 condition 5: no gold, a dashed ring
+// in the warning colour, the word TESTING), and `waiting` (the dashed
 // outline of where the stamp will go, in pencil). The stamp is a picture of a fact the row
 // beside it already says in words, so it is hidden from screen readers.
 // SPDX-License-Identifier: Apache-2.0
@@ -16,7 +18,7 @@ import { keyframes } from '@mui/material/styles';
 import { DISPLAY_FONT, REDUCED_MOTION } from '../config/theme';
 import { color } from '../config/tokens';
 
-export type StampState = 'dated' | 'practice' | 'waiting';
+export type StampState = 'dated' | 'practice' | 'testing' | 'waiting';
 
 const press = keyframes`
   0%   { transform: scale(1.45) rotate(-16deg); opacity: 0; }
@@ -70,7 +72,7 @@ export const DatedStamp: React.FC<{
 
   const dated = state === 'dated';
   const waiting = state === 'waiting';
-  const ink = waiting ? color.textMuted : color.text;
+  const ink = waiting ? color.textMuted : state === 'testing' ? color.warn : color.text;
   const px = (n: number) =>
     typeof size === 'number' ? n * (size / 96) : { xs: n * (size.xs / 96), sm: n * (size.sm / 96) };
   return (
@@ -93,7 +95,7 @@ export const DatedStamp: React.FC<{
             ? 'transparent'
             : color.surface,
         // A stamp's two rings: an outer edge and an inner ring a few points in.
-        border: dated ? 0 : `2px dashed ${waiting ? color.line : color.text}`,
+        border: dated ? 0 : `2px dashed ${waiting ? color.line : ink}`,
         boxShadow: dated
           ? `inset 0 0 0 2px ${color.text}, inset 0 0 0 5px ${color.accent}, inset 0 0 0 6.5px ${color.text}`
           : 'none',

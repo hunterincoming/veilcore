@@ -21,6 +21,10 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { anchorHistoryEvent, anchorLine, keyStateWords, v2CautionWords } from '../../components/verify/anchor-words';
 import { V2Caution } from '../../components/verify/V2Caution';
+import { DatedStamp } from '../../components/DatedStamp';
+import { STAMP_WORD, stampStateFor } from '../../components/verify/anchor-words';
+import { recordVerdict } from '../../components/verify/verdict';
+import { color } from '../../config/tokens';
 import { recordDateRow } from '../../components/flow/plant-status-words';
 import { dateLines } from '../authority-pack';
 import { MAINNET_PINNED, PREPROD_PINNED, pinnedContractsFrom } from '../../../../api/src/pinned-contracts';
@@ -436,5 +440,77 @@ describe('a date from version 2 on mainnet always says it is for testing and not
       if (r in NO_DATE_SHOWN) expect(src(f), r).toContain(NO_DATE_SHOWN[r]);
       else expect(src(f), r).toMatch(CARRIES);
     }
+  });
+});
+
+// The same condition: a v2 date on mainnet never gets the gold DATED stamp or a green verdict.
+describe('a date from version 2 on mainnet is never shown as a full gold or green success', () => {
+  const stamp = (state: 'dated' | 'practice' | 'testing') =>
+    renderToStaticMarkup(React.createElement(DatedStamp, { state, word: state.toUpperCase(), date: '1 Dec 2026' }));
+  const verdictFor = (r: AnchorCheck, stillTesting: boolean) =>
+    recordVerdict({
+      sealed: true,
+      bound: true,
+      proof: { status: 'anchor-reported', proof: {} } as never,
+      anchor: r,
+      signaturesChecking: false,
+      failed: false,
+      testNetwork: false,
+      stillTesting,
+    });
+
+  it('the stamp: TESTING in the warning colour for v2 on mainnet, gold DATED only for v1', async () => {
+    const v2r = await onMainnet(pinnedWithV2([SINGLE]), { address: V2, state: v2.stateHex }, v2.root);
+    const v1r = await onMainnet(pinnedWithV2([SINGLE]), { address: V1, state: V1_STATE }, v1Tx.root);
+    expect(stampStateFor(v2r, 'mainnet')).toBe('testing');
+    expect(stampStateFor(v1r, 'mainnet')).toBe('dated');
+    expect(stampStateFor(v2r, 'preprod')).toBe('practice');
+    expect(stampStateFor('checking', 'mainnet')).toBeUndefined();
+    const gold = color.accent;
+    expect(stamp('dated')).toContain(gold);
+    const testing = stamp(stampStateFor(v2r, 'mainnet')!);
+    expect(testing).toContain('data-stamp="testing"');
+    expect(testing).not.toContain(gold);
+    expect(testing).toContain(color.warn);
+    for (const [lang, tr] of Object.entries(LANGS)) {
+      const word = tr.t(STAMP_WORD.testing);
+      expect(word, lang).toBeTruthy();
+      expect(word, lang).not.toBe(tr.t(STAMP_WORD.dated));
+      expect(word, lang).not.toBe(tr.t(STAMP_WORD.practice));
+    }
+  });
+
+  it('the verdict: never the green "ok" beside a v2 date', async () => {
+    const v2r = await onMainnet(pinnedWithV2([SINGLE]), { address: V2, state: v2.stateHex }, v2.root);
+    expect(verdictFor(v2r, true).tone).toBe('warn');
+    expect(verdictFor(v2r, false).tone).toBe('ok');
+  });
+
+  // Every screen with a stamp picks it through stampStateFor, so none can press gold on a v2
+  // date; the check page also keeps its gold mark and green verdict to a plain seal.
+  it('every stamp on a page comes from stampStateFor', () => {
+    const page = read('../../pages/VerifyPage.tsx');
+    const plant = read('../../components/flow/PlantParts.tsx');
+    for (const [name, src] of [
+      ['VerifyPage', page],
+      ['PlantParts', plant],
+    ] as const) {
+      expect(src, name).toMatch(/stampStateFor\(anchor/);
+      expect(src, name).not.toMatch(/state[=:]\s*\{?[^}\n]*'dated'/);
+    }
+    expect(page).toMatch(/\.\.\.\(plainSeal\s*\?\s*\{ bgcolor: color\.accent/);
+    expect(page).toMatch(/stillTesting: v2Dated/);
+    const root = new URL('../../', import.meta.url).pathname;
+    const users: string[] = [];
+    const walk = (dir: string) => {
+      for (const name of readdirSync(dir)) {
+        const f = `${dir}${name}`;
+        if (statSync(f).isDirectory()) walk(`${f}/`);
+        else if (/\.tsx$/.test(name) && !/\.test\./.test(name) && /<DatedStamp\b/.test(readFileSync(f, 'utf8')))
+          users.push(f.slice(root.length));
+      }
+    };
+    walk(root);
+    expect(users.sort()).toEqual(['components/flow/PlantParts.tsx', 'pages/VerifyPage.tsx']);
   });
 });

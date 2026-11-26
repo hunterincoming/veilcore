@@ -115,6 +115,27 @@ export const v2CautionWords = (
     ? tr.t('app.verify.anchor.v2Caution')
     : undefined;
 
+/**
+ * The stamp for a checked date: gold `dated` only for a real date on a contract that is not
+ * still in testing; `testing` for a version 2 date on mainnet (condition 5, never gold);
+ * `practice` on a test network. Undefined when the date isn't checked here.
+ */
+export const stampStateFor = (
+  check: AnchorState | undefined,
+  network: string,
+): 'dated' | 'practice' | 'testing' | undefined => {
+  if (check === undefined || check === 'checking' || check.status !== 'checked') return undefined;
+  if (isTestNetwork(network)) return 'practice';
+  return v2CautionWords(check, network) !== undefined ? 'testing' : 'dated';
+};
+
+/** The stamp's top word, for each state stampStateFor gives. */
+export const STAMP_WORD = {
+  dated: 'app.plant.stamp.dated',
+  practice: 'app.plant.stamp.practice',
+  testing: 'app.plant.stamp.testing',
+} as const;
+
 /** Whether this browser confirmed the anchor itself. */
 export const anchorConfirmed = (check: AnchorState | undefined): boolean =>
   check !== undefined && check !== 'checking' && check.status === 'checked';

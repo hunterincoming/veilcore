@@ -122,6 +122,7 @@ export const plant = {
   // The stamp on the record's sheet (DatedStamp.tsx): a real date, a test network's, none yet.
   'app.plant.stamp.dated': 'Dated',
   'app.plant.stamp.practice': 'Practice',
+  'app.plant.stamp.testing': 'Testing',
   'app.plant.labReport': 'Lab report',
   'app.plant.dnaReport': 'DNA report',
   'app.plant.tie.tied': 'Tied to the plant',
