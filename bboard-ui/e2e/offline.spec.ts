@@ -11,7 +11,10 @@
 //   2. a new release: a page served from the old copy says a newer version is ready once signal
 //      is back; after that the copy is the new release, and the old copy is gone;
 //   3. a release list naming a file the site doesn't serve is never copied: the copy in use stays;
-//   4. the kill switch (offline/sw-kill.js served as /sw.js) removes the worker and every copy.
+//   4. the kill switch (offline/sw-kill.js served as /sw.js) removes the worker and every copy;
+//   5. the download waits to be asked (summit fix 5b.3): a check link downloads nothing; with
+//      Save-Data on nothing starts, and the install card and Settings offer it with its size; a
+//      browser that already has the copy keeps getting its updates with Save-Data on.
 // Screenshots at 390 and 1366 px go to E2E_SHOTS (or scratchpad/offline-shots when set by the run).
 // SPDX-License-Identifier: Apache-2.0
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -24,6 +27,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 import { API, REAL_REGISTRY, startPlant } from './helpers';
+import { seededRecord } from './seeded-record';
 
 test.skip(REAL_REGISTRY, 'served from the stand-in build');
 test.use({ serviceWorkers: 'allow', isMobile: true, hasTouch: true });
@@ -538,6 +542,98 @@ test('a release whose list doesn’t match what the site serves is never copied'
   await page.goto(`${site.origin}/records`);
   await expect(page.locator('[data-offline-bar]')).toBeVisible();
   await goOffline(context, false);
+});
+
+// ---- the download waits to be asked (summit fix 5b.3) ---------------------------------------
+
+/** What a first visit asked the site for that is the offline download's, and not the page's. */
+const offlineAsks = (from: number) => site.served.slice(from).filter((p) => p === '/sw.js' || p.startsWith('/release'));
+const noOfflineCopy = async (page: Page) => {
+  expect(await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length)).toBe(0);
+  expect((await page.evaluate(() => caches.keys())).filter((k) => k.startsWith('veilcore-'))).toEqual([]);
+};
+/** The browser asks to save data (Chrome's Lite mode / Android's Data Saver). */
+const saveData = (page: Page) =>
+  page.addInitScript(() =>
+    Object.defineProperty(Navigator.prototype, 'connection', {
+      configurable: true,
+      get: () => ({ saveData: true, effectiveType: '4g', addEventListener() {}, removeEventListener() {} }),
+    }),
+  );
+
+test('a check link someone was sent downloads nothing for offline use; the app itself still does', async ({ page }) => {
+  test.setTimeout(240_000);
+  const commit = site.publish(distFiles());
+  const from = site.served.length;
+  await page.goto(`${site.origin}/verify/VEIL-${randomBytes(16).toString('hex').toUpperCase()}`);
+  await page.locator('#root *').first().waitFor();
+  await page.waitForTimeout(4_000);
+  expect(offlineAsks(from), 'no worker, no release list').toEqual([]);
+  await noOfflineCopy(page);
+  // The person goes on into the app with an ordinary connection: it starts there, as before.
+  await page.addInitScript(() => localStorage.setItem('veilcore.role.v1', 'breeder'));
+  await page.goto(`${site.origin}/records`);
+  await copied(page, commit);
+});
+
+test('with Save-Data on nothing downloads by itself; the install card and Settings offer it with its size', async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  const commit = site.publish(distFiles());
+  const seeded = seededRecord();
+  reg.rows.push(...seeded.rows);
+  await seeded.hold(page);
+  await saveData(page);
+  const from = site.served.length;
+  await page.goto(`${site.origin}/records`);
+  const card = page.locator('[data-install-card]');
+  await expect(card).toBeVisible({ timeout: 60_000 });
+  await page.waitForTimeout(3_000);
+  expect(offlineAsks(from), 'no worker, no release list').toEqual([]);
+  await noOfflineCopy(page);
+  // The offer, with the build's own size.
+  const shell = JSON.parse(distFiles().get('/offline-shell.json')!.toString()) as { bytes: number };
+  const mb = `${String(Math.max(1, Math.round(shell.bytes / 1_000_000)))} MB`;
+  await expect(card.locator('[data-offline-size]')).toHaveText(
+    `That downloads about ${mb} once. After that, updates fetch only what changed.`,
+  );
+  await expect(card.getByRole('button', { name: 'Make VeilCore work offline' })).toBeVisible();
+  await shot(page, 'install-card-offer');
+  // "Not now" hides the card; Settings still offers it.
+  await card.getByRole('button', { name: 'Not now' }).click();
+  await expect(card).toHaveCount(0);
+  await page.goto(`${site.origin}/settings`);
+  const settings = page.locator('[data-settings-offline]');
+  await expect(settings).toBeVisible();
+  await expect(settings.locator('[data-offline-size]')).toContainText(mb);
+  await shot(page, 'settings-offer');
+  expect(offlineAsks(from)).toEqual([]);
+  // Asked for: it downloads, and Settings says no more about it.
+  await settings.getByRole('button', { name: 'Make VeilCore work offline' }).click();
+  await copied(page, commit);
+  await expect(settings).toHaveCount(0);
+});
+
+test('a browser that already has the offline copy keeps getting its updates with Save-Data on', async ({ page }) => {
+  test.setTimeout(240_000);
+  await page.addInitScript(() => localStorage.setItem('veilcore.role.v1', 'breeder'));
+  const a = site.publish(distFiles());
+  await page.goto(`${site.origin}/records`);
+  await copied(page, a);
+  await saveData(page);
+  const b = distFiles();
+  b.set(
+    '/index.html',
+    Buffer.from(b.get('/index.html')!.toString().replace('</head>', '<meta name="e2e-release" content="C" /></head>')),
+  );
+  const bCommit = site.publish(b);
+  // Even opened on a check page.
+  await page.goto(`${site.origin}/verify/VEIL-${randomBytes(16).toString('hex').toUpperCase()}`);
+  expect(
+    await page.evaluate(() => (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData),
+  ).toBe(true);
+  await copied(page, bCommit);
 });
 
 test('the kill switch: the worker unregisters itself and every copy goes', async ({ page, context }) => {

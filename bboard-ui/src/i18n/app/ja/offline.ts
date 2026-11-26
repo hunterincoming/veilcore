@@ -28,6 +28,11 @@ export const offline = {
   'app.install.dismiss': '今はしない',
   'app.install.showHow': 'やり方を見る',
   'app.install.gotIt': 'わかりました',
+  'app.install.offer': 'VeilCoreのコピーをこの端末に保存すると、電波がなくても開けます。',
+  'app.install.offerSize':
+    '最初に一度だけ約{size}をダウンロードします。その後の更新では、変わった部分だけを取得します。',
+  'app.install.get': 'VeilCoreをオフラインで使えるようにする',
+  'app.install.getting': '電波がなくても使えるようにVeilCoreをダウンロードしています。このまま作業を続けられます。',
 
   'app.instant.pending':
     '{tsa}によるタイムスタンプ：{time} — Midnight（ブロックチェーン）での日付は次のバッチで付きます。',

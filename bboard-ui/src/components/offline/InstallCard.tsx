@@ -9,6 +9,9 @@
 //     isn't cleared the way Safari clears a site after 7 days without a visit.
 //   - Elsewhere (a computer with no install offer), only that this browser keeps a copy and
 //     opens with no signal, once the offline worker is in place.
+//   - Where the offline download didn't start by itself (a link page first, the browser asking to
+//     save data, 2G: offline/register.ts), "Make VeilCore work offline" with its size
+//     (OfflineOffer). Settings offers it too, so "Not now" here hides nothing.
 // Not shown once VeilCore is opened from the Home Screen, or after "Not now" (kept in this
 // browser only). On Home the iPhone steps open from "Show me how" (22 Nov: they were a third of
 // Home's words, open by default); they are still read before anyone does it.
@@ -27,6 +30,7 @@ import {
   Typography,
 } from '@mui/material';
 import { askToInstall, useOfflineState, OFFLINE_ON } from '../../offline/register';
+import { OfflineOffer } from './OfflineOffer';
 import { thisBrowserClearsAfterSevenDays } from '../flow/webkit-storage';
 import { useT } from '../../i18n/app';
 
@@ -57,8 +61,9 @@ export const InstallCard: React.FC = () => {
   const [how, setHow] = useState(false);
   if (!OFFLINE_ON || s.installed || gone) return null;
   const ios = isIos();
-  // A computer with no install offer and no worker yet: nothing to say.
-  if (!ios && !s.canInstall && !s.ready) return null;
+  const offer = s.held || s.getting;
+  // A computer with no install offer and no worker yet, and nothing held back to offer: nothing to say.
+  if (!ios && !s.canInstall && !s.ready && !offer) return null;
   const dismiss = () => {
     try {
       localStorage.setItem(DISMISSED, 'no');
@@ -68,7 +73,11 @@ export const InstallCard: React.FC = () => {
     setGone(true);
   };
   return (
-    <Paper variant="outlined" sx={{ p: 2, mb: 2 }} data-install-card={ios ? 'ios' : s.canInstall ? 'prompt' : 'ready'}>
+    <Paper
+      variant="outlined"
+      sx={{ p: 2, mb: 2 }}
+      data-install-card={ios ? 'ios' : s.canInstall ? 'prompt' : s.ready ? 'ready' : 'offer'}
+    >
       <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700, mb: 0.5 }}>
         {t('app.install.title')}
       </Typography>
@@ -76,11 +85,13 @@ export const InstallCard: React.FC = () => {
         <Typography variant="body2" sx={{ mb: 1 }}>
           {t('app.install.text')}
         </Typography>
-      ) : (
+      ) : !s.ready ? null : (
         <Typography variant="body2" sx={{ mb: 1 }} data-install-ready="">
           {t('app.install.ready')}
         </Typography>
       )}
+      {/* The download itself, with its size, where it waited to be asked. */}
+      <OfflineOffer outlined={ios || s.canInstall} intro={!ios && !s.canInstall} />
       {ios && (
         <Dialog open={how} onClose={() => setHow(false)} aria-labelledby="install-how-title" data-install-how="">
           <DialogTitle id="install-how-title">{t('app.install.title')}</DialogTitle>

@@ -154,6 +154,9 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
     // prove page, the same rule as the stamps (ask-job/start.ts). Nothing runs that the person
     // hasn't approved.
     void import('./ask-job/start').then((m) => m.startJobRunner());
+    // The offline download, if it waited only because the first page was a link someone sent
+    // (offline/register.ts): it starts on an app page, unless the connection still holds it back.
+    void import('./offline/register').then((m) => m.offlinePageChanged(pathname));
   }, [pathname]);
   return (
     <Box

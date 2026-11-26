@@ -9,6 +9,8 @@ import { holdVaultKey, json, newVaultKey, sealedRecordRow, type Handler } from '
 
 export type SeededRecord = {
   id: string;
+  /** The record's row as the registry keeps it (sealed), for a stand-in registry of a test's own. */
+  rows: Record<string, unknown>[];
   /** The stand-in registry's answers for a holder with this one record. */
   handlers: Record<string, Handler>;
   /** Before the page loads: this browser holds the record's vault key, and is a breeder's. */
@@ -35,6 +37,7 @@ export const seededRecord = (): SeededRecord => {
   const rows = [sealedRecordRow({ id, ...committed, recordFingerprint }, vault)];
   return {
     id,
+    rows,
     handlers: {
       'GET /api/records': (route) => json(route, 200, rows),
       'PUT /api/records': (route) => json(route, 200, { ok: true }),

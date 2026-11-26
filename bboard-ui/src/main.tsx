@@ -52,9 +52,11 @@ import './fonts.css';
 // record app's words in it (i18n/app.tsx) on any page but the three that don't use them.
 // The check and prove pages never send the holder key (round 6, CONTRACT.md #36).
 guardHolderRequests(window);
-// The offline worker (docs/offline.md): registered on every page, so the app opens with no
-// signal. It never sends the holder key from a check or prove page: it sends nothing a page
-// doesn't leave for it (offline/sw.js, Background Sync).
+// The offline worker (docs/offline.md), so the app opens with no signal. Its download (about
+// 11 MB) doesn't start by itself on a check or prove page, when the browser asks to save data,
+// or on 2G: there it waits to be asked (offline/register.ts offlineHeldBack). A browser that
+// already has it keeps it and its updates on every page. It never sends the holder key from a
+// check or prove page: it sends nothing a page doesn't leave for it (offline/sw.js, Background Sync).
 startOffline();
 // A deal's messages kept to send again expire after 30 days (deal-outbox-store.ts): every load
 // removes the expired ones, not only when that deal is next opened.

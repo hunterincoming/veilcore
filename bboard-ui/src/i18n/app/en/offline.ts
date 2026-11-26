@@ -30,6 +30,10 @@ export const offline = {
   'app.install.dismiss': 'Not now',
   'app.install.showHow': 'Show me how',
   'app.install.gotIt': 'Got it',
+  'app.install.offer': 'VeilCore can keep a copy of itself on this device, so it opens with no signal.',
+  'app.install.offerSize': 'That downloads about {size} once. After that, updates fetch only what changed.',
+  'app.install.get': 'Make VeilCore work offline',
+  'app.install.getting': 'Downloading VeilCore for use with no signal. You can keep working.',
 
   'app.instant.pending':
     'Timestamped {time} by {tsa} — the date on Midnight, the blockchain, follows in the next batch.',
