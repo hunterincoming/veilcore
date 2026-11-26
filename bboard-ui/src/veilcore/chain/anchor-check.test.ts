@@ -9,7 +9,18 @@
 // (fixtures/anchor-indexer.json; the first test checks they still are).
 import { describe, expect, it } from 'vitest';
 import fixture from './fixtures/anchor-indexer.json';
-import { ANCHOR_QUERY, checkAnchorOnChain, isAnchorEntry, type AnchorCheckDeps } from './anchor-check';
+import {
+  ANCHOR_QUERY,
+  KNOWN_STATE_TAGS,
+  NOT_FOUND_MARGIN_BLOCKS,
+  NOT_FOUND_MARGIN_MS,
+  checkAnchorOnChain,
+  isAnchorEntry,
+  stateTagOf,
+  type AnchorCheckDeps,
+} from './anchor-check';
+import { forgetAnchorLookups, lookUpAnchor } from './anchor-lookup';
+import { stateLedgerOf } from './v1-decoder';
 import { lastBatchRootOf } from './anchor-decode';
 import {
   anchorContractFor,
@@ -42,7 +53,11 @@ const anchorTx = (over: Tx = {}): Tx => ({
   ...over,
 });
 
-type Reply = { byHash?: readonly Tx[]; byId?: readonly Tx[] } | Error | number | { errors: { message: string }[] };
+type Reply =
+  | { byHash?: readonly Tx[]; byId?: readonly Tx[]; tip?: { height?: unknown; timestamp?: unknown } | null }
+  | Error
+  | number
+  | { errors: { message: string }[] };
 const indexer = (replies: Record<string, Reply>) => {
   const asked: { url: string; body: { query: string; variables: Record<string, unknown> } }[] = [];
   const f = ((input: string, init?: RequestInit) => {
@@ -52,7 +67,13 @@ const indexer = (replies: Record<string, Reply>) => {
     if (r === undefined || r instanceof Error) return Promise.reject(r ?? new TypeError('Failed to fetch'));
     if (typeof r === 'number') return Promise.resolve(new Response('{}', { status: r }));
     if ('errors' in r) return Promise.resolve(new Response(JSON.stringify(r)));
-    return Promise.resolve(new Response(JSON.stringify({ data: { byHash: r.byHash ?? [], byId: r.byId ?? [] } })));
+    return Promise.resolve(
+      new Response(
+        JSON.stringify({
+          data: { byHash: r.byHash ?? [], byId: r.byId ?? [], ...('tip' in r ? { tip: r.tip } : {}) },
+        }),
+      ),
+    );
   }) as typeof fetch;
   return { fetch: f, asked };
 };
@@ -136,7 +157,6 @@ describe('checkAnchorOnChain', () => {
   });
 
   it.each([
-    ['no such transaction', { byHash: [] }, /has no transaction e13c88f5a2fb/],
     [
       'a transaction that failed',
       { byHash: [anchorTx({ transactionResult: { status: 'FAILURE' } })] },
@@ -190,14 +210,6 @@ describe('checkAnchorOnChain', () => {
       },
       /more than one call/,
     ],
-    [
-      'a state that is not VeilCore’s',
-      {
-        byHash: [anchorTx({ contractActions: [{ address: CONTRACT, state: 'deadbeef', entryPoint: 'anchorBatch' }] })],
-      },
-      /could not be read/,
-    ],
-    ['an answer about some other transaction', { byHash: [anchorTx({ hash: 'ff'.repeat(32) })] }, /has no transaction/],
   ] as const)('fails on %s', async (_name, reply, reason) => {
     const v = await checkAnchorOnChain(input, deps({ [I1]: reply }));
     expect(v.status).toBe('failed');
@@ -230,16 +242,18 @@ describe('checkAnchorOnChain', () => {
     }
   });
 
-  it('a "checked" answer must say when: no block height or time is refused', async () => {
-    for (const block of [
-      null,
-      { height: 7 },
-      { timestamp: BLOCK_MS },
-      { height: -1, timestamp: BLOCK_MS },
-      { height: 7, timestamp: 0 },
-    ]) {
+  it('a "checked" answer must say when: with no block height or time it is never checked, and never failed', async () => {
+    for (const [block, why] of [
+      [null, 'not-yet'],
+      [undefined, 'not-yet'],
+      [{ height: 7 }, 'unreadable'],
+      [{ timestamp: BLOCK_MS }, 'unreadable'],
+      [{ height: -1, timestamp: BLOCK_MS }, 'unreadable'],
+      [{ height: 7, timestamp: 0 }, 'unreadable'],
+    ] as const) {
       const v = await checkAnchorOnChain(input, deps({ [I1]: { byHash: [anchorTx({ block })] } }));
-      expect(v.status, JSON.stringify(block)).toBe('failed');
+      expect(v.status, JSON.stringify(block)).toBe('unreachable');
+      expect(v).toMatchObject({ why });
       expect((v as { reason: string }).reason).toMatch(/^the indexer didn’t say when/);
     }
   });
@@ -255,7 +269,10 @@ describe('checkAnchorOnChain', () => {
     ['the relay is rate-limited', 429],
     ['the indexer refuses the query', { errors: [{ message: 'nope' }] }],
   ] as const)('says it could not reach an indexer when %s', async (_n, reply) => {
-    expect((await checkAnchorOnChain(input, deps({ [I1]: reply as Reply }))).status).toBe('unreachable');
+    expect(await checkAnchorOnChain(input, deps({ [I1]: reply as Reply }))).toMatchObject({
+      status: 'unreachable',
+      why: 'no-answer',
+    });
   });
 
   it('with two indexers: both must answer, and the same', async () => {
@@ -279,7 +296,230 @@ describe('checkAnchorOnChain', () => {
 
     expect(await checkAnchorOnChain(input, deps({ [I1]: { byHash: [anchorTx()] }, [I2]: 503 }, [I1, I2]))).toEqual({
       status: 'unreachable',
-      reason: 'only one of the two indexers answered, and both must',
+      why: 'one-of-two',
+      reason: 'only one of the two indexers could confirm it, and both must (the indexer answered 503)',
+    });
+  });
+
+  // Foundation review, 26 Nov 2026 (items 1 and 5): "couldn't read Midnight" is never "Midnight
+  // says no". A state in a format this build can't decode (the next ledger fork), a transaction
+  // the indexer hasn't reached, an indexer that times out: none of these is a cross.
+  describe('couldn’t read it is not failed', () => {
+    const tagHex = (t: string) => Buffer.from(t, 'utf8').toString('hex');
+    const tag = stateTagOf(fixture.stateHex) ?? '';
+    const future = tagHex('midnight:contract-state[v99]:') + fixture.stateHex.slice(tagHex(tag).length);
+    const withState = (state: string) =>
+      anchorTx({ contractActions: [{ address: CONTRACT, state, entryPoint: 'anchorBatch' }] });
+
+    it('reads the format tag from the bytes, and knows the two this build decodes', () => {
+      expect(KNOWN_STATE_TAGS).toContain(tag);
+      expect(stateTagOf(future)).toBe('midnight:contract-state[v99]:');
+      expect(stateTagOf('deadbeef')).toBeUndefined();
+      // The same two tags v1-decoder.ts reads, and no others.
+      for (const t of KNOWN_STATE_TAGS) expect(stateLedgerOf(Buffer.from(`${t}x`, 'utf8'))).toBeDefined();
+      expect(stateLedgerOf(Buffer.from('midnight:contract-state[v99]:x', 'utf8'))).toBeUndefined();
+    });
+
+    it('a state in a format newer than this build: couldn’t read, never failed', async () => {
+      const v = await checkAnchorOnChain(input, deps({ [I1]: { byHash: [withState(future)] } }));
+      expect(v).toEqual({
+        status: 'unreachable',
+        why: 'unreadable',
+        reason: 'the contract state is in a format this page can’t read yet (midnight:contract-state[v99])',
+      });
+    });
+
+    it('a decoder that throws (a ledger package that won’t load): couldn’t read', async () => {
+      const d = {
+        ...deps({ [I1]: { byHash: [anchorTx()] } }),
+        rootOf: () => {
+          throw new Error('WebAssembly.instantiate(): out of memory');
+        },
+      };
+      expect(await checkAnchorOnChain(input, d)).toEqual({
+        status: 'unreachable',
+        why: 'unreadable',
+        reason: 'the contract state after that call couldn’t be read here',
+      });
+    });
+
+    it('a state that won’t decode, or none at all: couldn’t read', async () => {
+      for (const state of ['deadbeef', '', 'zz', undefined]) {
+        const v = await checkAnchorOnChain(input, deps({ [I1]: { byHash: [withState(state as string)] } }));
+        expect(v, String(state)).toMatchObject({ status: 'unreachable', why: 'unreadable' });
+      }
+    });
+
+    it('a maintenance authority that won’t decode: couldn’t read', async () => {
+      const two = {
+        ...input,
+        contracts: [
+          { version: 'v1', address: CONTRACT, keyStates: [] as never },
+          { version: 'v2', address: 'ee'.repeat(32) },
+        ] as const,
+      };
+      const d = {
+        ...deps({ [I1]: { byHash: [anchorTx()] } }),
+        authorityOf: () => {
+          throw new Error('Not a ledger 9 contract state');
+        },
+      };
+      expect(await checkAnchorOnChain(two, d)).toMatchObject({ status: 'unreachable', why: 'unreadable' });
+    });
+
+    it('a transaction the indexer doesn’t have: not yet, until its latest block is clearly past the registry’s', async () => {
+      const H = 2973563;
+      const at = new Date(BLOCK_MS).toISOString();
+      const notYet = { status: 'unreachable', why: 'not-yet' };
+      const missing = {
+        status: 'failed',
+        notFound: true,
+        reason: 'Midnight’s indexer has no transaction e13c88f5a2fb…',
+      };
+      const ask = (tip: unknown, more: { reportedHeight?: number; reportedAt?: string } = {}) =>
+        checkAnchorOnChain(
+          { ...input, ...more },
+          deps({ [I1]: { byHash: [], ...(tip === undefined ? {} : { tip: tip as never }) } }),
+        );
+      // No tip in the answer, or one that can't be read: can't tell.
+      expect(await ask(undefined, { reportedHeight: H })).toMatchObject(notYet);
+      expect(await ask(null, { reportedHeight: H })).toMatchObject(notYet);
+      expect(await ask({ height: 'x' }, { reportedHeight: H })).toMatchObject(notYet);
+      // Behind, level, or only a little past the registry's block.
+      for (const height of [H - 10, H, H + NOT_FOUND_MARGIN_BLOCKS - 1])
+        expect(await ask({ height, timestamp: BLOCK_MS }, { reportedHeight: H }), String(height)).toMatchObject(notYet);
+      // Clearly past it: Midnight has no such transaction.
+      expect(await ask({ height: H + NOT_FOUND_MARGIN_BLOCKS, timestamp: BLOCK_MS }, { reportedHeight: H })).toEqual(
+        missing,
+      );
+      // With no block from the registry, its time: an hour past it.
+      expect(await ask({ height: 1, timestamp: BLOCK_MS + 60_000 }, { reportedAt: at })).toMatchObject(notYet);
+      expect(await ask({ height: 1, timestamp: BLOCK_MS + NOT_FOUND_MARGIN_MS }, { reportedAt: at })).toEqual(missing);
+      // Nothing from the registry to compare against: never "missing".
+      expect(await ask({ height: H + 10 ** 6, timestamp: BLOCK_MS * 2 })).toMatchObject(notYet);
+      // An answer about some other transaction is the same as none.
+      const other = await checkAnchorOnChain(
+        { ...input, reportedHeight: H },
+        deps({ [I1]: { byHash: [anchorTx({ hash: 'ff'.repeat(32) })], tip: { height: H + 5 } } }),
+      );
+      expect(other).toMatchObject(notYet);
+    });
+
+    it('an indexer that times out: couldn’t reach it', async () => {
+      const hang = ((_u: string, init?: RequestInit) =>
+        new Promise<Response>((_ok, no) =>
+          init?.signal?.addEventListener('abort', () =>
+            no(new DOMException('The operation timed out.', 'TimeoutError')),
+          ),
+        )) as typeof fetch;
+      const v = await checkAnchorOnChain(input, {
+        buildNetwork: 'mainnet',
+        indexers: [I1],
+        fetch: hang,
+        timeoutMs: 20,
+      });
+      expect(v).toEqual({ status: 'unreachable', why: 'no-answer', reason: 'the indexer did not answer' });
+    });
+
+    it('two indexers: one behind or unreadable is “couldn’t confirm”, never “disagree”', async () => {
+      const two = (a: Reply, b: Reply) =>
+        checkAnchorOnChain({ ...input, reportedHeight: 2973563 }, deps({ [I1]: a, [I2]: b }, [I1, I2]));
+      const lagging = { byHash: [], tip: { height: 2973000 } };
+      // Both behind.
+      expect(await two(lagging, lagging)).toMatchObject({ status: 'unreachable', why: 'not-yet' });
+      // One confirms, the other is behind, or can't read the state, or hasn't put it in a block.
+      for (const other of [lagging, { byHash: [withState(future)] }, { byHash: [anchorTx({ block: null })] }]) {
+        const v = await two({ byHash: [anchorTx()] }, other);
+        expect(v, JSON.stringify(other).slice(0, 60)).toMatchObject({ status: 'unreachable', why: 'one-of-two' });
+        expect(await two(other, { byHash: [anchorTx()] })).toMatchObject({ status: 'unreachable', why: 'one-of-two' });
+      }
+      // One can't read it, the other is behind: the unreadable state is said first.
+      expect(await two(lagging, { byHash: [withState(future)] })).toMatchObject({ why: 'unreadable' });
+      // One says Midnight contradicts it, the other couldn't answer: failed on what was read.
+      const failedTx = { byHash: [anchorTx({ transactionResult: { status: 'FAILURE' } })] };
+      expect(await two(failedTx, 503)).toEqual({
+        status: 'failed',
+        reason: 'that transaction did not succeed on Midnight',
+      });
+      // Both read, and they differ: that is "disagree".
+      expect(await two({ byHash: [anchorTx()] }, failedTx)).toEqual({
+        status: 'failed',
+        reason: 'the two indexers disagree about that transaction',
+      });
+    });
+
+    it('a genuine contradiction, read from a state that decoded, stays failed', async () => {
+      const v = await checkAnchorOnChain(input, deps({ [I1]: { byHash: [withState(fixture.otherStateHex)] } }));
+      expect(v).toMatchObject({ status: 'failed' });
+      expect((v as { notFound?: true }).notFound).toBeUndefined();
+    });
+
+    it('the query asks for the indexer’s latest block, and the relay still passes it on', async () => {
+      const d = deps({ [I1]: { byHash: [anchorTx()] } });
+      await checkAnchorOnChain(input, d);
+      const { body } = d.asked[0] as { body: { query: string } };
+      expect(body.query).toMatch(/tip: block \{\s*height\s*timestamp\s*\}/);
+      expect(queryProblem(body)).toBeUndefined();
+    });
+  });
+
+  describe('what is kept for the visit (anchor-lookup.ts)', () => {
+    const proofWith = (anchor: Record<string, unknown>) =>
+      ({ root: fixture.root, anchor: { chain: 'midnight', network: 'mainnet', txHash: TX, ...anchor } }) as never;
+    const PIN = [{ version: 'v1', address: CONTRACT }] as const;
+    const count = (replies: Record<string, Reply>) => {
+      forgetAnchorLookups();
+      const d = deps(replies);
+      return { d, twice: async (p: never) => [await lookUpAnchor(p, d, PIN, []), await lookUpAnchor(p, d, PIN, [])] };
+    };
+
+    it('never keeps “couldn’t read”: the next look asks again', async () => {
+      const tag = stateTagOf(fixture.stateHex) ?? '';
+      const future =
+        Buffer.from('midnight:contract-state[v99]:').toString('hex') +
+        fixture.stateHex.slice(Buffer.from(tag).toString('hex').length);
+      const { d, twice } = count({
+        [I1]: {
+          byHash: [anchorTx({ contractActions: [{ address: CONTRACT, state: future, entryPoint: 'anchorBatch' }] })],
+        },
+      });
+      const [a, b] = await twice(proofWith({}));
+      expect(a).toMatchObject({ status: 'unreachable', why: 'unreadable' });
+      expect(b).toMatchObject({ status: 'unreachable', why: 'unreadable' });
+      expect(d.asked).toHaveLength(2);
+    });
+
+    it('never keeps “not yet”, nor “missing” (an indexer can drop a block)', async () => {
+      for (const tip of [{ height: 1 }, { height: 10 ** 7 }]) {
+        const { d, twice } = count({ [I1]: { byHash: [], tip } });
+        const [a] = await twice(proofWith({ blockHeight: 100 }));
+        expect(a?.status).toBe(tip.height === 1 ? 'unreachable' : 'failed');
+        expect(d.asked).toHaveLength(2);
+      }
+    });
+
+    it('keeps a contradiction that was read, and a confirmed date', async () => {
+      for (const state of [fixture.otherStateHex, fixture.stateHex]) {
+        const { d, twice } = count({
+          [I1]: { byHash: [anchorTx({ contractActions: [{ address: CONTRACT, state, entryPoint: 'anchorBatch' }] })] },
+        });
+        await twice(proofWith({}));
+        expect(d.asked).toHaveLength(1);
+      }
+    });
+
+    it('passes the registry’s block and time on to the check', async () => {
+      const { d } = count({ [I1]: { byHash: [], tip: { height: 100 + NOT_FOUND_MARGIN_BLOCKS } } });
+      expect(await lookUpAnchor(proofWith({ blockHeight: 100 }), d, PIN, [])).toMatchObject({ status: 'failed' });
+      forgetAnchorLookups();
+      expect(
+        await lookUpAnchor(
+          proofWith({ anchoredAt: new Date(BLOCK_MS).toISOString() }),
+          deps({ [I1]: { byHash: [], tip: { height: 1, timestamp: BLOCK_MS + NOT_FOUND_MARGIN_MS } } }),
+          PIN,
+          [],
+        ),
+      ).toMatchObject({ status: 'failed', notFound: true });
     });
   });
 

@@ -171,6 +171,8 @@ export const document = {
   'app.claim.verdict.bad': 'このリンクは読み取れないため、何も確認していません。',
   'app.claim.verdict.checking': 'このクレームをこのブラウザで確認しています…',
   'app.claim.verdict.failed': 'このクレームは確認で通りませんでした。当てにしないでください。',
+  'app.claim.verdict.unreadable':
+    '今はMidnightからこのクレームを読み取れませんでした。間違っているという意味ではありません。数分後にもう一度お試しください。',
   'app.claim.verdict.labFailed':
     'このクレームは確認できましたが、ラボの署名は確認で通りませんでした。下を見てください。',
   'app.claim.verdict.someFailed':

@@ -26,7 +26,26 @@ gives the registry's reported date (UTC), labelled as the registry's report, wit
 
 If the transaction wrote a different root, failed, or isn't a date stamp on VeilCore's
 contract, the page says **"Not confirmed on Midnight: …"** with a cross and tells the
-visitor not to rely on the date.
+visitor not to rely on the date. The same goes for a transaction the indexer doesn't have
+once the indexer's latest block is well past the block the registry gives for it (600 blocks,
+or an hour when the registry gives only a time).
+
+Only what Midnight contradicts gets the cross. When the page couldn't read the answer, it says
+so with a neutral ○ and the registry's date, labelled as its report, and asks again on the
+next look (nothing is kept for the visit):
+- **"Couldn't read the date from Midnight right now. That doesn't mean anything is wrong with
+  the record."** The indexer gave a contract state this build can't decode: usually a format
+  Midnight brought in with a newer ledger, after this build. Midnight re-expresses old states in
+  each new ledger's format, so until the site ships a decoder for it, every date reads this way,
+  not as failed.
+- **"Midnight's indexer doesn't show that transaction yet."** The indexer doesn't have it, or
+  hasn't put it in a block, and its latest block isn't clearly past the registry's.
+- **"Only one of the two Midnight indexers could confirm it, and both must."** With two
+  indexers, one confirmed it and the other didn't answer, was behind, or couldn't read it.
+  "The two indexers disagree" is only for two answers that were both read and differ.
+
+Claim links, licence checks and "prove you hold it" checks follow the same rule: a state that
+won't decode, or an indexer that didn't answer, is "try again", never a refusal.
 
 If the browser can't reach Midnight, the page says **"Couldn't reach a Midnight indexer; the
 date shown is VeilCore's registry's report."** Nothing is ticked, and the mark stays grey.

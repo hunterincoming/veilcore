@@ -6,7 +6,7 @@ import type { LabReceipt } from '../../veilcore/custody';
 import type { RecordKeys } from '../../veilcore/record-keys';
 import type { StrainRecord, UnsavedReason } from '../../veilcore/records';
 import type { ProofState } from '../../veilcore/proofs';
-import { v2CautionWords, type AnchorState } from '../verify/anchor-words';
+import { unreachableWhy, v2CautionWords, type AnchorState } from '../verify/anchor-words';
 import { isTestNetwork } from '../../config/network';
 import { utcDate } from '../../veilcore/time';
 import { enT, type Translator } from '../../i18n/translate';
@@ -199,7 +199,9 @@ export const recordDateRow = (
     anchor === 'checking'
       ? tr.t('app.plant.lookingUp')
       : anchor?.status === 'unreachable'
-        ? tr.t('app.plant.couldntReach')
+        ? ['unreadable', 'not-yet'].includes(unreachableWhy(anchor))
+          ? tr.t('app.plant.couldntRead')
+          : tr.t('app.plant.couldntReach')
         : tr.t('app.plant.notChecked');
   return {
     mark: 'reported',

@@ -173,6 +173,8 @@ export const document = {
   'app.claim.verdict.bad': 'Este enlace no se puede leer, así que no se comprobó nada.',
   'app.claim.verdict.checking': 'Comprobando esta afirmación en su navegador…',
   'app.claim.verdict.failed': 'Esta afirmación no superó la comprobación. No confíe en ella.',
+  'app.claim.verdict.unreadable':
+    'No se pudo leer esta afirmación en Midnight ahora mismo. Eso no significa que sea incorrecta: inténtelo de nuevo en unos minutos.',
   'app.claim.verdict.labFailed':
     'Esta afirmación superó la comprobación, pero la firma del laboratorio no. Vea más abajo.',
   'app.claim.verdict.someFailed': 'Esta afirmación superó la comprobación, pero otra de este enlace no. Vea más abajo.',

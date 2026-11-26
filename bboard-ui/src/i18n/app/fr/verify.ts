@@ -53,7 +53,11 @@ export const verify = {
   'app.verify.anchor.failed':
     'Non confirmé sur Midnight : {reason}. Ne vous fiez pas à la date signalée par le registre.',
   'app.verify.anchor.dateNotChecked': 'La date est {date} ; non vérifiée ici.',
-  'app.verify.anchor.oneIndexer': 'Un seul des deux indexeurs Midnight a répondu, et il faut les deux. {date}',
+  'app.verify.anchor.oneIndexer': 'Un seul des deux indexeurs Midnight a pu le confirmer, et il faut les deux. {date}',
+  'app.verify.anchor.unreadable':
+    'Impossible de lire la date sur Midnight pour le moment. Cela ne veut pas dire que l’enregistrement pose problème. {date}',
+  'app.verify.anchor.notYet':
+    'L’indexeur Midnight n’affiche pas encore cette transaction. Il est peut-être encore en train de rattraper son retard : réessayez dans quelques minutes. {date}',
   'app.verify.anchor.noIndexer': 'Impossible de joindre un indexeur Midnight. {date}',
   'app.verify.anchor.headingTest':
     'Horodatage vérifié sur un réseau de test : données d’entraînement, pas une vraie date',
@@ -65,6 +69,7 @@ export const verify = {
   'app.verify.anchor.eventFailed': 'Lot {batch} : {reason}. Ne vous fiez pas à la date signalée par le registre.',
   'app.verify.anchor.whyChecking': 'Cette page la consulte sur Midnight.',
   'app.verify.anchor.whyUnreachable': 'Cette page n’a pas pu joindre Midnight pour la vérifier.',
+  'app.verify.anchor.whyUnread': 'Cette page n’a pas pu le lire sur Midnight à l’instant.',
   'app.verify.anchor.whyNotLooked': 'Cette page ne l’a pas consultée sur Midnight.',
   'app.verify.anchor.eventReportedTitle': 'Horodatage signalé par le registre',
   'app.verify.anchor.inTx': ' dans la transaction {tx}',

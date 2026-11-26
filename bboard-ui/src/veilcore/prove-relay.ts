@@ -287,7 +287,7 @@ export type AnswerCheck = {
     challenge: string;
     record?: KeyedRecord;
   }) => Promise<{ accepted: boolean; reason: string }>;
-  readonly checkAnchor: (txId: string, identity: string) => Promise<boolean>;
+  readonly checkAnchor: (txId: string, identity: string) => Promise<boolean | undefined>;
 };
 
 /**

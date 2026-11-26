@@ -18,6 +18,7 @@ import { acceptPresentationAt } from '../../../../contract/src/verify';
 import type { ledger } from '../../../../contract/src/managed/veilcore/contract/index.js';
 import { CHAIN_CONTRACT, INDEXER_HTTP } from './config';
 import { lookupChallenge, useChallenge } from './challenge-book';
+import { lookupWords } from './read-failure';
 
 const hexToBytes = (hex: string): Uint8Array => Uint8Array.from(hex.match(/../g) ?? [], (b) => parseInt(b, 16));
 
@@ -54,13 +55,9 @@ export const checkLicense = async (
   try {
     found = await (deps.presentation ?? defaultPresentation)(txId);
   } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    return {
-      accepted: false,
-      reason: /Failed to fetch|NetworkError|Load failed|timed? ?out|aborted/i.test(msg)
-        ? 'could not reach the Midnight network’s indexer; try again in a few minutes'
-        : msg,
-    };
+    // Couldn't reach or read Midnight is worth trying again (prove-relay.ts worthRetrying);
+    // only the look-up's own verdicts are a refusal (read-failure.ts).
+    return { accepted: false, reason: lookupWords(e) };
   }
   const v = acceptPresentationAt(found.ledger, hexToBytes(identity), hexToBytes(challenge), {
     landedAt: found.blockTime,

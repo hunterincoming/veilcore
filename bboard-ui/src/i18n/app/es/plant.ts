@@ -186,6 +186,7 @@ export const plant = {
   'app.plant.dontRely': '{reason}. No confíe en la fecha que informa el servidor de registros.',
   'app.plant.lookingUp': 'Consultando en Midnight…',
   'app.plant.couldntReach': 'No se pudo conectar con Midnight para comprobarlo.',
+  'app.plant.couldntRead': 'No se pudo leer la fecha en Midnight ahora mismo.',
   'app.plant.notChecked': 'No comprobado en Midnight desde esta página.',
   'app.plant.registryReport': '{date} (según el servidor de registros de VeilCore)',
   'app.plant.dateNotGiven': 'fecha no indicada',

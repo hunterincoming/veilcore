@@ -47,7 +47,11 @@ export const verify = {
     'Midnightで確認できませんでした：{reason}。レジストリが報告する日付に頼らないでください。',
   'app.verify.anchor.dateNotChecked': '日付は{date}です。ここでは確認していません。',
   'app.verify.anchor.oneIndexer':
-    '2つのMidnightインデクサーのうち1つしか応答しませんでした。両方の応答が必要です。{date}',
+    '2つのMidnightインデクサーのうち1つしか確認できませんでした。両方の確認が必要です。{date}',
+  'app.verify.anchor.unreadable':
+    '今はMidnightから日付を読み取れませんでした。記録に問題があるという意味ではありません。{date}',
+  'app.verify.anchor.notYet':
+    'Midnightのインデクサーにはまだそのトランザクションが表示されていません。追いついている途中かもしれません。数分後にもう一度お試しください。{date}',
   'app.verify.anchor.noIndexer': 'Midnightのインデクサーに接続できませんでした。{date}',
   'app.verify.anchor.headingTest': 'テストネットワークで日付スタンプを確認：練習用のデータで、本当の日付ではありません',
   'app.verify.anchor.headingChecked': 'Midnightで日付スタンプを確認済み',
@@ -58,6 +62,7 @@ export const verify = {
   'app.verify.anchor.eventFailed': 'バッチ {batch}：{reason}。レジストリが報告する日付に頼らないでください。',
   'app.verify.anchor.whyChecking': 'このページがMidnightで調べています。',
   'app.verify.anchor.whyUnreachable': 'このページはMidnightに接続できず、確認できませんでした。',
+  'app.verify.anchor.whyUnread': 'このページは今、Midnightから読み取れませんでした。',
   'app.verify.anchor.whyNotLooked': 'このページはMidnightで調べていません。',
   'app.verify.anchor.eventReportedTitle': 'レジストリが報告した日付スタンプ',
   'app.verify.anchor.inTx': '（トランザクション {tx}）',

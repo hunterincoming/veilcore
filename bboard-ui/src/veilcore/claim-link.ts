@@ -296,7 +296,12 @@ export type LabVerdict =
 
 export type ClaimVerdict =
   | { readonly ok: true; readonly blockHeight?: number; readonly blockTime?: number; readonly lab?: LabVerdict }
-  | { readonly ok: false; readonly reason: string };
+  /**
+   * `unreadable`: nothing was found wrong; the claim just couldn't be read from Midnight right now
+   * (no answer, a state this build can't decode, or a transaction the indexer hasn't reached yet;
+   * chain/read-failure.ts). Never shown as a failure.
+   */
+  | { readonly ok: false; readonly reason: string; readonly unreadable?: true };
 
 const h64 = (n: bigint): string => n.toString(16).padStart(64, '0');
 

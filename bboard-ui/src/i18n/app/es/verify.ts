@@ -53,7 +53,11 @@ export const verify = {
     'No confirmado en Midnight: {reason}. No confíe en la fecha que informa el servidor de registros.',
   'app.verify.anchor.dateNotChecked': 'La fecha es {date}; no se comprobó aquí.',
   'app.verify.anchor.oneIndexer':
-    'Solo respondió uno de los dos indexadores de Midnight, y deben responder ambos. {date}',
+    'Solo uno de los dos indexadores de Midnight pudo confirmarlo, y deben hacerlo ambos. {date}',
+  'app.verify.anchor.unreadable':
+    'No se pudo leer la fecha en Midnight ahora mismo. Eso no significa que haya nada mal en el registro. {date}',
+  'app.verify.anchor.notYet':
+    'El indexador de Midnight aún no muestra esa transacción. Puede que todavía se esté poniendo al día: inténtelo de nuevo en unos minutos. {date}',
   'app.verify.anchor.noIndexer': 'No se pudo conectar con un indexador de Midnight. {date}',
   'app.verify.anchor.headingTest':
     'Sello de fecha comprobado en una red de pruebas: datos de práctica, no una fecha real',
@@ -66,6 +70,7 @@ export const verify = {
     'Lote {batch}: {reason}. No confíe en la fecha que informa el servidor de registros.',
   'app.verify.anchor.whyChecking': 'Esta página lo está consultando en Midnight.',
   'app.verify.anchor.whyUnreachable': 'Esta página no pudo conectar con Midnight para comprobarlo.',
+  'app.verify.anchor.whyUnread': 'Esta página no pudo leerlo en Midnight hace un momento.',
   'app.verify.anchor.whyNotLooked': 'Esta página no lo ha consultado en Midnight.',
   'app.verify.anchor.eventReportedTitle': 'Sello de fecha informado por el servidor de registros',
   'app.verify.anchor.inTx': ' en la transacción {tx}',

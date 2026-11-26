@@ -185,6 +185,7 @@ export const plant = {
   'app.plant.dontRely': '{reason}. Don’t rely on the date the registry reports.',
   'app.plant.lookingUp': 'Looking it up on Midnight…',
   'app.plant.couldntReach': 'Couldn’t reach Midnight to check it.',
+  'app.plant.couldntRead': 'Couldn’t read the date from Midnight right now.',
   'app.plant.notChecked': 'Not checked on Midnight from this page.',
   'app.plant.registryReport': '{date} (VeilCore’s registry’s report)',
   'app.plant.dateNotGiven': 'date not given',

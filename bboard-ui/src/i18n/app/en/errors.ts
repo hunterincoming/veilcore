@@ -55,6 +55,8 @@ export const errors = {
   'app.err.chain.notOurRequest': 'This page did not make that challenge. Make a new request.',
   'app.err.chain.requestUsed': 'That challenge was already answered once. Make a new request.',
   'app.err.chain.noRecordKey': 'No record key to check against.',
+  'app.err.chain.callUnreadable': 'could not read that transaction from Midnight right now; try again in a few minutes',
+  'app.err.chain.noSuchTx': 'Midnight has no such transaction.',
   'app.err.chain.indexerUnreachable': 'could not reach the Midnight network’s indexer; try again in a few minutes',
   'app.err.chain.stateUnreadable': 'could not read the contract’s current state; try again in a few minutes',
 

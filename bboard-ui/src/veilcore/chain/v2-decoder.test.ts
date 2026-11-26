@@ -185,7 +185,7 @@ describe('the check page with version 2 pinned in deployments/mainnet.json', () 
     expect(text).toMatch(/^Checked on Midnight: this batch root was written by transaction/);
   });
 
-  it('REFUSED: a transaction with calls on both contracts, and v1 bytes at the v2 address', async () => {
+  it('REFUSED: a transaction with calls on both contracts; v1 bytes at the v2 address are never a date', async () => {
     expect(
       await check(
         [
@@ -195,9 +195,12 @@ describe('the check page with version 2 pinned in deployments/mainnet.json', () 
         v2.root,
       ),
     ).toMatchObject({ status: 'failed', reason: 'that transaction made more than one call on VeilCore’s contract' });
+    // Bytes v2's decoder can't read are never a date, and never a cross either: a state that
+    // won't decode says nothing about the record (anchor-check.ts, foundation review 26 Nov 2026).
     expect(await check([{ address: V2, state: V1_STATE, entryPoint: 'anchorBatch' }], v1Tx.root)).toMatchObject({
-      status: 'failed',
-      reason: 'the contract state after that call could not be read as VeilCore’s',
+      status: 'unreachable',
+      why: 'unreadable',
+      reason: 'the contract state after that call couldn’t be read here',
     });
   });
 

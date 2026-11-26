@@ -190,6 +190,7 @@ export const plant = {
   'app.plant.dontRely': '{reason}. Verlassen Sie sich nicht auf das Datum, das das Register meldet.',
   'app.plant.lookingUp': 'Wird auf Midnight nachgeschlagen…',
   'app.plant.couldntReach': 'Midnight war zum Prüfen nicht erreichbar.',
+  'app.plant.couldntRead': 'Das Datum ließ sich gerade nicht von Midnight lesen.',
   'app.plant.notChecked': 'Von dieser Seite aus nicht auf Midnight geprüft.',
   'app.plant.registryReport': '{date} (Meldung des VeilCore-Registers)',
   'app.plant.dateNotGiven': 'kein Datum angegeben',

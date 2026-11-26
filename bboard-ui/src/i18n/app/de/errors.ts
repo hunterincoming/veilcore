@@ -57,6 +57,9 @@ export const errors = {
   'app.err.chain.notOurRequest': 'Diese Seite hat diesen Abfragecode nicht erstellt. Stellen Sie eine neue Anfrage.',
   'app.err.chain.requestUsed': 'Dieser Abfragecode wurde schon einmal beantwortet. Stellen Sie eine neue Anfrage.',
   'app.err.chain.noRecordKey': 'Kein Datensatzschlüssel zum Abgleichen.',
+  'app.err.chain.callUnreadable':
+    'diese Transaktion ließ sich gerade nicht von Midnight lesen; versuchen Sie es in ein paar Minuten erneut',
+  'app.err.chain.noSuchTx': 'Auf Midnight gibt es keine solche Transaktion.',
   'app.err.chain.indexerUnreachable':
     'der Indexer des Midnight-Netzwerks war nicht erreichbar; versuchen Sie es in ein paar Minuten erneut',
   'app.err.chain.stateUnreadable':

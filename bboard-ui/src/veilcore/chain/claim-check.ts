@@ -19,6 +19,7 @@ import {
 import { findBinding, type BindingCandidate } from '../claims-key';
 import { attestationsFor } from '../attesters';
 import { e2eChain } from './e2e-chain';
+import { indexerTip, lookupFailureOf, pastExpected, type IndexerTip } from './read-failure';
 
 export type ClaimReader = (
   contract: string,
@@ -55,6 +56,8 @@ export const checkClaim = async (
      * are read; nothing in the link has to carry them.
      */
     attestations?: (record: string) => Promise<readonly BindingCandidate[]>;
+    /** The indexer's latest block, asked only when it has no such transaction (read-failure.ts). */
+    tip?: () => Promise<IndexerTip>;
   } = {},
 ): Promise<ClaimVerdict> => {
   // The end-to-end build's stand-in for Midnight (e2e-chain.ts); undefined in every other build.
@@ -105,6 +108,16 @@ export const checkClaim = async (
     }
     return { ok: true, blockHeight, blockTime, lab };
   } catch (e) {
-    return { ok: false, reason: e instanceof Error ? e.message : String(e) };
+    const reason = e instanceof Error ? e.message : String(e);
+    // Only what Midnight contradicts fails the claim (read-failure.ts). A transaction the
+    // indexer doesn't have fails only once it is clearly past the block the link names.
+    const kind = lookupFailureOf(e);
+    if (kind === 'refused') return { ok: false, reason };
+    if (kind === 'not-yet') {
+      const tip = await (deps.tip ?? (() => indexerTip(INDEXER_HTTP ?? '')))();
+      if (pastExpected(tip, { height: link.blockHeight, time: link.blockTime }))
+        return { ok: false, reason: 'Midnight has no such transaction.' };
+    }
+    return { ok: false, reason, unreadable: true };
   }
 };

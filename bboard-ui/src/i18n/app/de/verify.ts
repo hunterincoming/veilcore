@@ -54,7 +54,12 @@ export const verify = {
   'app.verify.anchor.failed':
     'Auf Midnight nicht bestätigt: {reason}. Verlassen Sie sich nicht auf das Datum, das das Register meldet.',
   'app.verify.anchor.dateNotChecked': 'Das Datum ist {date}; hier nicht geprüft.',
-  'app.verify.anchor.oneIndexer': 'Nur einer der zwei Midnight-Indexer hat geantwortet, und beide müssen es. {date}',
+  'app.verify.anchor.oneIndexer':
+    'Nur einer der zwei Midnight-Indexer konnte es bestätigen, und beide müssen es. {date}',
+  'app.verify.anchor.unreadable':
+    'Das Datum ließ sich gerade nicht von Midnight lesen. Das heißt nicht, dass mit dem Eintrag etwas nicht stimmt. {date}',
+  'app.verify.anchor.notYet':
+    'Der Midnight-Indexer zeigt diese Transaktion noch nicht. Vielleicht holt er noch auf: Versuchen Sie es in ein paar Minuten erneut. {date}',
   'app.verify.anchor.noIndexer': 'Kein Midnight-Indexer war erreichbar. {date}',
   'app.verify.anchor.headingTest': 'Datumsstempel in einem Testnetz geprüft: Übungsdaten, kein echtes Datum',
   'app.verify.anchor.headingChecked': 'Datumsstempel auf Midnight geprüft',
@@ -66,6 +71,7 @@ export const verify = {
     'Stapel {batch}: {reason}. Verlassen Sie sich nicht auf das Datum, das das Register meldet.',
   'app.verify.anchor.whyChecking': 'Diese Seite schlägt es auf Midnight nach.',
   'app.verify.anchor.whyUnreachable': 'Diese Seite konnte Midnight zum Prüfen nicht erreichen.',
+  'app.verify.anchor.whyUnread': 'Diese Seite konnte es gerade nicht von Midnight lesen.',
   'app.verify.anchor.whyNotLooked': 'Diese Seite hat es nicht auf Midnight nachgeschlagen.',
   'app.verify.anchor.eventReportedTitle': 'Datumsstempel vom Register gemeldet',
   'app.verify.anchor.inTx': ' in Transaktion {tx}',

@@ -133,11 +133,17 @@ export const claimVerdict = (c: {
   if (c.off) return undefined;
   const v = c.verdict;
   if (!v || c.more.some((m) => !m)) return { tone: 'wait', key: 'app.claim.verdict.checking' };
-  if (!v.ok) return { tone: 'fail', key: 'app.claim.verdict.failed' };
+  // Couldn't read it from Midnight (chain/read-failure.ts): never the failure's cross, never green.
+  if (!v.ok)
+    return v.unreadable
+      ? { tone: 'warn', key: 'app.claim.verdict.unreadable' }
+      : { tone: 'fail', key: 'app.claim.verdict.failed' };
   if (v.lab && !v.lab.ok) return { tone: 'warn', key: 'app.claim.verdict.labFailed' };
   if (v.lab?.signer?.kind === 'retracted') return { tone: 'warn', key: 'app.claim.verdict.labWithdrawn' };
   if (v.lab?.signer?.kind === 'conflict') return { tone: 'warn', key: 'app.claim.verdict.labConflict' };
-  if (c.more.some((m) => m?.ok === false)) return { tone: 'warn', key: 'app.claim.verdict.someFailed' };
+  if (c.more.some((m) => m?.ok === false && !m.unreadable))
+    return { tone: 'warn', key: 'app.claim.verdict.someFailed' };
+  if (c.more.some((m) => m?.ok === false)) return { tone: 'warn', key: 'app.claim.verdict.unreadable' };
   const tone = c.stillTesting ? 'warn' : 'ok';
   return v.blockTime
     ? { tone, key: 'app.claim.verdict.okWhen', date: v.blockTime }

@@ -36,7 +36,8 @@ const tx = (stateHex: string) => ({
   contractActions: [{ address: CONTRACT, state: stateHex, entryPoint: 'anchorBatch' }],
 });
 
-const open = async (page: Page, indexer: (route: Route) => Promise<void>) => {
+const open = async (page: Page, indexer: (route: Route) => Promise<void>, lang = 'en') => {
+  if (lang !== 'en') await page.addInitScript((l) => localStorage.setItem('veilcore.lang', l), lang);
   await isolate(page, {
     'GET /verify/:record': (route) =>
       json(route, 200, {
@@ -61,6 +62,24 @@ const answer = (stateHex: string) => (route: Route) =>
     contentType: 'application/json',
     headers: { 'access-control-allow-origin': '*' },
     body: JSON.stringify({ data: { byHash: [tx(stateHex)], byId: [] } }),
+  });
+
+// The same contract state, with the format tag of a ledger newer than this build (the next fork).
+const tagHex = (t: string) => Buffer.from(t, 'utf8').toString('hex');
+const futureState = (() => {
+  const tag =
+    /^midnight:contract-state\[v\d+\]:/.exec(
+      Buffer.from(fixture.stateHex.slice(0, 120), 'hex').toString('latin1'),
+    )?.[0] ?? '';
+  return tagHex('midnight:contract-state[v99]:') + fixture.stateHex.slice(tagHex(tag).length);
+})();
+const notIndexed = (route: Route) =>
+  route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    headers: { 'access-control-allow-origin': '*' },
+    // The indexer has no such transaction, and its own latest block is before the anchor's.
+    body: JSON.stringify({ data: { byHash: [], byId: [], tip: { height: 12, timestamp: Date.UTC(2026, 9, 11) } } }),
   });
 
 test.describe('the date stamp, looked up on Midnight', () => {
@@ -113,6 +132,54 @@ test.describe('the date stamp, looked up on Midnight', () => {
     );
     await expect(page.locator('h1')).toHaveText('Date stamp reported by the registry, not checked here');
     await expect(page.locator('[data-checked]')).toHaveAttribute('data-checked', 'no');
+    expectNoErrors(errors);
+  });
+});
+
+// Foundation review, 26 Nov 2026: a state this build can't read (Midnight's next ledger format),
+// or a transaction the indexer hasn't reached, is "couldn't read it", never a cross.
+test.describe('couldn’t read it from Midnight is not a failure', () => {
+  test.skip(REAL_REGISTRY, 'these use the stand-in registry');
+
+  const WORDS = {
+    en: 'Couldn’t read the date from Midnight right now. That doesn’t mean anything is wrong with the record.',
+    de: 'Das Datum ließ sich gerade nicht von Midnight lesen. Das heißt nicht, dass mit dem Eintrag etwas nicht stimmt.',
+    es: 'No se pudo leer la fecha en Midnight ahora mismo. Eso no significa que haya nada mal en el registro.',
+    fr: 'Impossible de lire la date sur Midnight pour le moment. Cela ne veut pas dire que l’enregistrement pose problème.',
+    ja: '今はMidnightから日付を読み取れませんでした。記録に問題があるという意味ではありません。',
+  } as const;
+
+  for (const [lang, words] of Object.entries(WORDS))
+    test(`a state in a format this build can’t read: a warning, not a cross (${lang})`, async ({ page }) => {
+      const errors = watch(page);
+      await open(page, answer(futureState), lang);
+      await expect(page.locator('[data-anchor-check="unreachable"]')).toContainText(words);
+      await expect(page.locator('[data-anchor-check="unreachable"] [data-fact="reported"]')).toHaveCount(1);
+      await expect(page.locator('[data-fact="failed"]')).toHaveCount(0);
+      await expect(page.locator('[data-anchor-check="failed"]')).toHaveCount(0);
+      await expect(page.locator('[data-verdict]').first()).toHaveAttribute('data-verdict', 'warn');
+      await expect(page.locator('[data-checked]')).toHaveAttribute('data-checked', 'no');
+      expectNoErrors(errors);
+    });
+
+  test('a transaction the indexer hasn’t reached yet: “not yet”, not a cross', async ({ page }) => {
+    const errors = watch(page);
+    await open(page, notIndexed);
+    await expect(page.locator('[data-anchor-check="unreachable"]')).toContainText(
+      'Midnight’s indexer doesn’t show that transaction yet. It may still be catching up: try again in a few minutes.',
+    );
+    await expect(page.locator('[data-anchor-check="failed"]')).toHaveCount(0);
+    await expect(page.locator('h1')).toHaveText('Date stamp reported by the registry, not checked here');
+    await expect(page.locator('[data-verdict]').first()).toHaveAttribute('data-verdict', 'warn');
+    expectNoErrors(errors);
+  });
+
+  test('the plant page: ○ and “couldn’t read”, never ⊗', async ({ page }) => {
+    const errors = watch(page);
+    await openPlant(page, answer(futureState));
+    const row = page.locator('[data-status-row="Record dated"]');
+    await expect(row).toHaveAttribute('data-mark', 'reported');
+    await expect(row).toContainText('Couldn’t read the date from Midnight right now.');
     expectNoErrors(errors);
   });
 });

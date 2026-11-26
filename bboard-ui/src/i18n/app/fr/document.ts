@@ -174,6 +174,8 @@ export const document = {
   'app.claim.verdict.bad': 'Ce lien est illisible : rien n’a été vérifié.',
   'app.claim.verdict.checking': 'Vérification de cette preuve dans votre navigateur…',
   'app.claim.verdict.failed': 'Cette preuve n’a pas passé la vérification. Ne vous y fiez pas.',
+  'app.claim.verdict.unreadable':
+    'Impossible de lire cette preuve sur Midnight pour le moment. Cela ne veut pas dire qu’elle est fausse : réessayez dans quelques minutes.',
   'app.claim.verdict.labFailed':
     'Cette preuve a passé la vérification, mais pas la signature du laboratoire. Voir ci-dessous.',
   'app.claim.verdict.someFailed':
