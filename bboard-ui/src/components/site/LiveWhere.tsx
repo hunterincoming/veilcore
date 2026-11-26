@@ -15,6 +15,7 @@ import {
   DEVICE_ONLY_RUN_ON_MAINNET,
   DOCUMENT_CHAIN_RUN_ON_MAINNET,
   LAB_SIGNING_RUN_ON_MAINNET,
+  PROVE_BY_LINK_RUN_ON_MAINNET,
   ROYALTIES_RUN_ON_MAINNET,
   ROYALTIES_RUN_ON_TEST,
 } from '../../config/copy';
@@ -72,8 +73,9 @@ const LIVE_ROWS = [
 ] as const;
 
 /**
- * With the mainnet sponsor live (scripts/deploy-mainnet.mjs), "prove it by link" works on
- * veilcore.org exactly as on the test site, so its cell says the same thing the test cell does.
+ * With the mainnet sponsor live (scripts/deploy-mainnet.mjs), "prove it by link" is offered on
+ * veilcore.org as on the test site. Its veilcore.org cell says "built, not yet tried" until it has
+ * worked there (config/copy.ts PROVE_BY_LINK_RUN_ON_MAINNET), then the same as the test cell.
  */
 type LiveRow = (typeof LIVE_ROWS)[number];
 // Read when drawn, not when this file loads: it is in a chunk the How it works page shares, and
@@ -96,7 +98,9 @@ const liveRows = (): readonly LiveRow[] =>
   });
 const cellKey = (row: string, col: string) =>
   (MAINNET_SENDS && row === 'prove' && col === 'main'
-    ? 'm.live.prove.test'
+    ? PROVE_BY_LINK_RUN_ON_MAINNET
+      ? 'm.live.prove.test'
+      : 'm.live.prove.mainNext'
     : AGREEMENTS_LIVE && row === 'lic' && col === 'main'
       ? // "Yes" only once royalties have worked on veilcore.org. After that, a mainnet build says
         // "Yes" only with licenses on (veilcore.org's own build); the test site and the demo say

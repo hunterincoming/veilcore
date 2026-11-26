@@ -1631,6 +1631,38 @@ describe('what a walk of the live veilcore.org found (18 Nov 2026)', () => {
     }
   });
 
+  it('proving a record by link: nothing on veilcore.org says it has run there until the flag says so', () => {
+    // Offered on veilcore.org (the sponsor pays for proveOwnership), but the chain read on
+    // 23 Nov 2026 found no call on mainnet (docs/contract-v2.md, section 0.1).
+    expect(copy).toMatch(/export const PROVE_BY_LINK_RUN_ON_MAINNET = false;/);
+    const live = fs.readFileSync(path.join(SRC, 'components/site/LiveWhere.tsx'), 'utf8');
+    expect(live).toMatch(/PROVE_BY_LINK_RUN_ON_MAINNET\s*\?\s*'m\.live\.prove\.test'\s*:\s*'m\.live\.prove\.mainNext'/);
+    const NOT_TRIED: Record<Lang, RegExp> = {
+      en: /not yet tried on the main network/i,
+      de: /noch nicht ausprobiert/,
+      es: /aún no se ha probado en la red principal/i,
+      fr: /pas encore essayé sur le réseau principal/i,
+      ja: /メインネットワークではまだ試していません/,
+    };
+    const BY_LINK: Record<Lang, RegExp> = {
+      en: /prov(e|es|ing) a record by link/i,
+      de: /Datensatz per Link nach/,
+      es: /(demuestra|probar) un registro (por|con un) enlace/i,
+      fr: /prouv(e|er) un enregistrement par (un )?lien/i,
+      ja: /リンクでの証明|リンクによる記録の証明/,
+    };
+    for (const l of Object.keys(NOT_TRIED) as Lang[]) {
+      const site = {
+        ...(LANGUAGES[l].strings as Record<string, string>),
+        ...(networkOverlay({ ...MAINNET, chainSends: true, agreementsLive: true }, l) as Record<string, string>),
+      };
+      expect(site['m.live.prove.mainNext'], l).toMatch(NOT_TRIED[l]);
+      expect(site['m.for.6p'], l).toMatch(NOT_TRIED[l]);
+      expect(site['m.hero.status'], l).not.toMatch(BY_LINK[l]);
+      expect(site['m.postC.text'], l).not.toMatch(BY_LINK[l]);
+    }
+  });
+
   it('a record kept on this device only is never told a copy of its keys goes to VeilCore', () => {
     for (const [lang, a] of Object.entries(allApp)) {
       expect(a['app.plant.keys.holdsDeviceOnly'], lang).toBeTruthy();

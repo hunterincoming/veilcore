@@ -465,7 +465,7 @@ export const de: Strings = {
   'm.postC.tag': 'Website',
   'm.postC.title': 'Ihr Browser sendet seine eigenen Transaktionen',
   'm.postC.text':
-    'Auf veilcore.org datiert Ihr Browser jetzt selbst die Kopplung eines DNA-Berichts, weist einen Datensatz per Link nach und versieht den eigenen Schlüssel eines Datensatzes mit einem Datumsstempel; VeilCore zahlt die Netzwerkgebühr. Datensätze werden in Stapeln im Hauptnetz von Midnight datiert. Kein Wallet nötig.',
+    'Auf veilcore.org datiert Ihr Browser jetzt selbst die Kopplung eines DNA-Berichts und versieht den eigenen Schlüssel eines Datensatzes mit einem Datumsstempel; VeilCore zahlt die Netzwerkgebühr. Datensätze werden in Stapeln im Hauptnetz von Midnight datiert. Kein Wallet nötig.',
   'm.postB.date': '11. Okt. 2026',
   'm.postB.tag': 'Register',
   'm.postB.title': 'Erster Stapel auch auf Bitcoin datiert',
@@ -527,6 +527,7 @@ export const de: Strings = {
   'm.live.dna.main': 'Mit Ihrem Datensatz gespeichert, nicht datiert.',
   'm.live.dna.test': 'Ja, aus Ihrem Browser gesendet.',
   'm.live.prove.t': 'Nachweis per Link',
+  'm.live.prove.mainNext': 'Gebaut, im Hauptnetz aber noch nicht ausprobiert.',
   'm.live.prove.test':
     'Ja. Die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel des Datensatzes kontrollieren. Der Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen.',
   'm.live.prove.not': 'Auf veilcore.org: Dafür muss Ihr Browser eine Transaktion senden.',

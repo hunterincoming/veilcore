@@ -49,6 +49,17 @@ export const CLAIMS_WHERE = claimsWhere('en', { onSite: CLAIMS_ON_THIS_SITE, liv
  */
 export const LICENSE_PROOF_RUN_ON_MAINNET = false;
 
+/**
+ * Whether proving a record by link (/prove, the contract's proveOwnership control proof) has
+ * worked on veilcore.org: a request sent, answered from the holder's device, and checked on chain.
+ * Until it has, the "What's live where" cell for it says built, not yet tried on the main network
+ * (m.live.prove.mainNext), and the mainnet sentences about it say the same. The chain read on 23
+ * November 2026 found no proveOwnership call on mainnet (docs/contract-v2.md, section 0.1).
+ * Hunter turns it on in a reviewed commit after that first run, never before, and changes the
+ * mainnet sentences with it (copy-truth.test.ts holds them to this flag).
+ */
+export const PROVE_BY_LINK_RUN_ON_MAINNET = false;
+
 /** How a live license is proved without its terms, and whether that has run on veilcore.org. */
 export const LICENSE_PROOF_NOTE = `A license issued on ${
   IS_MAINNET ? 'Midnight’s main network' : 'Midnight'
