@@ -23,6 +23,7 @@ Start with [design.md](design.md). The record format itself is specified in
 | [lab-name-checks.md](lab-name-checks.md) | Checking a lab's name before marking its key |
 | [upgrades.md](upgrades.md) | How VeilCore changes without touching existing evidence |
 | [design/hash-based-signatures.md](design/hash-based-signatures.md) | Design, not built: moving lab signatures to hash-based signatures (SLH-DSA) if today's are broken, and re-stamping old evidence on Bitcoin |
+| [design/hybrid-encryption.md](design/hybrid-encryption.md) | Design, not built: adding ML-KEM beside X25519 for lab reports, deal messages, registry backups and exit bundles, so copies taken today can't be opened later |
 | [privacy-and-data-terms.md](privacy-and-data-terms.md) | Privacy and data terms (draft) |
 | [passkey-backup.md](passkey-backup.md) | The passkey copy of a backup, for a lost phone |
 

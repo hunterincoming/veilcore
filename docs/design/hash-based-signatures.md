@@ -74,8 +74,8 @@ in bits; SHA-256 preimages stay around 2^128 work and AES-256 stays around 2^128
 provided its past uses were dated in time (section 4). Encryption cannot: anything stored today
 under X25519 (lab report files, registry backups, deal secrets, recorded TLS) is readable after a
 break, retroactively. Hybrid ML-KEM + X25519 does not help in this note's scenario, because it
-assumes lattices fall too; only symmetric keys survive. That deserves its own note; it is listed
-here so it isn't lost.
+assumes lattices fall too; only symmetric keys survive. That has its own note,
+[hybrid-encryption.md](hybrid-encryption.md), for the case where only curves fall.
 
 ## 2. SLH-DSA, the facts
 
