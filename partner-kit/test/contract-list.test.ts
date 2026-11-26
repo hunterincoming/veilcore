@@ -147,7 +147,7 @@ describe('checkBatchAnchor on real mainnet answers (v1, read by its pinned versi
       other[0] ^= 1;
       expect(await checkBatchAnchor({ ...base, root: other })).toMatchObject({
         accepted: false,
-        reason: 'that transaction timestamped a different root',
+        reason: 'that transaction timestamped a different root (VeilCore contract version 1)',
       });
     });
   }
