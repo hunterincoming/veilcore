@@ -54,6 +54,9 @@ test('a lab standing behind it: the result word, with the slot and number under 
   await expect(page.locator('[data-claim-statement]')).toHaveText('Not detected');
   await expect(page.locator('[data-claim-raw]')).toHaveText(`As proved on Midnight: ${RAW}.`);
   await expect(page.locator('[data-claim-signer="bound"]')).toContainText('TEST Lab (Hunter)');
+  // The claim checked, but nothing dates its record on Midnight here: the top line warns, never green.
+  await expect(page.locator('[data-verdict]')).toHaveAttribute('data-verdict', 'warn');
+  await expect(page.locator('[data-verdict]')).toContainText('no date on Midnight was confirmed for a record it names');
   // The closing line says what a yes/no claim shows: the result, not "the number meets the bound".
   await expect(page.locator('[data-claim-check]')).toContainText(
     'What this shows: the result sealed in that record is “Not detected”, and the key above signed that record’s results.',

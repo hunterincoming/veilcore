@@ -32,6 +32,7 @@ import { isStrain, STRAIN_GROUPS, type StrainDetails } from './strain-profile';
 import { isDocument, type DocumentDetails } from './document-profile';
 import type { HeldFieldSet } from './field-set';
 import type { MadeClaim } from './claim-link';
+import type { HeldTwoClaim } from './two-record-claims';
 import type { LabSignature } from './lab-attest';
 import type { LabResultStatement } from './lab-result';
 import {
@@ -207,6 +208,12 @@ export type StrainRecord = {
   readonly fieldSet?: HeldFieldSet;
   /** Claims this holder made about the record's numbers (claim-link.ts): outside the fingerprint. */
   readonly claims?: readonly MadeClaim[];
+  /**
+   * Claims this holder made about this record and another of theirs (two-record-claims.ts: the
+   * two are different, or a correction only changed what it says), kept on both: outside the
+   * fingerprint, like a claim.
+   */
+  readonly twoClaims?: readonly HeldTwoClaim[];
   /**
    * A laboratory's signature on the record's numbers (lab-attest.ts), checked when it was added:
    * outside the fingerprint, like a claim. `labOnChain` is the proveAttested call that published
@@ -386,6 +393,7 @@ export const isStrainRecord = (v: unknown): v is StrainRecord => {
     (r.fieldSet === undefined ||
       (typeof r.fieldSet === 'object' && r.fieldSet !== null && !Array.isArray(r.fieldSet))) &&
     (r.claims === undefined || Array.isArray(r.claims)) &&
+    (r.twoClaims === undefined || Array.isArray(r.twoClaims)) &&
     (r.labSignature === undefined ||
       (typeof r.labSignature === 'object' && r.labSignature !== null && !Array.isArray(r.labSignature))) &&
     (r.labOnChain === undefined ||
@@ -2738,6 +2746,20 @@ export const addClaim = (id: string, claim: MadeClaim): StrainRecord | undefined
   });
   if (updated) persist();
   return updated;
+};
+
+/**
+ * Keep a claim about two of this holder's records on both (two-record-claims.ts), so each one's
+ * page can show it again and give its link. Outside the fingerprint, like any note.
+ */
+export const addTwoClaim = (claim: HeldTwoClaim): void => {
+  let changed = false;
+  records = records.map((r) => {
+    if (!claim.ids.includes(r.id)) return r;
+    changed = true;
+    return { ...r, twoClaims: [...(r.twoClaims ?? []), claim] };
+  });
+  if (changed) persist();
 };
 
 /** A lab result v2 on a record (lab-result.ts): the statement, and the lab's binding id when this browser signed it. */

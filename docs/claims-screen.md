@@ -94,3 +94,22 @@ a fact" says so before the button, for every record, in five languages (`app.cla
 6. **Built (4 November 2026).** A laboratory signing a certificate's record (`proveAttested`), so
    a claim is about numbers a lab signed, not the holder's typing, with three genetic similarity
    forms (soybean, maize, any crop or strain): docs/lab-signing.md.
+7. **Built (26 November 2026), not yet run on Midnight's main network.** Two claims about a pair
+   of the holder's own records (`bboard-ui/src/veilcore/two-record-claims.ts`, folded under
+   "More ways to prove" on the page of a record with sealed numbers; not a page of its own):
+   "Show these two records are different" (`proveDistinct`: they differ in at least k of the
+   numbers their form compares; k and the compared numbers are the form's, 1 for every form
+   today) and "Show a correction only changed what it says" (`proveUnchanged`: outside a published
+   list, both records hold the same numbers). Offered only on the forms a holder types in
+   (potency, seed quality, grow batch, harvest lot), never on a lab's result form
+   (`marker-claims.ts` rule 4), and never for a record kept on this device only. The check page
+   (`/check-claim#p=…`) reads the claim per call, compares it exactly with the link, refuses a
+   list that covers every number the form describes (SPEC 4.5 check 8), dates both records and
+   says what the claim doesn't show. Its top line, like the one-number claim page's, is a warning and never green while a record the claim names has no date confirmed on Midnight (SPEC 4.5 check 2). Before a correction is proved, the panel lists what earlier claims on the earlier record already made public, which then holds for the correction too for every number left unticked (SPEC 4.5, disclosure accounting). Not offered on a lab's copy of its own result. Checked here: the inputs pass the claims contract's compiled
+   circuits and Midnight's own circuit checker, and a pair the contract would refuse is refused
+   in the browser first. **Not yet possible on any network:** the sponsor doesn't pay for these
+   two circuits (`sponsor/src/policy.ts` `CLAIMS_CIRCUITS`), so the button stays off
+   (`TWO_RECORD_CLAIMS_SPONSORED`, held to the sponsor's list by a test); the site doesn't host
+   the k=17 public parameters (`bboard-ui/scripts/fetch-params.mjs`) or copy these two circuits'
+   proving files (`bboard-ui/scripts/copy-claims-keys.mjs`). Until a real run on veilcore.org,
+   the page says "Built, not yet run on Midnight's main network" (`TWO_RECORD_CLAIMS_RUN_ON_MAINNET`).

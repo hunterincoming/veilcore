@@ -451,7 +451,7 @@ export const RECEIPTS = {
       'lastClaimSlot',
     ],
     contract: 'claims',
-    screen: false,
+    screen: true,
     disclosed: { first: 'certificate', second: 'otherCertificate', 'schemaOf(terms)': 'certKind' },
   },
   proveUnchanged: {
@@ -468,7 +468,7 @@ export const RECEIPTS = {
       'lastClaimSlot',
     ],
     contract: 'claims',
-    screen: false,
+    screen: true,
     disclosed: { original: 'certificate', corrected: 'otherCertificate', schema: 'certKind', mayChange: 'mask' },
   },
   proveAttested: {

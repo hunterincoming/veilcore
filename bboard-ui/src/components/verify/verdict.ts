@@ -8,6 +8,8 @@
 //   - a date VeilCore's server reports but this browser couldn't confirm is said as its report;
 //   - a failed date check says not to rely on the date;
 //   - a link without the record's proof code says it can't be checked here.
+// A claim page's line (claimVerdict) is held to the same: a proved claim about a record whose date
+// isn't confirmed on Midnight is a warning, never green (SPEC 4.5 check 2).
 // SPDX-License-Identifier: Apache-2.0
 
 import type { AppKey } from '../../i18n/app/en';
@@ -116,6 +118,25 @@ export const recordVerdict = (f: {
  * The claim page's top line: every claim in the link and the lab's signature on it count, and a
  * lab key that was withdrawn or is disputed is never green (review of PR #140).
  */
+/** Where a record a claim names stands on Midnight, for the claim page's top line. */
+export type NamedRecordDate = 'checking' | 'dated' | 'unconfirmed' | 'failed';
+
+/**
+ * A record's date as its card shows it (useRecordDate): dated only when this browser checked its
+ * batch's date stamp on Midnight itself; nothing dating it, or only VeilCore's server's word, is
+ * `unconfirmed`; a date that didn't check is `failed`.
+ */
+export const namedRecordDate = (d: {
+  proof: ProofState | 'checking';
+  anchor: AnchorState | undefined;
+}): NamedRecordDate => {
+  if (d.proof === 'checking') return 'checking';
+  if (d.proof.status !== 'anchor-reported') return 'unconfirmed';
+  if (d.anchor === 'checking') return 'checking';
+  if (d.anchor?.status === 'failed') return 'failed';
+  return d.anchor?.status === 'checked' ? 'dated' : 'unconfirmed';
+};
+
 export const claimVerdict = (c: {
   readable: boolean;
   /** Not read on this site (viability results where they are off): no line. */
@@ -128,6 +149,11 @@ export const claimVerdict = (c: {
    * mainnet, docs/contract-v2.md 7 condition 5): the same words, never the green of a full success.
    */
   stillTesting?: boolean;
+  /**
+   * The date of every record the claim names (namedRecordDate). SPEC 4.5 check 2: each must be
+   * dated on Midnight. One that isn't confirmed, or didn't check, is never under a green line.
+   */
+  dates?: readonly NamedRecordDate[];
 }): (Verdict & { date?: number }) | undefined => {
   if (!c.readable) return { tone: 'fail', key: 'app.claim.verdict.bad' };
   if (c.off) return undefined;
@@ -138,6 +164,10 @@ export const claimVerdict = (c: {
   if (v.lab?.signer?.kind === 'retracted') return { tone: 'warn', key: 'app.claim.verdict.labWithdrawn' };
   if (v.lab?.signer?.kind === 'conflict') return { tone: 'warn', key: 'app.claim.verdict.labConflict' };
   if (c.more.some((m) => m?.ok === false)) return { tone: 'warn', key: 'app.claim.verdict.someFailed' };
+  const dates = c.dates ?? [];
+  if (dates.includes('failed')) return { tone: 'warn', key: 'app.claim.verdict.dateFailed' };
+  if (dates.includes('checking')) return { tone: 'wait', key: 'app.claim.verdict.checking' };
+  if (dates.includes('unconfirmed')) return { tone: 'warn', key: 'app.claim.verdict.notDated' };
   const tone = c.stillTesting ? 'warn' : 'ok';
   return v.blockTime
     ? { tone, key: 'app.claim.verdict.okWhen', date: v.blockTime }

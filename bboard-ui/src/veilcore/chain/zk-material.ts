@@ -31,10 +31,12 @@ const sha256Hex = async (b: Uint8Array): Promise<string> =>
 
 /**
  * k of each circuit the browser proves (measured with Zkir.getK on the compiled circuits): the
- * main contract's are 13 and 14; the claims contract's proveAttested 13, proveValue 15 and
- * proveRange 16 (docs/claims-design.md, Size).
+ * main contract's are 13 and 14; the claims contract's proveAttested 13, proveValue 15,
+ * proveRange 16, and proveDistinct and proveUnchanged 17 (docs/claims-design.md, Size). The
+ * site doesn't host the k=17 parameters yet (scripts/fetch-params.mjs pins 13 to 16), so asking
+ * for them says they aren't on this site yet.
  */
-export const PARAMS_K = [13, 14, 15, 16] as const;
+export const PARAMS_K = [13, 14, 15, 16, 17] as const;
 
 export type Progress = (msg: string) => void;
 

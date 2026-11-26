@@ -19,10 +19,12 @@
 //      accounting). Claims are matched by record commitment, not by this browser's record id.
 //   3. The lab's call and a count on the same result together bound the count from both sides
 //      (through the lab's own threshold): warned before it happens, and counted once it has.
-//   4. "Differs in at least k values" (proveDistinct) is not offered anywhere on this site. The
-//      list below is a placeholder for a later decision, wired to nothing: genetic-match/v1 and
+//   4. "Differs in at least k values" (proveDistinct) is never offered on a lab's genotype
+//      comparison, parentage check or other result form: genetic-match/v1 and
 //      variety-similarity/v1 mark their call slot comparable with k = 1, so a distinct claim over
-//      two of them would publish only that the two calls differ.
+//      two of them would publish only that the two calls differ. Since 26 Nov 2026 it is offered
+//      (two-record-claims.ts, "Show these two records are different") only on the forms listed
+//      in DISTINCT_SCHEMAS below: numbers a holder types in, never a lab's call.
 //   5. "M of N compared" is said as one line only when both claims checked and are on the same
 //      record (a link carries claims on one record only: claim-link.ts `more`), and in the
 //      headline only when the link's first claim is one of the two.
@@ -143,12 +145,17 @@ export const offerAllowed = (schema: string, slot: number, how: How, bound?: big
 };
 
 /**
- * PLACEHOLDER, wired to nothing: the site has no "differs in at least k values" (proveDistinct)
- * claim, and nothing calls this. It records the decision that, if one is ever offered, it is
- * offered only under a form listed here, and today no form qualifies (no published form has
- * comparable marker slots and a k someone other than VeilCore set: design, section 5).
+ * The only forms "differs in at least k values" (proveDistinct) and "a correction only changed
+ * what it says" (proveUnchanged) are offered under (two-record-claims.ts): the certificates and
+ * counts a holder types in. No lab result form is here (rule 4), and no form with comparable
+ * marker slots and a k someone other than VeilCore set exists yet, so a marker panel isn't either.
  */
-export const DISTINCT_SCHEMAS: readonly string[] = [];
+export const DISTINCT_SCHEMAS: readonly string[] = [
+  'veilcore/schema/potency/v1',
+  'veilcore/schema/seed-quality/v1',
+  'veilcore/schema/grow-batch/v1',
+  'veilcore/schema/harvest-lot/v1',
+];
 export const distinctOffered = (schema: string): boolean => DISTINCT_SCHEMAS.includes(schema);
 
 /** The step a count is rounded to: 5 below 100, 10 from there. */

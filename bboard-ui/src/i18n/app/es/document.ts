@@ -177,6 +177,10 @@ export const document = {
     'Esta afirmación superó la comprobación, pero la firma del laboratorio no. Vea más abajo.',
   'app.claim.verdict.someFailed': 'Esta afirmación superó la comprobación, pero otra de este enlace no. Vea más abajo.',
   'app.claim.verdict.okWhen': 'Probada el {date}. Comprobada en su navegador.',
+  'app.claim.verdict.notDated':
+    'Esta afirmación superó la comprobación, pero no se confirmó en Midnight una fecha para un registro que nombra. No confíe en ella hasta que ese registro muestre una fecha.',
+  'app.claim.verdict.dateFailed':
+    'Esta afirmación superó la comprobación, pero la fecha de un registro que nombra no. No confíe en la fecha de ese registro.',
   'app.claim.verdict.ok': 'Esta afirmación superó la comprobación en su navegador.',
   'app.claim.verdict.labConflict':
     'Esta afirmación superó la comprobación, pero más de un laboratorio reclama la clave que la firmó, así que tome los números como propios de quien hizo la afirmación. Vea más abajo.',

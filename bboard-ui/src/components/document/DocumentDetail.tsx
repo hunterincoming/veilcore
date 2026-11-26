@@ -55,6 +55,7 @@ import { DocumentDate, DocumentFacts, Fact, FileCompare, kindOrTypeWords, seen }
 import { ChainView } from './ChainView';
 import { schemaWords, slotWords } from './NumbersFields';
 import { DeviceOnlyProve, ProveNumber } from './ProveNumber';
+import { TwoRecordWayIn } from './TwoRecordClaims';
 import { LabSignaturePanel, useLabSigner } from './LabSignaturePanel';
 import { labStandsOnRecord } from '../../veilcore/claim-call';
 import { ResultFacts, ViabilityNotRead } from '../lab/ResultFacts';
@@ -386,6 +387,8 @@ export const DocumentDetail: React.FC<{ record: StrainRecord }> = ({ record }) =
           <>
             {read && LAB_SIGNING_ENABLED && <LabSignaturePanel record={record} {...labState} />}
             {read && <ProveNumber record={record} labSignatureOk={labOk === true} labStands={labHere} />}
+            {/* Two of the holder's records compared: folded under "More ways to prove", its way in. */}
+            {read && <TwoRecordWayIn record={record} all={records} />}
           </>
         )}
         {read && local && <DeviceOnlyProve record={record} />}
