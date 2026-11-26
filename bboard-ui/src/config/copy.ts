@@ -39,10 +39,22 @@ export const CLAIMS_ON_THIS_SITE = IS_MAINNET && CHAIN_READY && CLAIMS_READY;
 
 export const CLAIMS_WHERE = claimsWhere('en', { onSite: CLAIMS_ON_THIS_SITE, live: CLAIMS_ON_MAINNET || !IS_MAINNET });
 
-/** What the contract can do for licenses that this website cannot. */
-export const LICENSE_PROOF_NOTE = `Proving that a license is live, without showing its terms, is done by VeilCore’s contract on ${
+/**
+ * Whether proving a live license (/prove-license/:id, LicenseProof.tsx, the contract's
+ * proveLicense) has worked on veilcore.org: a request made on a record's check page, answered
+ * from the device that holds the license, and checked on chain. Until it has, the license
+ * proof note says it has not been tried on the main network yet. The chain read on 23 November
+ * 2026 found no proveLicense call on mainnet (docs/contract-v2.md, section 0.1). Hunter turns it on in a
+ * reviewed commit after that first run, never before.
+ */
+export const LICENSE_PROOF_RUN_ON_MAINNET = false;
+
+/** How a live license is proved without its terms, and whether that has run on veilcore.org. */
+export const LICENSE_PROOF_NOTE = `A license issued on ${
   IS_MAINNET ? 'Midnight’s main network' : 'Midnight'
-}. That needs a wallet, which this website doesn’t use, so it doesn’t offer it.`;
+} can be proved live without showing its terms: whoever wants to check makes a link on the record’s check page, and the license holder answers it from the device that holds the license.${
+  LICENSE_PROOF_RUN_ON_MAINNET ? '' : ' This has not been tried on Midnight’s main network yet.'
+}`;
 
 /** The one line every simulated agreement screen carries. */
 export const AGREEMENTS_SIMULATED = `Simulated in ${THIS_SITE}: the other party doesn’t sign anything here, and nothing is sent to Midnight.`;

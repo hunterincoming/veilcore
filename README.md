@@ -28,8 +28,8 @@ and a Rust implementation in [veilcore-rs](https://github.com/hunterincoming/vei
 
 | Status | |
 |---|---|
-| **Live on veilcore.org** | Sealing records, dated in batches on Midnight mainnet; check pages; proving a record by link; dating a DNA report pairing; lab codes and signed receipts; licenses and royalty reports; documents kept on the device only; proving a fact from a sealed document; production chains of linked document records; numbers and results a lab signs, since a run on 18 November 2026 ([docs/lab-signing.md](docs/lab-signing.md), [docs/lab-mainnet-test.md](docs/lab-mainnet-test.md)); a lab signing a spreadsheet of results, adding a lab's result file to another breeder's records, and five of ICAR 2023's parentage checks proved from a lab's result, since a run on 21 November 2026 with a DEMO lab key and invented data ([docs/lab-mainnet-test.md](docs/lab-mainnet-test.md), [docs/parentage.md](docs/parentage.md)). No wallet needed: VeilCore's fee service pays the network fee. |
-| **Built, not yet run on mainnet** | Handing a license on to another grower, with the breeder's approval. Microbe and cell-line records: offered on veilcore.org, none sealed on mainnet yet ([docs/strain-profile.md](docs/strain-profile.md)). |
+| **Live on veilcore.org** | Sealing records, dated in batches on Midnight mainnet; check pages; dating a DNA report pairing; lab codes and signed receipts; licenses and royalty reports; documents kept on the device only; proving a fact from a sealed document; production chains of linked document records; numbers and results a lab signs, since a run on 18 November 2026 ([docs/lab-signing.md](docs/lab-signing.md), [docs/lab-mainnet-test.md](docs/lab-mainnet-test.md)); a lab signing a spreadsheet of results, adding a lab's result file to another breeder's records, and five of ICAR 2023's parentage checks proved from a lab's result, since a run on 21 November 2026 with a DEMO lab key and invented data ([docs/lab-mainnet-test.md](docs/lab-mainnet-test.md), [docs/parentage.md](docs/parentage.md)). No wallet needed: VeilCore's fee service pays the network fee. |
+| **Built, not yet run on mainnet** | Proving a record by link, and proving you hold a live license from a record: both on veilcore.org; the chain read on 23 November 2026 found no call to either on mainnet ([docs/contract-v2.md](docs/contract-v2.md), section 0.1). Handing a license on to another grower, with the breeder's approval. Microbe and cell-line records: offered on veilcore.org, none sealed on mainnet yet ([docs/strain-profile.md](docs/strain-profile.md)). |
 | **Test network only** | A lab's viability result for a sample before or after a kill step. |
 | **Built, switched off** | Paid plans for labs: built in the registry, switched off; not on veilcore.org (`veilcore-api` README, "Paid plans"). A plan that hides which records are a lab's is a design only ([docs/lab-plan.md](docs/lab-plan.md)). |
 
@@ -108,13 +108,16 @@ indexer of your own choosing instead of ours, see [docs/reproduce-build.md](docs
   971004 and 971005); each new record given its own RFC 3161 timestamp by DigiCert and FreeTSA
   within seconds of its proof code reaching the registry, since 21 November 2026
   ([docs/offline.md](docs/offline.md); batches are stamped too, and a record whose own timestamp
-  is missing falls back to its batch's); proving a record by link; dating a DNA report pairing from the browser; lab receipts
+  is missing falls back to its batch's); dating a DNA report pairing from the browser; lab receipts
   and reports signed with the lab's own key; choosing what a record's check page shows; check
   pages that read the date from Midnight themselves, with a "What each fact rests on" box
   saying which facts the page checked and which only the registry reports; deleting a record,
   after which its old check link says its holder deleted it (both since 17 November 2026).
   No wallet needed: VeilCore's fee service
   pays the network fee for what the browser sends.
+- **On veilcore.org, not yet run on mainnet:** proving a record by link, and proving you hold a
+  live license from a record. Both are built and offered there; the chain read on 23 November
+  2026 found no call to either on mainnet ([docs/contract-v2.md](docs/contract-v2.md), section 0.1).
 - **Licenses and royalties: live on veilcore.org.** On 8 November 2026 a license was accepted
   and a royalty report sent, answered, marked paid and confirmed received, end to end on
   mainnet. Handing a license on has not been tried on mainnet yet. A breeder licenses a record to a grower
@@ -158,7 +161,7 @@ Written agreements have a related problem. A contract binds the parties who sign
 VeilCore records what was held and when, lets licenses be granted against a record, and lets an obligation recorded on a record be shown on every descendant both holders confirm. A holder who never accepted an obligation isn't bound by it; the record shows that it exists upstream.
 
 - **Prove prior possession:** an anchored record is dated by the block its batch lands in.
-- **Pair a DNA report:** record a DNA report against your record. The contract binds whatever 32-byte value the holder submits: it is the holder's own statement that this report belongs to this record, not a check of the genetics. The client submits a salted binding of the report's hash to the record's identity, not the raw hash, so the pairing cannot be copied to another record. It shows that whoever controlled the record's identity at that date had the report, or its SHA-256, by then (verifier rule 9 in [`docs/design.md`](docs/design.md), which also flags a report hash paired raw earlier and key changes since). The web app keeps the pairing in the registry, not on chain.
+- **Pair a DNA report:** record a DNA report against your record. The contract binds whatever 32-byte value the holder submits: it is the holder's own statement that this report belongs to this record, not a check of the genetics. The client submits a salted binding of the report's hash to the record's identity, not the raw hash, so the pairing cannot be copied to another record. It shows that whoever controlled the record's identity at that date had the report, or its SHA-256, by then (verifier rule 9 in [`docs/design.md`](docs/design.md), which also flags a report hash paired raw earlier and key changes since). The web app keeps the pairing in the registry, locked; the holder can also date the bound pairing on chain from the browser, which publishes only the binding, never the report's hash (`pairDna` has run on mainnet: [docs/contract-v2.md](docs/contract-v2.md), section 0.1).
 - **License against the record:** on chain a license is only PENDING (issued) or ACTIVE (countersigned), and revoking removes it. The contract stores no terms and has no expiry. The terms, statements and payment records travel between the two sides over a private channel: each message is signed by its sender and locked so the registry, which relays it, can't read or change it. A presentation proves "a live license from this issuer", not which license or on what terms.
 - **Prove a claim without showing the secret:** prove you hold a record, or a license, without revealing the secret behind it. A control proof publishes the record's commitment. A license presentation hides the license and the licensee, and the issuer only among issuers with live licenses; while only one issuer has live licenses, as at launch, it names that issuer.
 

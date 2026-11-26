@@ -1606,13 +1606,29 @@ describe('what a walk of the live veilcore.org found (18 Nov 2026)', () => {
     }
   });
 
-  it('the home card does not say a live license is proved from this website (that needs a wallet)', () => {
+  it('proving a live license: says how, and that it has not been tried on mainnet until the flag says so', () => {
+    // The site offers it (/prove-license/:id, LicenseProof.tsx, proveLicense paid by the sponsor),
+    // so no string may say it needs a wallet or that the site doesn't offer it. It has no
+    // mainnet call yet (docs/contract-v2.md, section 0.1), so every string says so.
+    expect(copy).toMatch(/export const LICENSE_PROOF_RUN_ON_MAINNET = false;/);
     const live = mainnetStrings({ ...BUILD, chainSends: true, agreementsLive: true });
-    expect(live['m.get.2b']).not.toMatch(/made from this website\.$/);
-    expect(live['m.get.2b']).toMatch(
-      /The contract can prove a license is in force without showing it; that needs a wallet, which this website doesn[’']t use\.$/,
-    );
-    expect(copy).toMatch(/That needs a wallet, which this website doesn[’']t use, so it doesn[’']t offer it\./);
+    expect(live['m.get.2b']).not.toMatch(/wallet/);
+    expect(live['m.get.2b']).toMatch(/check page; that has not been tried on the main network yet\.$/);
+    expect(copy).not.toMatch(/That needs a wallet, which this website doesn[’']t use/);
+    expect(copy).toMatch(/This has not been tried on Midnight[’']s main network yet\./);
+    const NOT_TRIED: Record<string, RegExp> = {
+      en: /not been tried on Midnight[’']s main network yet/,
+      de: /noch nicht ausprobiert/,
+      es: /Aún no se ha probado/,
+      fr: /pas encore été essayé/,
+      ja: /まだ試していません/,
+    };
+    for (const [lang, a] of Object.entries(allApp)) {
+      const note = a['app.copy.licenseProofNote'];
+      expect(note, lang).toBeTruthy();
+      expect(note, lang).toMatch(NOT_TRIED[lang]);
+      expect(note, lang).not.toMatch(/wallet|Wallet|billetera|portefeuille|ウォレット/);
+    }
   });
 
   it('a record kept on this device only is never told a copy of its keys goes to VeilCore', () => {

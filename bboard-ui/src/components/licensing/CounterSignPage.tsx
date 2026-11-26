@@ -132,8 +132,9 @@ export const CounterSignPage: React.FC = () => {
                     circuit ran, nothing was checked, and the word next to it was
                     zero-knowledge — a button that prints a success message is the
                     simulate button this project removed once already. It now says what
-                    it is. Wiring it to proveLicense means a wallet, a proof server and
-                    a deployed contract, which the web app does not have. */}
+                    it is, and points to the real way: proving a live license runs from
+                    /prove-license/:id (LicenseProof.tsx, proveLicense on chain, fee paid
+                    by the sponsor), started from the record's check page. */}
                 <Alert severity="info" variant="outlined">
                   {tr.t('app.copy.licenseProofNote')}
                 </Alert>
