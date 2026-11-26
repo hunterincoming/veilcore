@@ -24,6 +24,7 @@ Start with [design.md](design.md). The record format itself is specified in
 | [upgrades.md](upgrades.md) | How VeilCore changes without touching existing evidence |
 | [design/hash-based-signatures.md](design/hash-based-signatures.md) | Design, not built: moving lab signatures to hash-based signatures (SLH-DSA) if today's are broken, and re-stamping old evidence on Bitcoin |
 | [privacy-and-data-terms.md](privacy-and-data-terms.md) | Privacy and data terms (draft) |
+| [who-could-make-you-show-a-record.md](who-could-make-you-show-a-record.md) | Plain help: who could make you show a record, what deleting does, keeping sensitive records apart |
 | [passkey-backup.md](passkey-backup.md) | The passkey copy of a backup, for a lost phone |
 
 ## Licenses and royalties
@@ -69,6 +70,8 @@ These are adversarial reviews and run records, not a formal security audit.
 | [partners/licensors.md](partners/licensors.md) | Licensors: the licensor kit's spec (design, not built), the evidence clause for local counsel |
 | [MANAGED.md](MANAGED.md) | VeilCore-run: VeilCore operates on chain for a partner |
 | [legal/](legal/) | Draft agreements, for a lawyer to review |
+| [legal/lawful-requests.md](legal/lawful-requests.md) | Lawful requests, takedowns and litigation holds: what VeilCore holds and can hand over (draft) |
+| [legal/token-and-custody-facts.md](legal/token-and-custody-facts.md) | No token, no user funds, how royalties flow, the fee sponsor and the maintenance key (draft) |
 
 ## Running VeilCore
 
