@@ -62,6 +62,11 @@ const MODULES = {
   saveStatus: () => import('../save-status'),
   keys: () => import('../record-keys'),
   billing: () => import('../billing'),
+  held: () => import('../held-licenses'),
+  dealClient: () => import('../deal-client'),
+  attester: () => import('../attester-keys'),
+  seal: () => import('../seal-record'),
+  keyBinding: () => import('../key-binding'),
 };
 type Mods = { [K in keyof typeof MODULES]: Awaited<ReturnType<(typeof MODULES)[K]>> };
 

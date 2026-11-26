@@ -22,6 +22,10 @@ a prove link; the paste box. The registry is a stand-in inside the test.
 `complexity-budget.spec.ts`: the default screens on an iPhone 14 in all five languages, against
 the limits in `complexity-budget.json` (docs/complexity-budget.md).
 
+`backup-restore-drill.spec.ts`: the backup restore drill (docs/runbooks/backup-restore-drill.md).
+A representative set saved in a backup with a password, then restored in empty browsers through
+the real restore page, with the registry there and with it gone, and compared item by item.
+
 ## Against a real registry (before merging site changes)
 
 Start a registry (the `veilcore-api` repository) locally, for example on port 8790 with

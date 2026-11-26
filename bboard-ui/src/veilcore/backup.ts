@@ -74,6 +74,11 @@ import {
 } from './licenses';
 import { enT } from '../i18n/translate';
 import {
+  addClaim,
+  allRecords,
+  getRecord,
+  setLabOnChain,
+  setLabSignature,
   DEVICE_ONLY_BACKUP_FAILED,
   deviceOnlyMissingFrom,
   importRecordRows,
@@ -167,6 +172,13 @@ export type BackupContents = {
    * as before, and an older app reading a newer file passes over it.
    */
   readonly receiving?: Readonly<Record<string, string>>;
+  /**
+   * Each record's laboratory signature, the Midnight call that published it, and the claims made
+   * on its numbers, by record id (held-evidence.ts): outside `recordData`, which carries only
+   * what the holder typed. A restore puts each back only onto its own record, and only once it
+   * checks against it (restore drill, 26 Nov). Optional, like `revs`.
+   */
+  readonly heldEvidence?: Readonly<Record<string, unknown>>;
 };
 
 const WARNING =
@@ -372,6 +384,8 @@ export const withRecordsAndProofs = async (contents: BackupContents): Promise<Ba
   const damaged = unreadableForBackup();
   const unreadable = Object.keys(damaged).length ? { deviceOnlyUnreadable: damaged } : {};
   if (recordData.length === 0) return { ...contents, ...unreadable, ...extras };
+  const evidence = (await import('./held-evidence')).heldEvidenceForBackup(allRecords());
+  const heldEvidence = Object.keys(evidence).length ? { heldEvidence: evidence } : {};
   const prints = [...new Set(recordData.map((r) => r.recordFingerprint).filter((f) => HEX64.test(f ?? '')))];
   const proofs: Record<string, unknown> = {};
   for (let i = 0; i < prints.length; i += PROOF_FETCHES) {
@@ -395,6 +409,7 @@ export const withRecordsAndProofs = async (contents: BackupContents): Promise<Ba
     recordData,
     ...(Object.keys(proofs).length ? { proofs } : {}),
     ...(Object.keys(sealedFields).length ? { sealedFields } : {}),
+    ...heldEvidence,
     ...unreadable,
     ...extras,
   };
@@ -664,6 +679,10 @@ export type RestoreResult = {
   readonly sentCodes?: number;
   /** Delivery codes still being received, added from the file. */
   readonly receiving?: number;
+  /** Lab signatures, their Midnight calls and claims put back onto records from the file. */
+  readonly evidence?: number;
+  /** Licenses (held here, or the keys of ones given) added from the file. */
+  readonly licenses?: number;
   /** The records the file carried (recordData): what was put back, or why none were. */
   readonly fromFile?: ImportResult | { readonly error: string };
 };
@@ -787,8 +806,9 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
   // Only ever raises a mark here (P4): a file older than what this browser has seen can't
   // make it take an older copy.
   raiseRevMarks(v.revs);
-  mergeHeldLicenses(v.heldLicenses, { mark: opts.mark });
-  mergeIssuerDeals(v.issuerDeals);
+  // Licenses held here and the keys of licenses given: counted, so the page can say they came back
+  // (restore drill, 26 Nov: a licensee's file with no records was said to hold "nothing new").
+  const licenses = mergeHeldLicenses(v.heldLicenses, { mark: opts.mark }) + mergeIssuerDeals(v.issuerDeals);
   mergeLender(v.lender, { mark: opts.mark });
   // Codes still being received: merged, never replacing one here, so the delivery can be
   // finished on this device.
@@ -807,6 +827,17 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
     // a backup the holder has (never for a passkey copy, which carries no records).
     if (opts.mark !== false && fromFile && !('error' in fromFile)) markDeviceOnlyBackedUp(v.recordData);
   }
+  // A record's lab signature and claims (held-evidence.ts): onto records here that lack them,
+  // each checked against its record first. With the registry there, its copy already has them.
+  let evidence = 0;
+  try {
+    if (v.heldEvidence !== undefined)
+      evidence = await (
+        await import('./held-evidence')
+      ).restoreHeldEvidence(v.heldEvidence, { getRecord, setLabSignature, setLabOnChain, addClaim });
+  } catch {
+    /* a record's evidence that can't be checked here stays out; the rest of the restore stands */
+  }
   // Entries the file carries raw (they couldn't be read where it was made): back as they were,
   // after the records, so what this browser and the registry hold is known (records.ts).
   restoreUnreadable(v.deviceOnlyUnreadable);
@@ -820,6 +851,8 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
     deliveries,
     sentCodes,
     ...(receiving ? { receiving } : {}),
+    ...(licenses ? { licenses } : {}),
+    ...(evidence ? { evidence } : {}),
   };
 };
 

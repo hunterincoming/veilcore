@@ -77,6 +77,7 @@ export const ROUTE_TIERS: Record<string, RouteTier> = {
   '/partners': { tier: 'advanced' },
   // The browser tests' own page; not in a real build (VITE_E2E_FIXTURES).
   '/e2e/royalty-pay': { tier: 'advanced' },
+  '/e2e/restore-drill': { tier: 'advanced' },
   // Anything else: the not-found page.
   '*': { tier: 'advanced' },
 };
