@@ -669,12 +669,15 @@ describe('the bundle', () => {
       }
     });
 
-    it('today, version 1 on mainnet: the steps name version 1 and the whole list', async () => {
+    it('a version 1 batch on mainnet: the steps name version 1 and the whole list, version 2 included', async () => {
       const { m, readme } = await both(at('mainnet', v1Main), undefined);
       expect(m).toMatchObject({ onList: true, contractVersion: 1 });
       expect(readme).toContain(`called VeilCore contract version 1, ${v1Main}, and no other VeilCore contract`);
       expect(readme).toContain(`${v1Claims} (version 1, claims)`);
-      expect(readme).not.toContain('version 2');
+      // Version 2 is pinned since 25 November 2026: listed, so a call on it counts, but this batch is v1's.
+      for (const c of read('mainnet').contracts.filter((x) => x.contractVersion === 2))
+        expect(readme).toContain(`${String(c.address)} (version 2${c.name === 'veilcore' ? '' : ', claims'})`);
+      expect(readme).not.toContain('deployed on mainnet for testing');
       // Upper case and 0x in the bundle: the same contract.
       expect((await both(at('mainnet', `0x${v1Main.toUpperCase()}`), undefined)).m).toMatchObject({ onList: true });
     });
