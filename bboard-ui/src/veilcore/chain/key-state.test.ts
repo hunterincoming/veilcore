@@ -411,6 +411,9 @@ describe('a date from version 2 on mainnet always says it is for testing and not
     const lines = files.filter((f) => /\banchorLine\(/.test(src(f)) && !f.endsWith('anchor-words.ts'));
     expect(lines.map(rel).sort()).toEqual(['components/SettlementStatus.tsx', 'pages/VerifyPage.tsx']);
     for (const f of lines) expect(src(f), rel(f)).toMatch(/<V2Caution\b/);
+    // On the check page the caution takes the invitation's place, so the page stays within its
+    // word budget (complexity-budget.json "check") with the line shown.
+    expect(read('../../pages/VerifyPage.tsx')).toMatch(/!v2Dated && <MakeYourOwn \/>/);
     // Every other reader of a record's date, and how its words reach the line.
     const CARRIES =
       /recordDateRow\(|<V2Caution\b|v2CautionWords\(|anchorHistoryEvent\(|DocumentDateView|<SettlementStatus\b/;

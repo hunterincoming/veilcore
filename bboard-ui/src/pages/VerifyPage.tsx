@@ -111,6 +111,7 @@ import {
   anchorLine,
   anchorSummary,
   registryDateWords,
+  v2CautionWords,
 } from '../components/verify/anchor-words';
 import { V2Caution } from '../components/verify/V2Caution';
 import { useAnchorCheck, useRecordDate } from '../components/verify/useAnchorCheck';
@@ -643,6 +644,7 @@ export const VerifyPage: React.FC = () => {
       ? undefined
       : anchorLine(anchor, { network: reportedNetwork ?? NETWORK, bound, reportedAt }, tr);
   const anchorLooked = anchorText !== undefined;
+  const v2Dated = v2CautionWords(anchor, reportedNetwork ?? NETWORK, tr) !== undefined;
   const seal = checked && anchorCheckedOnChain;
   // A date checked on a test network is practice data: its own amber mark and a PRACTICE
   // stamp, never mainnet's gold DATED stamp.
@@ -1389,7 +1391,9 @@ export const VerifyPage: React.FC = () => {
             ),
           })}
         </Typography>
-        {!loading && <MakeYourOwn />}
+        {/* Not beside a version 2 date: that contract is not for anyone's records yet, and its
+          caution takes this invitation's place within the check page's word budget. */}
+        {!loading && !v2Dated && <MakeYourOwn />}
       </Container>
     </Box>
   );
