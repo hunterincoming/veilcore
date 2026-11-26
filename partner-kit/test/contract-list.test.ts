@@ -140,7 +140,8 @@ describe('checkBatchAnchor on real mainnet answers (v1, read by its pinned versi
       const ok = await checkBatchAnchor({ ...base, root: Buffer.from(tx.root, 'hex') });
       expect(ok).toMatchObject({ accepted: true, blockHeight: block.height, blockTime: block.timestamp });
       expect(ok.reason).toBe(
-        `the root was timestamped in block ${block.height}, ${new Date(block.timestamp).toISOString()}`,
+        // With v2 pinned too, the reason names the contract that dated it.
+        `the root was timestamped in block ${block.height}, ${new Date(block.timestamp).toISOString()} (VeilCore contract version 1)`,
       );
       const other = Buffer.from(tx.root, 'hex');
       other[0] ^= 1;
