@@ -184,8 +184,7 @@ export class BlockfrostEnvironment extends RemoteTestEnvironment {
           body: JSON.stringify(body),
           signal: AbortSignal.timeout(15_000),
         });
-        if (!res.ok)
-          throw new Error(res.status === 403 ? BLOCKFROST_403 : `HTTP ${res.status}`);
+        if (!res.ok) throw new Error(res.status === 403 ? BLOCKFROST_403 : `HTTP ${res.status}`);
         return res.json();
       };
       try {

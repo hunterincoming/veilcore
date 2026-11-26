@@ -133,7 +133,9 @@ describe('the check page with version 2 pinned in deployments/mainnet.json', () 
     // Each with its own entry's key states: v2's as published, never v1's.
     expect(contracts[1].keyStates?.map((k) => k.label)).toEqual(['one key, not yet handed to the committee']);
     // Version 1 alone, as before the pin.
-    expect(plain(anchorContractsFor('mainnet', V1, undefined, undefined, v1Alone))).toEqual([{ version: 'v1', address: V1 }]);
+    expect(plain(anchorContractsFor('mainnet', V1, undefined, undefined, v1Alone))).toEqual([
+      { version: 'v1', address: V1 },
+    ]);
     // The real file since the pin (25 November 2026): v1, then v2 main at its pinned address.
     const real = fullJson.contracts.find((c) => c.name === 'veilcore' && c.contractVersion === 2)!.address as string;
     expect(plain(anchorContractsFor('mainnet', V1, undefined))).toEqual([

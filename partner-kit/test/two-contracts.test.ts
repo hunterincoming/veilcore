@@ -146,7 +146,9 @@ describe('with v1 alone pinned (before 25 November 2026): unchanged', () => {
 describe('the real deployments/mainnet.json since the pin (25 November 2026)', () => {
   it('lists v1, then v2 at its pinned address; the default and the write address stay version 1', async () => {
     const { network } = await kit();
-    const real = (fullJson.contracts.find((c) => c.name === 'veilcore' && c.contractVersion === 2) as { address: string }).address;
+    const real = (
+      fullJson.contracts.find((c) => c.name === 'veilcore' && c.contractVersion === 2) as { address: string }
+    ).address;
     expect(network.MAINNET_CONTRACTS.veilcore).toEqual([
       { version: 'v1', address: V1 },
       { version: 'v2', address: real },

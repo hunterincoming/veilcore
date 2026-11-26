@@ -26,7 +26,9 @@ const deployments = JSON.parse(
   readFileSync(new URL('../../deployments/mainnet.json', import.meta.url), 'utf8'),
 ) as Deployments;
 const recorded = (name: string, version = 1): string => {
-  const c = deployments.contracts.find((x) => x.name === name && x.network === 'mainnet' && (x.contractVersion ?? 1) === version);
+  const c = deployments.contracts.find(
+    (x) => x.name === name && x.network === 'mainnet' && (x.contractVersion ?? 1) === version,
+  );
   if (c === undefined) throw new Error(`${name} is not in deployments/mainnet.json`);
   return c.address;
 };
