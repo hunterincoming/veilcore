@@ -6,16 +6,21 @@
 import React from 'react';
 import { Alert } from '@mui/material';
 import type { Translator } from '../../i18n/translate';
-import { v2CautionWords, type AnchorState } from './anchor-words';
+import { v2CautionWords, type AnchorState, type ReportedAnchor } from './anchor-words';
 
 export const V2Caution: React.FC<{
   readonly check: AnchorState | undefined;
   /** Where the registry says the root was anchored. */
   readonly network: string;
+  /**
+   * The registry's report of the anchor. Used only when this browser hasn't checked the date
+   * (no indexer answered): a report naming any contract but version 1 carries the line too.
+   */
+  readonly reported?: ReportedAnchor;
   readonly tr: Translator;
   readonly sx?: React.ComponentProps<typeof Alert>['sx'];
-}> = ({ check, network, tr, sx }) => {
-  const words = v2CautionWords(check, network, tr);
+}> = ({ check, network, reported, tr, sx }) => {
+  const words = v2CautionWords(check, network, tr, reported);
   if (words === undefined) return null;
   return (
     <Alert severity="warning" variant="outlined" data-v2-caution="" sx={sx}>

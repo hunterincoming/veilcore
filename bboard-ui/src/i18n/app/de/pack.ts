@@ -163,9 +163,9 @@ export const pack = {
   'app.pack.gap.unchecked.other':
     '{count} Daten sind die Meldung des Registers von VeilCore, nicht von diesem Browser im Hauptnetz von Midnight geprüft.',
   'app.pack.gap.testing.one':
-    'Ein VeilCore-Eintrag wurde mit dem VeilCore-Smart-Contract, Version 2, datiert. Diese Version dient nur den Tests von VeilCore und ist nicht für Datensätze gedacht; auf dieses Datum kann man sich nicht verlassen.',
+    'Ein VeilCore-Datensatz wurde mit dem VeilCore-Smart-Contract, Version 2, datiert. Diese Version dient nur zum Testen durch VeilCore und ist nicht für Datensätze gedacht; auf dieses Datum kann man sich nicht verlassen.',
   'app.pack.gap.testing.other':
-    '{count} VeilCore-Einträge wurden mit dem VeilCore-Smart-Contract, Version 2, datiert. Diese Version dient nur den Tests von VeilCore und ist nicht für Datensätze gedacht; auf diese Datumsangaben kann man sich nicht verlassen.',
+    '{count} VeilCore-Datensätze wurden mit dem VeilCore-Smart-Contract, Version 2, datiert. Diese Version dient nur zum Testen durch VeilCore und ist nicht für Datensätze gedacht; auf diese Datumsangaben kann man sich nicht verlassen.',
   'app.pack.gap.locked.one':
     'Ein VeilCore-Eintrag in diesem Browser ist gesperrt (mit einem Schlüssel versiegelt, den er nicht hat) und bleibt außen vor.',
   'app.pack.gap.locked.other':
