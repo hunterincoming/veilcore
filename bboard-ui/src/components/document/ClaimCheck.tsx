@@ -43,8 +43,19 @@ import { ViabilityNotRead } from '../lab/ResultFacts';
 import { NETWORK, viabilityNotRead } from '../../config/network';
 import { withdrawnWords } from '../lab/signer-words';
 import { errorReason } from '../../i18n/error-words';
+import { isTwoClaimHash } from '../../veilcore/two-record-claims';
+import { TwoClaimCheck } from './TwoClaimCheck';
 
+/**
+ * /check-claim: a claim about one number (#c=…), or about two records (#p=…, TwoClaimCheck.tsx),
+ * each on its own page so neither's words can show on the other's.
+ */
 export const ClaimCheck: React.FC = () => {
+  const { hash } = useLocation();
+  return isTwoClaimHash(hash) ? <TwoClaimCheck /> : <OneClaimCheck />;
+};
+
+const OneClaimCheck: React.FC = () => {
   const tr = useT();
   const { t } = tr;
   const { hash } = useLocation();

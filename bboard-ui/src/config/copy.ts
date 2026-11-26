@@ -208,6 +208,26 @@ export const DOCUMENT_CHAIN_RUN_ON_MAINNET = true;
  */
 export const DEVICE_ONLY_CLAIMS_RUN_ON_MAINNET = true;
 
+/**
+ * Whether VeilCore's fee sponsor pays for the two claims about a pair of records, proveDistinct
+ * ("these two records are different") and proveUnchanged ("a correction only changed what it
+ * says"), on the claims contract ("More ways to prove" on a record, components/document/TwoRecordClaims.tsx).
+ * It doesn't: sponsor/src/policy.ts CLAIMS_CIRCUITS lists only proveRange, proveValue and
+ * proveAttested (26 November 2026), on every network. Until it does, the page shows what would be
+ * proved and sends nothing. two-record-status.test.ts holds this to the sponsor's own list, so it
+ * changes only in the same reviewed change as the sponsor's.
+ */
+export const TWO_RECORD_CLAIMS_SPONSORED = false;
+
+/**
+ * Whether those two claims have worked on veilcore.org: one of each proved there, its link
+ * checked in another browser. Until then the page says they are built and not yet run on
+ * Midnight's main network (two-record-claims.ts twoRecordStatusKey), never that they are live.
+ * Hunter turns it on in a reviewed commit after that first run, never before; it can't be on
+ * while the sponsor doesn't pay for them (two-record-status.test.ts).
+ */
+export const TWO_RECORD_CLAIMS_RUN_ON_MAINNET = false;
+
 /** The label agreements carry while AGREEMENTS_LIVE is false. */
 export const PRACTICE_LABEL = AGREEMENTS_LIVE ? '' : 'Practice only';
 

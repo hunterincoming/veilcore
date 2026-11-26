@@ -17,6 +17,7 @@ import {
   type MadeClaim,
 } from '../claim-link';
 import { findBinding, type BindingCandidate } from '../claims-key';
+import { compareTwoClaim, type TwoClaim, type TwoVerdict } from '../two-record-claims';
 import { attestationsFor } from '../attesters';
 import { e2eChain } from './e2e-chain';
 
@@ -104,6 +105,49 @@ export const checkClaim = async (
       lab = { ok: false, reason: e instanceof Error ? e.message : String(e) };
     }
     return { ok: true, blockHeight, blockTime, lab };
+  } catch (e) {
+    return { ok: false, reason: e instanceof Error ? e.message : String(e) };
+  }
+};
+
+const readTwoFromIndexer: ClaimReader = async (contract, txId) => {
+  const found = await singleCallState(
+    INDEXER_HTTP ?? '',
+    contract,
+    txId,
+    ['proveDistinct', 'proveUnchanged'],
+    'That transaction is not a single claim about two records on VeilCore’s claims contract.',
+  );
+  return {
+    claim: claimFromCells(claimsLedger(found.state.data)),
+    blockHeight: found.blockHeight,
+    blockTime: found.blockTime,
+  };
+};
+
+/**
+ * Check a link to a claim about two records (two-record-claims.ts) against the chain: read for
+ * that one call, on this site's claims contract only, and compared exactly with the link. Never
+ * throws: a failure is a verdict with a reason.
+ */
+export const checkTwoClaim = async (
+  link: TwoClaim,
+  deps: { read?: ClaimReader; contract?: string } = {},
+): Promise<TwoVerdict> => {
+  // The end-to-end build's stand-in for Midnight (e2e-chain.ts); undefined in every other build.
+  const stub = e2eChain()?.twoClaim;
+  if (stub) {
+    const v = stub(link);
+    return v === 'checking' ? new Promise<TwoVerdict>(() => undefined) : v;
+  }
+  const contract = deps.contract ?? CLAIMS_CONTRACT;
+  if (!contract) return { ok: false, reason: 'This site can’t read claims: no claims contract is configured.' };
+  if (link.contract !== contract)
+    return { ok: false, reason: 'The link names a claims contract that isn’t VeilCore’s on this network.' };
+  try {
+    const { claim, blockHeight, blockTime } = await (deps.read ?? readTwoFromIndexer)(contract, link.txId);
+    const v = compareTwoClaim(link, claim);
+    return v.ok ? { ok: true, blockHeight, blockTime } : v;
   } catch (e) {
     return { ok: false, reason: e instanceof Error ? e.message : String(e) };
   }

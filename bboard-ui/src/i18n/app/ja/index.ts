@@ -28,6 +28,7 @@ import { importing } from './import';
 import { lab } from './lab';
 import { log } from './log';
 import { pair } from './pair';
+import { twoRecords } from './two-records';
 import { partners } from './partners';
 import { plant } from './plant';
 import { prove } from './prove';
@@ -59,6 +60,7 @@ export const appJa: AppTranslation = {
   ...chain,
   ...log,
   ...pair,
+  ...twoRecords,
   ...backup,
   ...home,
   ...plant,
