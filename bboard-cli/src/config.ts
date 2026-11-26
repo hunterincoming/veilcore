@@ -24,6 +24,7 @@ import {
   TestEnvironment,
 } from '@midnight-ntwrk/testkit-js';
 import { setNetworkId } from '../../api/src/network-id.js';
+import { BLOCKFROST_403 } from '../../scripts/v2/blockfrost.mjs';
 import { Logger } from 'pino';
 
 export interface Config {
@@ -184,7 +185,7 @@ export class BlockfrostEnvironment extends RemoteTestEnvironment {
           signal: AbortSignal.timeout(15_000),
         });
         if (!res.ok)
-          throw new Error(`HTTP ${res.status}${res.status === 403 ? ' (is the Blockfrost project id right?)' : ''}`);
+          throw new Error(res.status === 403 ? BLOCKFROST_403 : `HTTP ${res.status}`);
         return res.json();
       };
       try {

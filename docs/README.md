@@ -40,6 +40,7 @@ Start with [design.md](design.md). The record format itself is specified in
 | Document | What it covers |
 |---|---|
 | [deployment-record-revision-4.md](deployment-record-revision-4.md) | The deployment record filed with Midnight, with the mainnet addresses and transactions |
+| [deployment-record-revision-5.md](deployment-record-revision-5.md) | Revision 5: contract version 2 on mainnet (team testing; not yet independently reviewed; not for your records) |
 | [fingerprints.md](fingerprints.md) | SHA-256 of every compiled artefact, to compare with your own build |
 | [maintenance-policy.md](maintenance-policy.md) | Who holds the main contract's maintenance key, and when it may be used |
 | [maintenance-committee.md](maintenance-committee.md) | The plan to move that key to two of three holders |

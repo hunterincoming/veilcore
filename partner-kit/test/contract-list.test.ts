@@ -1,6 +1,7 @@
-// The pinned contract list (src/network.ts MAINNET_CONTRACTS): version 1 only, the deployment
-// record's contracts, and checkBatchAnchor reading a state by the pinned contract's version.
-// Groundwork for contract version 2 (plan 3.6); nothing a caller sees changes today. The
+// The pinned contract list (src/network.ts MAINNET_CONTRACTS): version 1, then version 2 (pinned
+// 25 November 2026, deployed on mainnet for testing by VeilCore; not yet independently reviewed;
+// not for your records), the deployment records' contracts, and checkBatchAnchor reading a state
+// by the pinned contract's version. The defaults stay version 1. The
 // mainnet answers are the real ones the site's golden tests use
 // (bboard-ui/src/veilcore/chain/fixtures/v1-mainnet-anchors.json, recorded 23 Nov 2026).
 // SPDX-License-Identifier: Apache-2.0
@@ -20,12 +21,12 @@ import {
 import { checkBatchAnchor } from '../src/verify';
 import { PREPROD_PINNED } from '../../api/src/pinned-contracts';
 
-type Deployments = { contracts: { name: string; network: string; address: string }[] };
+type Deployments = { contracts: { name: string; network: string; address: string; contractVersion?: number }[] };
 const deployments = JSON.parse(
   readFileSync(new URL('../../deployments/mainnet.json', import.meta.url), 'utf8'),
 ) as Deployments;
-const recorded = (name: string): string => {
-  const c = deployments.contracts.find((x) => x.name === name && x.network === 'mainnet');
+const recorded = (name: string, version = 1): string => {
+  const c = deployments.contracts.find((x) => x.name === name && x.network === 'mainnet' && (x.contractVersion ?? 1) === version);
   if (c === undefined) throw new Error(`${name} is not in deployments/mainnet.json`);
   return c.address;
 };
@@ -68,10 +69,16 @@ const indexerAnswering = (tx: Fixture['transactions'][number]) =>
 afterEach(() => vi.unstubAllGlobals());
 
 describe('the pinned contract list', () => {
-  it('holds version 1 only: the deployment record’s main and claims contracts', () => {
+  it('holds version 1, then version 2: the deployment records’ main and claims contracts', () => {
     expect(MAINNET_CONTRACTS).toEqual({
-      veilcore: [{ version: 'v1', address: recorded('veilcore') }],
-      claims: [{ version: 'v1', address: recorded('veilcore-claims') }],
+      veilcore: [
+        { version: 'v1', address: recorded('veilcore') },
+        { version: 'v2', address: recorded('veilcore', 2) },
+      ],
+      claims: [
+        { version: 'v1', address: recorded('veilcore-claims') },
+        { version: 'v2', address: recorded('veilcore-claims', 2) },
+      ],
     });
     expect(MAINNET_CONTRACTS.veilcore[0].address).toBe(MAINNET_VEILCORE_ADDRESS);
     expect(MAINNET_CONTRACTS.claims[0].address).toBe(MAINNET_CLAIMS_ADDRESS);
@@ -90,7 +97,7 @@ describe('the pinned contract list', () => {
     expect(resolveAddress('mainnet', 'veilcore')).toBe(MAINNET_VEILCORE_ADDRESS);
     expect(resolveAddress('mainnet', 'claims')).toBe(MAINNET_CLAIMS_ADDRESS);
     expect(() => assertAddressFor('mainnet', 'veilcore', 'b2'.repeat(32))).toThrow(
-      `Refusing ${'b2'.repeat(32)}: on mainnet the VeilCore contract is ${MAINNET_VEILCORE_ADDRESS} (the deployment record). ` +
+      `Refusing ${'b2'.repeat(32)}: on mainnet the VeilCore contract is ${MAINNET_VEILCORE_ADDRESS} or ${recorded('veilcore', 2)} (the deployment record). ` +
         'Another address can carry the same circuits with other state. Nothing was read or sent.',
     );
   });

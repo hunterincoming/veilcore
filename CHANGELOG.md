@@ -10,6 +10,18 @@ section.
 
 ## [Unreleased]
 
+### Contract version 2 pinned on mainnet, for team testing (25 Nov 2026, not deployed yet)
+
+- Contract version 2 (main `2f3392b6…`, claims `f5bc670d…`) is deployed on mainnet for testing by
+  VeilCore; not yet independently reviewed; not for your records. Its entries are in
+  `deployments/mainnet.json` (`"contractVersion": 2`), the README and deployment record revision
+  5. The site, the anchorer, the sponsor and the SDK defaults stay on version 1.
+- `npm run verify:deployment -- --network mainnet` now checks all four contracts: version 2's keys
+  against `docs/fingerprints-v2.md` in slot V4, and its authority against its published key
+  states.
+- The v2 tools say plainly when Blockfrost answers 403: the project must be a Midnight project,
+  not a Cardano one.
+
 ### The other checkers read the pinned list too (24 Nov 2026, not deployed yet)
 
 - The evidence bundle's `verify.html` carries VeilCore's contracts from `deployments/*.json`.

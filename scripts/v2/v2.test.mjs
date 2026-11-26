@@ -36,7 +36,7 @@ import {
   SerializedZswapChainState,
 } from '@midnight-ntwrk/midnight-js-types';
 import { ROOT, parseFingerprintsV2, slotOfKey } from './fingerprints.mjs';
-import { emptySession, readSession, sessionProblems, writeSession } from './session.mjs';
+import { emptySession, pinnedV1Problems, readSession, sessionProblems, writeSession } from './session.mjs';
 import { TTL_MARGIN_MS, TTL_MS, buildInsertUpdate, publicKeyOf, runDeploy } from './deploy-core.mjs';
 import { constructorDataHex, constructorStateBytes, haveCompiled } from './constructor.mjs';
 import { stateFacts, txFacts } from './ledger.mjs';
@@ -415,6 +415,14 @@ test('the record: never written over, never into a pinned list', () => {
   const f2 = path.join(dir, 'v1-as-v2.json');
   writeSession(f2, bad, { first: true });
   assert.throws(() => readSession(f2), /is a pinned v1 address, never a v2 one/);
+  // Once v2 is pinned ("contractVersion": 2), the mainnet record naming v2's own pinned addresses
+  // still reads (verify:deployment, the committee and the smoke run all read it).
+  const pinnedV2 = JSON.parse(readFileSync(path.join(ROOT, 'deployments/mainnet.json'), 'utf8')).contracts.filter((x) => x.contractVersion === 2);
+  assert.deepEqual(pinnedV2.map((x) => x.name).sort(), ['veilcore', 'veilcore-claims']);
+  const good = emptySession({ network: 'mainnet', commit: 't', compiler: '0.36.1', fingerprintsSha256: '00'.repeat(32), publicKey: '11'.repeat(32) });
+  for (const e of pinnedV2) good.contracts[e.name].address = e.address;
+  assert.deepEqual(pinnedV1Problems(good), []);
+  assert.match(pinnedV1Problems(bad).join(' '), /is a pinned v1 address/);
 });
 
 // ──────────────────────────────────────────────────────── the deployment check

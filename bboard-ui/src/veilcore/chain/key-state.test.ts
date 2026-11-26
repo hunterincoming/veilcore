@@ -1,7 +1,7 @@
 // The check page's key state beside a date (docs/contract-v2.md 3.3 and section 7): who could
 // change the contract that dated a batch, read from the contract state the network recorded at
 // that call and judged against the pinned entry's published key states, as the partner kit does
-// (partner-kit/src/verify.ts checkBatchAnchor). With version 1 alone (mainnet today) nothing
+// (partner-kit/src/verify.ts checkBatchAnchor). With version 1 alone (mainnet before the v2 pin) nothing
 // changes: the authority is not even read.
 //
 // Version 2 is pinned on a made-up address, the way the real pin will be: an entry added to
@@ -64,9 +64,11 @@ const COMMITTEE = {
   label: 'held by the 2-of-3 committee',
 };
 
-const mainnetJson = JSON.parse(read('../../../../deployments/mainnet.json')) as {
+const fullJson = JSON.parse(read('../../../../deployments/mainnet.json')) as {
   contracts: Record<string, unknown>[];
 };
+/** deployments/mainnet.json with its version 1 entries only, as it was before v2's pin. */
+const mainnetJson = { ...fullJson, contracts: fullJson.contracts.filter((c) => (c.contractVersion ?? 1) === 1) };
 /** deployments/mainnet.json with version 2's main contract pinned, listing `keyStates`. */
 const pinnedWithV2 = (keyStates: readonly unknown[]) =>
   pinnedContractsFrom({
@@ -158,12 +160,15 @@ describe('reading the maintenance authority from the state itself', () => {
   });
 });
 
-describe('with version 1 alone (mainnet today)', () => {
+describe('with version 1 alone pinned (mainnet before 25 November 2026)', () => {
   it('the authority is never read, nothing new is said, and the line reads exactly as before', async () => {
     const authorityOf = vi.fn(() => {
       throw new Error('must not be read');
     });
-    const contracts = anchorContractsFor('mainnet', V1, undefined);
+    const contracts = anchorContractsFor('mainnet', V1, undefined, undefined, {
+      mainnet: pinnedContractsFrom(mainnetJson),
+      preprod: PREPROD_PINNED,
+    });
     expect(contracts).toHaveLength(1);
     const r = await run(
       'mainnet',

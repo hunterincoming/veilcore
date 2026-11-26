@@ -1,8 +1,13 @@
 # Contract version 2: design (fresh start)
 
-**Status, 25 November 2026: v2 is built (`contract-v2/`) and deployed on preprod only; not on
-mainnet, not live.** The preprod deploy, `verify:deployment` and the smoke run passed on 25
-November ([runbooks/deploy-v2.md](runbooks/deploy-v2.md), section F). Version 1 (v1) of the main
+**Status, 25 November 2026: v2 is built (`contract-v2/`), deployed on mainnet (team testing),
+pinned** once the pin PR is merged; not live. Deployed on mainnet for testing by VeilCore; not
+yet independently reviewed; not for your records. The preprod deploy, `verify:deployment` and the
+smoke run passed on 25 November ([runbooks/deploy-v2.md](runbooks/deploy-v2.md), section F), and
+the same day the mainnet deploy and its `verify:deployment` passed (section G, steps 15 and 16):
+v2 main at `2f3392b6…`, v2 claims at `f5bc670d…`
+([deployment record revision 5](deployment-record-revision-5.md)). The handover to the 2-of-3
+committee is not done yet. Version 1 (v1) of the main
 contract and of the claims contract is live on Midnight mainnet and stays the contract the public
 site uses. This document was first written, on 23 November, as a design for a security auditor
 to review before any code was written.
@@ -579,10 +584,14 @@ key. The tool changes (Stage A item 7) are needed for the handover.
     then compares its list with `deployments/*.json`, so v2 is pinned only once that SDK names it;
   - the Rust crate (veilcore-rs) reads no ledger and holds no list: it has SPEC 9.4's choice of
     contract (`veilcore_records::pinned`), tested on the SDK's vectors;
-- **before v2 is pinned** (open, 23 November 2026):
+- **before v2 is pinned** (open, 23 November 2026; where each stands at the pin PR, 25 November
+  2026, is in its own line):
   - real v2 state test data from preprod or the devnet: run `checkBatchAnchor` with
     `contractVersion: 'v2'` on a real v2 anchorBatch and keep that transaction as a test
-    fixture (today's v2 fixture is v2's ledger data in a v1 state, with v1's verifier keys);
+    fixture (today's v2 fixture is v2's ledger data in a v1 state, with v1's verifier keys).
+    **At the pin:** the real mainnet states of both v2 contracts (keys and authority, recorded
+    after the last insert) are a fixture of `verify:deployment`'s tests; a real v2 anchorBatch
+    transaction as a `checkBatchAnchor` fixture is still open (the preprod smoke run made one);
   - the site shows v2's key state ("one key, not yet handed to the committee") beside its date,
     in all five languages. **Built, 24 November 2026, not deployed:** once more than one
     contract is pinned, the check page reads the maintenance authority from the state at the
@@ -590,7 +599,9 @@ key. The tool changes (Stage A item 7) are needed for the handover.
     (`api/src/key-states.ts`), as the kit does on mainnet: a state in none of them is refused,
     and a v2 date says who can change that contract. With v1 alone the page is unchanged.
     Off mainnet no key states are pinned, so none are shown, as in the kit;
-- rule 10 in SPEC.md (3.1).
+- rule 10 in SPEC.md (3.1). **At the pin:** still open, with the SDK release after 0.18.1 (the
+  installed 0.18.1 has neither SPEC 9.2.1 nor `verify.py`'s list, so the comparison in
+  `scripts/deployments.test.mjs` does not run yet).
 
 16. **[Hunter]** deploys v2 and claims v2 from the Mac: the keys with the temporary key,
     `verify:deployment`, then the pin, then the deployment record revision 5. **Later, once

@@ -56,6 +56,7 @@ import { readSession } from './v2/session.mjs';
 import { fromHex, stateFacts, txFacts } from './v2/ledger.mjs';
 import { checkV2Contract } from './v2/history.mjs';
 import { constructorDataHex } from './v2/constructor.mjs';
+import { BLOCKFROST_403, isBlockfrostUrl } from './v2/blockfrost.mjs';
 
 const USAGE =
   'Usage: npm run verify:deployment -- [--network mainnet|preprod] [--contract veilcore|veilcore-claims] [--indexer <url>] [--second-indexer <url>]\n' +
@@ -165,7 +166,7 @@ export const fetchStateHex = async (ix, address, timeoutMs = 30_000) => {
   } catch (e) {
     throw new CannotCheck(`Could not reach the indexer at ${ix.shown} (${e?.cause?.code ?? e?.name ?? 'network error'}).`);
   }
-  if (!res.ok) throw new CannotCheck(`The indexer at ${ix.shown} answered HTTP ${res.status}.`);
+  if (!res.ok) throw new CannotCheck(res.status === 403 && isBlockfrostUrl(ix.url) ? BLOCKFROST_403 : `The indexer at ${ix.shown} answered HTTP ${res.status}.`);
   let body;
   try {
     body = await res.json();
@@ -180,13 +181,30 @@ export const fetchStateHex = async (ix, address, timeoutMs = 30_000) => {
   return hex.replace(/^0x/i, '').toLowerCase();
 };
 
+/** A contract version 2 state's keys and authority, read with Ledger 9's own types (scripts/v2/ledger.mjs). */
+const v2Facts = (stateHex) => {
+  const f = stateFacts(fromHex(stateHex));
+  const a = f.authority;
+  return {
+    ops: f.ops,
+    authority: { committee: a.committee.length, threshold: a.threshold, counter: a.counter, retired: a.threshold > a.committee.length },
+  };
+};
+
 /** What the verdict rests on, from one state: each circuit's verifier key hash and the authority. */
 export const verdictFacts = (stateHex) => {
   let state;
   try {
     state = readContractStateHex(stateHex);
   } catch (e) {
-    throw new CannotCheck(`A state the indexers gave could not be read: ${e instanceof Error ? e.message : String(e)}`);
+    // A contract version 2 state (V4 keys) is read with Ledger 9's own types.
+    try {
+      const f = v2Facts(stateHex);
+      const keys = Object.fromEntries(Object.entries(f.ops).map(([n, o]) => [n, o.sha256]));
+      return { keys, authority: { ...f.authority, counter: String(f.authority.counter) } };
+    } catch {
+      throw new CannotCheck(`A state the indexers gave could not be read: ${e instanceof Error ? e.message : String(e)}`);
+    }
   }
   const keys = {};
   for (const n of state.operations()) {
@@ -212,8 +230,65 @@ export const factsDiffer = (x, y) => {
 
 const short = (h) => (h === undefined ? 'none' : `${h.slice(0, 16)}…`);
 
+/**
+ * One pinned contract version 2 entry against its current state: every verifier key published,
+ * in slot V4, nothing else on chain, and the authority in one of the entry's key states. Its full
+ * history (every maintenance update since the deploy) is checked with --v2-record.
+ */
+export const checkOneV2 = (c, stateHex) => {
+  const lines = [];
+  let f;
+  try {
+    f = v2Facts(stateHex);
+  } catch (e) {
+    throw new CannotCheck(`The state the indexer gave for ${c.name} (version 2) could not be read: ${e instanceof Error ? e.message : String(e)}`);
+  }
+  lines.push(`  contract version 2, read in Ledger 9 format (compactc ${c.compiler}); keys from docs/fingerprints-v2.md, slot V4`);
+  const pins = verifierPins(c);
+  const width = Math.max(...[...Object.keys(pins), ...Object.keys(f.ops)].map((n) => n.length));
+  let failed = 0;
+  for (const name of Object.keys(pins).sort()) {
+    const o = f.ops[name];
+    if (o?.sha256 === pins[name] && o.slot === 'v4') lines.push(`  PASS  ${name.padEnd(width)}  ${short(o.sha256)}`);
+    else {
+      failed++;
+      const why =
+        o === undefined
+          ? 'not on chain'
+          : o.sha256 === null
+            ? 'on chain with no verifier key'
+            : o.sha256 !== pins[name]
+              ? `on chain ${short(o.sha256)}, published ${short(pins[name])}`
+              : `the published key, but in slot ${String(o.slot)}, not V4`;
+      lines.push(`  FAIL  ${name.padEnd(width)}  ${why}`);
+    }
+  }
+  for (const name of Object.keys(f.ops).filter((n) => !(n in pins)).sort()) {
+    failed++;
+    lines.push(`  FAIL  ${name.padEnd(width)}  on chain, but not a circuit of the published build`);
+  }
+  const a = f.authority;
+  const seen = a.retired ? `retired (empty committee), counter ${a.counter}` : `${a.committee} key(s), threshold ${a.threshold}, counter ${a.counter}`;
+  const states = Array.isArray(c.keyStates) ? c.keyStates : [];
+  const match = states.find(
+    (s) =>
+      s.retired === a.retired &&
+      (s.retired || (s.committee === a.committee && s.threshold === a.threshold)) &&
+      (s.counter === null || BigInt(s.counter) === a.counter),
+  );
+  lines.push(
+    match !== undefined
+      ? `  PASS  maintenance authority: ${seen} (published: ${match.label})`
+      : `  FAIL  maintenance authority: ${seen}, in none of the published key states (${states.map((s) => s.label).join('; ') || 'none listed'})`,
+  );
+  const circuits = Object.keys(pins).length;
+  lines.push(`  ${circuits - Math.min(failed, circuits)} of ${circuits} circuits match the published build.`);
+  return { lines, ok: failed === 0 && match !== undefined, circuits, failed, authOk: match !== undefined, era: 'v9', authority: a };
+};
+
 /** Every line of one contract's check, and whether it passed. */
 export const checkOne = (c, stateHex, network) => {
+  if ((c.contractVersion ?? 1) === 2) return checkOneV2(c, stateHex);
   const lines = [];
   const bytes = Buffer.from(stateHex, 'hex');
   let era;
@@ -398,7 +473,7 @@ export const fetchTx = async (ix, ref, timeoutMs = 30_000) => {
   } catch (e) {
     throw new CannotCheck(`Could not reach the indexer at ${ix.shown} (${e?.cause?.code ?? e?.name ?? 'network error'}).`);
   }
-  if (!res.ok) throw new CannotCheck(`The indexer at ${ix.shown} answered HTTP ${res.status}.`);
+  if (!res.ok) throw new CannotCheck(res.status === 403 && isBlockfrostUrl(ix.url) ? BLOCKFROST_403 : `The indexer at ${ix.shown} answered HTTP ${res.status}.`);
   let body;
   try {
     body = await res.json();

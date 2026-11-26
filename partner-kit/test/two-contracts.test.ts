@@ -26,9 +26,11 @@ const v1Golden = JSON.parse(
 const v2Fixture = JSON.parse(
   readFileSync(new URL('../../bboard-ui/src/veilcore/chain/fixtures/v2-anchor-fixture.json', import.meta.url), 'utf8'),
 ) as { contract: string; root: string; stateHex: string };
-const mainnetJson = JSON.parse(readFileSync(new URL('../../deployments/mainnet.json', import.meta.url), 'utf8')) as {
+const fullJson = JSON.parse(readFileSync(new URL('../../deployments/mainnet.json', import.meta.url), 'utf8')) as {
   contracts: Record<string, unknown>[];
 };
+/** deployments/mainnet.json with its version 1 entries only, as it was before v2's pin. */
+const mainnetJson = { ...fullJson, contracts: fullJson.contracts.filter((c) => (c.contractVersion ?? 1) === 1) };
 
 const V1 = v1Golden.contract;
 const V2 = v2Fixture.contract;
@@ -39,7 +41,7 @@ const INDEXER = 'http://127.0.0.1:1/';
 const TX = 'ab'.repeat(32);
 const TEMP_KEY = 'one key, not yet handed to the committee';
 
-/** deployments/mainnet.json with version 2's main contract pinned, as the pin will add it. */
+/** Version 1, with a fixture version 2 main contract pinned the way the real pin adds it. */
 const withV2 = (over: Record<string, unknown> = {}) => {
   const v1 = mainnetJson.contracts.find((c) => c.name === 'veilcore') as Record<string, unknown>;
   return {
@@ -102,9 +104,9 @@ afterEach(() => {
   vi.resetModules();
 });
 
-describe('today (v1 only): unchanged', () => {
+describe('with v1 alone pinned (before 25 November 2026): unchanged', () => {
   it('one pinned main contract, the default; a batch reads as it always has, now naming its contract', async () => {
-    const { verify, network } = await kit();
+    const { verify, network } = await kit(mainnetJson);
     expect(network.MAINNET_CONTRACTS.veilcore).toEqual([{ version: 'v1', address: V1 }]);
     indexer([call(V1, V1_STATE)]);
     const v = await verify.checkBatchAnchor({ ...base, root: hexRoot(v1Batch.root) });
@@ -132,12 +134,25 @@ describe('today (v1 only): unchanged', () => {
   });
 
   it('REFUSED: anchorBatch on v1 plus a call on the claims contract (the site refuses it too)', async () => {
-    const { verify } = await kit();
+    const { verify } = await kit(mainnetJson);
     const claims = (mainnetJson.contracts.find((c) => c.name === 'veilcore-claims') as { address: string }).address;
     indexer([call(V1, V1_STATE), call(claims, V1_STATE, 'proveRange')]);
     await expect(verify.checkBatchAnchor({ ...base, root: hexRoot(v1Batch.root) })).rejects.toThrow(
       /not a single anchorBatch call/,
     );
+  });
+});
+
+describe('the real deployments/mainnet.json since the pin (25 November 2026)', () => {
+  it('lists v1, then v2 at its pinned address; the default and the write address stay version 1', async () => {
+    const { network } = await kit();
+    const real = (fullJson.contracts.find((c) => c.name === 'veilcore' && c.contractVersion === 2) as { address: string }).address;
+    expect(network.MAINNET_CONTRACTS.veilcore).toEqual([
+      { version: 'v1', address: V1 },
+      { version: 'v2', address: real },
+    ]);
+    expect(network.MAINNET_ADDRESSES.veilcore).toBe(V1);
+    expect(network.resolveWriteAddress('mainnet', 'veilcore')).toBe(V1);
   });
 });
 

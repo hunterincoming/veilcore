@@ -249,7 +249,8 @@ test('the partner kit\'s generated table is the same build', () => {
 test('every key and ZKIR file each site release served is the published build', () => {
   for (const n of NETWORKS) {
     const all = new Map();
-    for (const c of deployments[n].contracts) for (const [f, h] of artefactRows(c)) if (!f.startsWith('contract/')) all.set(`/${f}`, h);
+    // The site serves version 1's keys only (version 2's share their paths and are not served).
+    for (const c of deployments[n].contracts.filter(isV1)) for (const [f, h] of artefactRows(c)) if (!f.startsWith('contract/')) all.set(`/${f}`, h);
     const dir = path.join(ROOT, 'releases', n);
     let files = 0;
     let checked = 0;

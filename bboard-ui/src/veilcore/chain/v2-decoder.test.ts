@@ -25,10 +25,13 @@ const V1_STATE = v1Tx.indexerAnswer.byHash[0].contractActions[0].state;
 const TX = 'ab'.repeat(32);
 const BLOCK_MS = Date.UTC(2026, 11, 1, 12, 0, 0);
 
-const mainnetJson = JSON.parse(read('../../../../deployments/mainnet.json')) as {
+const fullJson = JSON.parse(read('../../../../deployments/mainnet.json')) as {
   contracts: Record<string, unknown>[];
 };
-/** deployments/mainnet.json with version 2's main contract pinned, as the pin will add it. */
+/** deployments/mainnet.json with its version 1 entries only, as it was before v2's pin. */
+const mainnetJson = { ...fullJson, contracts: fullJson.contracts.filter((c) => (c.contractVersion ?? 1) === 1) };
+const v1Alone = { mainnet: pinnedContractsFrom(mainnetJson), preprod: PREPROD_PINNED };
+/** Version 1, with a fixture version 2 main contract pinned the way the real pin adds it. */
 const withV2 = () => ({
   ...mainnetJson,
   contracts: [
@@ -129,8 +132,14 @@ describe('the check page with version 2 pinned in deployments/mainnet.json', () 
     ]);
     // Each with its own entry's key states: v2's as published, never v1's.
     expect(contracts[1].keyStates?.map((k) => k.label)).toEqual(['one key, not yet handed to the committee']);
-    // Today: version 1 alone.
-    expect(plain(anchorContractsFor('mainnet', V1, undefined))).toEqual([{ version: 'v1', address: V1 }]);
+    // Version 1 alone, as before the pin.
+    expect(plain(anchorContractsFor('mainnet', V1, undefined, undefined, v1Alone))).toEqual([{ version: 'v1', address: V1 }]);
+    // The real file since the pin (25 November 2026): v1, then v2 main at its pinned address.
+    const real = fullJson.contracts.find((c) => c.name === 'veilcore' && c.contractVersion === 2)!.address as string;
+    expect(plain(anchorContractsFor('mainnet', V1, undefined))).toEqual([
+      { version: 'v1', address: V1 },
+      { version: 'v2', address: real },
+    ]);
   });
 
   it('a v2 batch: checked, from v2, and the page says so', async () => {
@@ -158,13 +167,13 @@ describe('the check page with version 2 pinned in deployments/mainnet.json', () 
     );
   });
 
-  it('today (v1 alone) the line reads as it always has', async () => {
+  it('with v1 alone pinned, the line reads as it always has', async () => {
     const r = await checkAnchorOnChain(
       {
         network: 'mainnet',
         txId: TX,
-        contracts: anchorContractsFor('mainnet', V1, undefined),
-        counted: countedContractsFor('mainnet', anchorContractsFor('mainnet', V1, undefined)),
+        contracts: anchorContractsFor('mainnet', V1, undefined, undefined, v1Alone),
+        counted: countedContractsFor('mainnet', anchorContractsFor('mainnet', V1, undefined, undefined, v1Alone)),
         expectedRoot: v1Tx.root,
       },
       deps([{ address: V1, state: V1_STATE, entryPoint: 'anchorBatch' }]),
