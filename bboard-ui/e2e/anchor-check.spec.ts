@@ -142,11 +142,11 @@ test.describe('couldn’t read it from Midnight is not a failure', () => {
   test.skip(REAL_REGISTRY, 'these use the stand-in registry');
 
   const WORDS = {
-    en: 'Couldn’t read the date from Midnight right now. That doesn’t mean anything is wrong with the record.',
-    de: 'Das Datum ließ sich gerade nicht von Midnight lesen. Das heißt nicht, dass mit dem Eintrag etwas nicht stimmt.',
-    es: 'No se pudo leer la fecha en Midnight ahora mismo. Eso no significa que haya nada mal en el registro.',
-    fr: 'Impossible de lire la date sur Midnight pour le moment. Cela ne veut pas dire que l’enregistrement pose problème.',
-    ja: '今はMidnightから日付を読み取れませんでした。記録に問題があるという意味ではありません。',
+    en: 'Couldn’t read the date from Midnight right now. Don’t rely on this date until it’s confirmed.',
+    de: 'Das Datum ließ sich gerade nicht von Midnight lesen. Verlassen Sie sich nicht auf dieses Datum, bevor es bestätigt ist.',
+    es: 'No se pudo leer la fecha en Midnight ahora mismo. No confíe en esta fecha hasta que se confirme.',
+    fr: 'Impossible de lire la date sur Midnight pour le moment. Ne vous fiez pas à cette date tant qu’elle n’est pas confirmée.',
+    ja: '今はMidnightから日付を読み取れませんでした。確認されるまでこの日付を当てにしないでください。',
   } as const;
 
   for (const [lang, words] of Object.entries(WORDS))
@@ -166,11 +166,29 @@ test.describe('couldn’t read it from Midnight is not a failure', () => {
     const errors = watch(page);
     await open(page, notIndexed);
     await expect(page.locator('[data-anchor-check="unreachable"]')).toContainText(
-      'Midnight’s indexer doesn’t show that transaction yet. It may still be catching up: try again in a few minutes.',
+      'Midnight’s indexer doesn’t show that transaction yet. It may still be catching up: try again in a few minutes, and don’t rely on this date until it’s confirmed.',
     );
     await expect(page.locator('[data-anchor-check="failed"]')).toHaveCount(0);
     await expect(page.locator('h1')).toHaveText('Date stamp reported by the registry, not checked here');
     await expect(page.locator('[data-verdict]').first()).toHaveAttribute('data-verdict', 'warn');
+    expectNoErrors(errors);
+  });
+
+  test('a made-up transaction, with an indexer that is caught up: the cross, not “not yet”', async ({ page }) => {
+    const errors = watch(page);
+    // The registry's anchor time (11 Oct) is long before the indexer's latest block (now).
+    await open(page, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        headers: { 'access-control-allow-origin': '*' },
+        body: JSON.stringify({ data: { byHash: [], byId: [], tip: { height: 9_000_000, timestamp: Date.now() } } }),
+      }),
+    );
+    await expect(page.locator('[data-anchor-check="failed"]')).toContainText(
+      'Not confirmed on Midnight: Midnight’s indexer has no transaction',
+    );
+    await expect(page.locator('h1')).toHaveText('Date stamp not confirmed on Midnight');
     expectNoErrors(errors);
   });
 

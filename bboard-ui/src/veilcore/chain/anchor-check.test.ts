@@ -15,6 +15,7 @@ import {
   NOT_FOUND_MARGIN_BLOCKS,
   NOT_FOUND_MARGIN_MS,
   checkAnchorOnChain,
+  missingFromChain,
   isAnchorEntry,
   stateTagOf,
   type AnchorCheckDeps,
@@ -376,10 +377,15 @@ describe('checkAnchorOnChain', () => {
         notFound: true,
         reason: 'Midnight’s indexer has no transaction e13c88f5a2fb…',
       };
+      // The browser's clock a month after the block: an indexer whose latest block is BLOCK_MS is behind.
+      const LATER = BLOCK_MS + 30 * 24 * 3600_000;
       const ask = (tip: unknown, more: { reportedHeight?: number; reportedAt?: string } = {}) =>
         checkAnchorOnChain(
           { ...input, ...more },
-          deps({ [I1]: { byHash: [], ...(tip === undefined ? {} : { tip: tip as never }) } }),
+          {
+            ...deps({ [I1]: { byHash: [], ...(tip === undefined ? {} : { tip: tip as never }) } }),
+            now: () => LATER,
+          },
         );
       // No tip in the answer, or one that can't be read: can't tell.
       expect(await ask(undefined, { reportedHeight: H })).toMatchObject(notYet);
@@ -392,17 +398,72 @@ describe('checkAnchorOnChain', () => {
       expect(await ask({ height: H + NOT_FOUND_MARGIN_BLOCKS, timestamp: BLOCK_MS }, { reportedHeight: H })).toEqual(
         missing,
       );
-      // With no block from the registry, its time: an hour past it.
+      // Its time: an hour past it. With a block too, either one past is enough.
       expect(await ask({ height: 1, timestamp: BLOCK_MS + 60_000 }, { reportedAt: at })).toMatchObject(notYet);
       expect(await ask({ height: 1, timestamp: BLOCK_MS + NOT_FOUND_MARGIN_MS }, { reportedAt: at })).toEqual(missing);
-      // Nothing from the registry to compare against: never "missing".
-      expect(await ask({ height: H + 10 ** 6, timestamp: BLOCK_MS * 2 })).toMatchObject(notYet);
+      expect(
+        await ask({ height: 1, timestamp: BLOCK_MS + NOT_FOUND_MARGIN_MS }, { reportedAt: at, reportedHeight: H }),
+      ).toEqual(missing);
+      // An indexer that is behind, with nothing from the registry: it can't be told yet.
+      expect(await ask({ height: H, timestamp: BLOCK_MS })).toMatchObject(notYet);
       // An answer about some other transaction is the same as none.
       const other = await checkAnchorOnChain(
         { ...input, reportedHeight: H },
         deps({ [I1]: { byHash: [anchorTx({ hash: 'ff'.repeat(32) })], tip: { height: H + 5 } } }),
       );
       expect(other).toMatchObject(notYet);
+    });
+
+    // PR #231 review: the block and time come from the registry, which the check is there to
+    // catch. A forger must not be able to pick them to stay amber "not yet" forever.
+    describe('a forged anchor with a made-up transaction fails, whatever block and time it names', () => {
+      const NOW = Date.UTC(2026, 10, 26, 12, 0, 0);
+      const TIP = { height: 5_000_000, timestamp: NOW - 20_000 };
+      const forged = (more: { reportedHeight?: number; reportedAt?: string }, tip: object = TIP) =>
+        checkAnchorOnChain({ ...input, ...more }, { ...deps({ [I1]: { byHash: [], tip } }), now: () => NOW });
+      const iso = (ms: number) => new Date(ms).toISOString();
+      const missing = { status: 'failed', notFound: true };
+
+      it('a huge block', async () => {
+        expect(await forged({ reportedHeight: Number.MAX_SAFE_INTEGER })).toMatchObject(missing);
+        expect(await forged({ reportedHeight: TIP.height + NOT_FOUND_MARGIN_BLOCKS + 1 })).toMatchObject(missing);
+      });
+
+      it('no block and no time', async () => {
+        expect(await forged({})).toMatchObject(missing);
+      });
+
+      it('a huge block beside an old time: the block never cancels the time', async () => {
+        expect(
+          await forged({ reportedHeight: Number.MAX_SAFE_INTEGER, reportedAt: iso(NOW - 365 * 24 * 3600_000) }),
+        ).toMatchObject(missing);
+        // Even with an indexer whose latest block says nothing of the clock.
+        expect(
+          await forged(
+            { reportedHeight: Number.MAX_SAFE_INTEGER, reportedAt: iso(NOW - 2 * NOT_FOUND_MARGIN_MS) },
+            { height: TIP.height, timestamp: NOW },
+          ),
+        ).toMatchObject(missing);
+      });
+
+      it('a time in the future, even with an indexer that is behind', async () => {
+        expect(await forged({ reportedAt: iso(NOW + 24 * 3600_000) })).toMatchObject(missing);
+        expect(
+          await forged({ reportedAt: iso(NOW + 24 * 3600_000) }, { height: 10, timestamp: NOW - 30 * 24 * 3600_000 }),
+        ).toMatchObject(missing);
+        expect(await forged({ reportedAt: 'not a date' })).toMatchObject(missing);
+      });
+
+      it('only a time within the last hour may stay "not yet": that backdates nothing', async () => {
+        for (const ago of [0, 60_000, NOT_FOUND_MARGIN_MS - 60_000])
+          expect(await forged({ reportedAt: iso(TIP.timestamp - ago) }), String(ago)).toMatchObject({
+            status: 'unreachable',
+            why: 'not-yet',
+          });
+        expect(await forged({ reportedAt: iso(TIP.timestamp - NOT_FOUND_MARGIN_MS) })).toMatchObject(missing);
+        expect(missingFromChain({ height: 9, time: NOW }, { time: NOW - 1000 }, NOW)).toBe(false);
+        expect(missingFromChain({ height: 9, time: NOW }, { time: NOW - 1000, height: 10 ** 9 }, NOW)).toBe(true);
+      });
     });
 
     it('an indexer that times out: couldn’t reach it', async () => {

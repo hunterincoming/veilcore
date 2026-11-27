@@ -27,14 +27,18 @@ gives the registry's reported date (UTC), labelled as the registry's report, wit
 If the transaction wrote a different root, failed, or isn't a date stamp on VeilCore's
 contract, the page says **"Not confirmed on Midnight: …"** with a cross and tells the
 visitor not to rely on the date. The same goes for a transaction the indexer doesn't have
-once the indexer's latest block is well past the block the registry gives for it (600 blocks,
-or an hour when the registry gives only a time).
+once it is missing for good. The block and time the registry gives can only make that sooner,
+never later, because they are the registry's word: it is missing when the indexer's latest block
+is 600 blocks past the registry's block, or an hour past its time (either one); when the
+registry's time is in the future; and, once the indexer is caught up with this browser's clock,
+unless the registry's time is within the last hour (which backdates nothing) or when its block
+is far ahead of the indexer's. Claim links, which anyone can write, follow the same rule.
 
 Only what Midnight contradicts gets the cross. When the page couldn't read the answer, it says
 so with a neutral ○ and the registry's date, labelled as its report, and asks again on the
 next look (nothing is kept for the visit):
-- **"Couldn't read the date from Midnight right now. That doesn't mean anything is wrong with
-  the record."** The indexer gave a contract state this build can't decode: usually a format
+- **"Couldn't read the date from Midnight right now. Don't rely on this date until it's
+  confirmed."** The indexer gave a contract state this build can't decode: usually a format
   Midnight brought in with a newer ledger, after this build. Midnight re-expresses old states in
   each new ledger's format, so until the site ships a decoder for it, every date reads this way,
   not as failed.

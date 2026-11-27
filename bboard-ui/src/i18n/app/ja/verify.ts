@@ -49,9 +49,9 @@ export const verify = {
   'app.verify.anchor.oneIndexer':
     '2つのMidnightインデクサーのうち1つしか確認できませんでした。両方の確認が必要です。{date}',
   'app.verify.anchor.unreadable':
-    '今はMidnightから日付を読み取れませんでした。記録に問題があるという意味ではありません。{date}',
+    '今はMidnightから日付を読み取れませんでした。確認されるまでこの日付を当てにしないでください。{date}',
   'app.verify.anchor.notYet':
-    'Midnightのインデクサーにはまだそのトランザクションが表示されていません。追いついている途中かもしれません。数分後にもう一度お試しください。{date}',
+    'Midnightのインデクサーにはまだそのトランザクションが表示されていません。追いついている途中かもしれません。数分後にもう一度お試しください。確認されるまでこの日付を当てにしないでください。{date}',
   'app.verify.anchor.noIndexer': 'Midnightのインデクサーに接続できませんでした。{date}',
   'app.verify.anchor.headingTest': 'テストネットワークで日付スタンプを確認：練習用のデータで、本当の日付ではありません',
   'app.verify.anchor.headingChecked': 'Midnightで日付スタンプを確認済み',

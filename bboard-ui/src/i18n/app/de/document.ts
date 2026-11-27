@@ -176,7 +176,7 @@ export const document = {
   'app.claim.verdict.checking': 'Dieser Beleg wird in Ihrem Browser geprüft…',
   'app.claim.verdict.failed': 'Dieser Beleg hat die Prüfung nicht bestanden. Verlassen Sie sich nicht darauf.',
   'app.claim.verdict.unreadable':
-    'Dieser Beleg ließ sich gerade nicht von Midnight lesen. Das heißt nicht, dass er falsch ist: Versuchen Sie es in ein paar Minuten erneut.',
+    'Dieser Beleg ließ sich gerade nicht von Midnight lesen. Verlassen Sie sich nicht darauf, bevor er bestätigt ist: Versuchen Sie es in ein paar Minuten erneut.',
   'app.claim.verdict.labFailed':
     'Dieser Beleg hat die Prüfung bestanden, die Signatur des Labors aber nicht. Siehe unten.',
   'app.claim.verdict.someFailed':

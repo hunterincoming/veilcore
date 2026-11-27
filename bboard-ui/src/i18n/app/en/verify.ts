@@ -53,9 +53,9 @@ export const verify = {
   'app.verify.anchor.dateNotChecked': 'The date is {date}; not checked here.',
   'app.verify.anchor.oneIndexer': 'Only one of the two Midnight indexers could confirm it, and both must. {date}',
   'app.verify.anchor.unreadable':
-    'Couldn’t read the date from Midnight right now. That doesn’t mean anything is wrong with the record. {date}',
+    'Couldn’t read the date from Midnight right now. Don’t rely on this date until it’s confirmed. {date}',
   'app.verify.anchor.notYet':
-    'Midnight’s indexer doesn’t show that transaction yet. It may still be catching up: try again in a few minutes. {date}',
+    'Midnight’s indexer doesn’t show that transaction yet. It may still be catching up: try again in a few minutes, and don’t rely on this date until it’s confirmed. {date}',
   'app.verify.anchor.noIndexer': 'Couldn’t reach a Midnight indexer. {date}',
   'app.verify.anchor.headingTest': 'Date stamp checked on a test network: practice data, not a real date',
   'app.verify.anchor.headingChecked': 'Date stamp checked on Midnight',

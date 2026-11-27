@@ -273,7 +273,8 @@ export const datedCodesOf = (c: Pick<TwoClaim, 'record' | 'other' | 'keyBinding'
 
 export type TwoVerdict =
   | { readonly ok: true; readonly blockHeight?: number; readonly blockTime?: number }
-  | { readonly ok: false; readonly reason: string };
+  /** `unreadable`: nothing found wrong, it just couldn't be read from Midnight (claim-link.ts ClaimVerdict). */
+  | { readonly ok: false; readonly reason: string; readonly unreadable?: true };
 
 const hex = (b: Uint8Array): string => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
 

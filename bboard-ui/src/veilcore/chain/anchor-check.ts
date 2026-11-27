@@ -113,8 +113,8 @@ export type AnchorCheckInput = {
   readonly expectedRoot: string;
   /**
    * The block height the registry reports for the anchor, and its time for it (ISO). Only used
-   * to tell "not on the indexer yet" from "not on Midnight": a transaction the indexer doesn't
-   * have counts as missing only once the indexer's latest block is clearly past these.
+   * to tell "not on the indexer yet" from "not on Midnight" (missingFromChain). They are the
+   * registry's word, so they can only ever make a missing transaction fail sooner, never later.
    */
   readonly reportedHeight?: number;
   readonly reportedAt?: string;
@@ -126,6 +126,48 @@ export type AnchorCheckInput = {
  */
 export const NOT_FOUND_MARGIN_BLOCKS = 600;
 export const NOT_FOUND_MARGIN_MS = 60 * 60 * 1000;
+/** An indexer whose latest block is this recent, by the browser's clock, is caught up. */
+export const TIP_CURRENT_MS = 10 * 60 * 1000;
+/** How far ahead of the indexer's and the browser's clocks a claimed time may be. */
+export const CLOCK_SKEW_MS = 10 * 60 * 1000;
+
+/**
+ * Whether a transaction the indexer doesn't have is missing for good, not just not reached yet.
+ *
+ * The block and time it is compared with come from whoever is being checked (the registry's
+ * report of an anchor, or a claim link anyone can write). So they may be picked to stay "not
+ * yet" forever: a huge block, a time in the future, or none at all. The rule only lets them make
+ * it fail sooner (PR #231 review):
+ *   - missing when EITHER the claimed block is clearly behind the indexer's latest block OR the
+ *     claimed time is clearly before its latest block's time: a huge block never cancels an old
+ *     time;
+ *   - missing when the claimed time is in the future by both the indexer's clock and this
+ *     browser's;
+ *   - once the indexer is caught up (its latest block is current by this browser's clock),
+ *     missing unless a time within the last hour is claimed, and missing when the claimed block
+ *     is far ahead of the latest one.
+ * So the only way to stay "not yet" is to claim the last hour, which backdates nothing: that is
+ * the date the page shows. An indexer that is behind, or gives no latest block, is not the
+ * claimant's to choose, so then only the first two rules apply.
+ */
+export const missingFromChain = (
+  tip: { readonly height?: number; readonly time?: number } | undefined,
+  claimed: { readonly height?: number; readonly time?: number },
+  now: number,
+): boolean => {
+  const h = heightOf(claimed.height);
+  const t = typeof claimed.time === 'number' && Number.isFinite(claimed.time) ? claimed.time : undefined;
+  const tipHeight = heightOf(tip?.height);
+  const tipTime = typeof tip?.time === 'number' && Number.isFinite(tip.time) ? tip.time : undefined;
+  if (h !== undefined && tipHeight !== undefined && tipHeight >= h + NOT_FOUND_MARGIN_BLOCKS) return true;
+  if (t !== undefined && tipTime !== undefined && tipTime >= t + NOT_FOUND_MARGIN_MS) return true;
+  if (t !== undefined && t > Math.max(now, tipTime ?? -Infinity) + CLOCK_SKEW_MS) return true;
+  if (tipTime !== undefined && tipTime >= now - TIP_CURRENT_MS) {
+    if (t === undefined) return true;
+    if (h !== undefined && tipHeight !== undefined && h > tipHeight + NOT_FOUND_MARGIN_BLOCKS) return true;
+  }
+  return false;
+};
 
 export type AnchorCheckDeps = {
   /** The network this build reads. Only that one is looked up. */
@@ -134,6 +176,8 @@ export type AnchorCheckDeps = {
   readonly indexers: readonly string[];
   readonly fetch?: typeof fetch;
   readonly timeoutMs?: number;
+  /** This browser's clock (missingFromChain); Date.now otherwise. */
+  readonly now?: () => number;
   /**
    * Reads lastBatchRoot from a state's hex, with the decoder of the contract version the call
    * was on (anchor-decode.ts); loaded on first use otherwise.
@@ -331,21 +375,18 @@ const askOne = async (
   if (conflicting)
     return { kind: 'refused', reason: `the indexer gave two different answers for transaction ${short(input.txId)}` };
   if (found.size === 0) {
-    // Missing only once the indexer is clearly past the block the registry reports; until then,
-    // or with nothing to compare against, it may just not have reached it yet.
+    // Missing, or not reached yet: judged against the indexer's own latest block and this
+    // browser's clock, never on the registry's word alone (missingFromChain).
     const tip =
       typeof body.data.tip === 'object' && body.data.tip !== null ? (body.data.tip as Tx['block']) : undefined;
-    const tipHeight = heightOf(tip?.height);
-    const tipTime = blockTimeMs(tip?.timestamp);
-    const reportedTime = input.reportedAt === undefined ? NaN : Date.parse(input.reportedAt);
-    const past =
-      (input.reportedHeight !== undefined &&
-        tipHeight !== undefined &&
-        tipHeight >= input.reportedHeight + NOT_FOUND_MARGIN_BLOCKS) ||
-      (input.reportedHeight === undefined &&
-        Number.isFinite(reportedTime) &&
-        tipTime !== undefined &&
-        tipTime >= reportedTime + NOT_FOUND_MARGIN_MS);
+    const past = missingFromChain(
+      { height: heightOf(tip?.height), time: blockTimeMs(tip?.timestamp) },
+      {
+        height: input.reportedHeight,
+        time: input.reportedAt === undefined ? undefined : Date.parse(input.reportedAt),
+      },
+      (deps.now ?? Date.now)(),
+    );
     return past
       ? { kind: 'refused', notFound: true, reason: `Midnight’s indexer has no transaction ${short(input.txId)}` }
       : {

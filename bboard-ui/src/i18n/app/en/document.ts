@@ -177,7 +177,7 @@ export const document = {
   'app.claim.verdict.checking': 'Checking this claim in your browser…',
   'app.claim.verdict.failed': 'This claim didn’t check out. Don’t rely on it.',
   'app.claim.verdict.unreadable':
-    'Couldn’t read this claim from Midnight right now. That doesn’t mean it’s wrong: try again in a few minutes.',
+    'Couldn’t read this claim from Midnight right now. Don’t rely on it until it’s confirmed: try again in a few minutes.',
   'app.claim.verdict.labFailed': 'This claim checked out, but the lab’s signature on it didn’t. See below.',
   'app.claim.verdict.someFailed': 'This claim checked out, but another one in this link didn’t. See below.',
   'app.claim.verdict.okWhen': 'Proved on {date}. Checked in your browser.',

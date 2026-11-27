@@ -55,9 +55,9 @@ export const verify = {
   'app.verify.anchor.oneIndexer':
     'Solo uno de los dos indexadores de Midnight pudo confirmarlo, y deben hacerlo ambos. {date}',
   'app.verify.anchor.unreadable':
-    'No se pudo leer la fecha en Midnight ahora mismo. Eso no significa que haya nada mal en el registro. {date}',
+    'No se pudo leer la fecha en Midnight ahora mismo. No confíe en esta fecha hasta que se confirme. {date}',
   'app.verify.anchor.notYet':
-    'El indexador de Midnight aún no muestra esa transacción. Puede que todavía se esté poniendo al día: inténtelo de nuevo en unos minutos. {date}',
+    'El indexador de Midnight aún no muestra esa transacción. Puede que todavía se esté poniendo al día: inténtelo de nuevo en unos minutos y no confíe en esta fecha hasta que se confirme. {date}',
   'app.verify.anchor.noIndexer': 'No se pudo conectar con un indexador de Midnight. {date}',
   'app.verify.anchor.headingTest':
     'Sello de fecha comprobado en una red de pruebas: datos de práctica, no una fecha real',

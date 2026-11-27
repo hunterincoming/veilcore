@@ -119,7 +119,7 @@ export const TwoClaimCheck: React.FC = () => {
                 variant="h6"
                 component="p"
                 color={verdict?.ok ? 'text.primary' : 'text.secondary'}
-                sx={{ mb: 1, textDecoration: verdict && !verdict.ok ? 'line-through' : 'none' }}
+                sx={{ mb: 1, textDecoration: verdict && !verdict.ok && !verdict.unreadable ? 'line-through' : 'none' }}
                 data-claim-statement=""
               >
                 {statement}
@@ -141,7 +141,13 @@ export const TwoClaimCheck: React.FC = () => {
                   })}
                 </Alert>
               )}
-              {verdict && !verdict.ok && (
+              {/* Couldn't read it from Midnight: a warning, never the failure's cross (chain/read-failure.ts). */}
+              {verdict && !verdict.ok && verdict.unreadable && (
+                <Alert severity="warning" variant="outlined" data-claim-verdict="unreadable">
+                  {t('app.claim.verdict.unreadable')}
+                </Alert>
+              )}
+              {verdict && !verdict.ok && !verdict.unreadable && (
                 <Alert severity="error" variant="outlined" data-claim-verdict="failed">
                   {t('app.claim.check.failed', { reason: errorReason(verdict.reason, tr) })}
                 </Alert>

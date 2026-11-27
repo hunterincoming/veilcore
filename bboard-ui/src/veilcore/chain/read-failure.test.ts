@@ -1,9 +1,10 @@
 // "Midnight says no" against "couldn't read Midnight" for the claim, licence and "prove you hold
 // it" checks (read-failure.ts; foundation review, 26 Nov 2026, items 1 and 5).
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { indexerTip, lookupFailureOf, lookupWords, pastExpected, TIP_QUERY } from './read-failure';
+import { indexerTip, lookupFailureOf, lookupWords, TIP_QUERY } from './read-failure';
 import { NOT_FOUND_MARGIN_BLOCKS, NOT_FOUND_MARGIN_MS } from './anchor-check';
-import { checkClaim } from './claim-check';
+import { checkClaim, checkTwoClaim } from './claim-check';
+import type { TwoClaim } from '../two-record-claims';
 import { checkLicense } from './license-check';
 import { checkAnchor, checkOwnership } from './ownership-check';
 import { newChallenge } from './challenge-book';
@@ -17,7 +18,6 @@ const DECODE = [
   new Error("Unsupported contract state version 'midnight:contract-state[v99]'"),
   new Error('A contract state is hex.'),
   new RangeError('WebAssembly.Memory(): could not allocate memory'),
-  new Error("The contract's maintenance committee holds a key that is not a Schnorr key; refused."),
 ];
 const UNREACHABLE = [
   new TypeError('Failed to fetch'),
@@ -27,6 +27,9 @@ const UNREACHABLE = [
   new Error('The indexer refused the query: too complex'),
   new Error('The second indexer does not confirm that transaction (No such transaction.). Refused.'),
 ];
+// The browser's clock, and an indexer that is behind it (its latest block a month old).
+const NOW = Date.UTC(2026, 10, 26, 12, 0, 0);
+const BEHIND = NOW - 30 * 24 * 3600_000;
 const REFUSED = [
   new Error('That transaction is not a single licence presentation on this contract.'),
   new Error('That transaction is not a single claim on VeilCore’s claims contract.'),
@@ -41,6 +44,19 @@ describe('lookupFailureOf', () => {
     for (const e of REFUSED) expect(lookupFailureOf(e), e.message).toBe('refused');
     for (const e of UNREACHABLE) expect(lookupFailureOf(e), e.message).toBe('unreachable');
     for (const e of DECODE) expect(lookupFailureOf(e), e.message).toBe('unreadable');
+    // What a state holds, read and refused: a verdict, never "try again".
+    for (const m of [
+      "The contract's maintenance committee holds a key that is not a Schnorr key; refused.",
+      'Those cells hold no claim (no claim has been made).',
+    ])
+      expect(lookupFailureOf(new Error(m)), m).toBe('refused');
+    // The second indexer: refused only when it read the transaction and Midnight contradicts it.
+    const second = (inner: string) =>
+      new Error(`The second indexer does not confirm that transaction (${inner}). Refused.`);
+    expect(lookupFailureOf(second('That transaction did not succeed.'))).toBe('refused');
+    expect(lookupFailureOf(second('No such transaction.'))).toBe('unreachable');
+    expect(lookupFailureOf(second('The indexer answered 502.'))).toBe('unreachable');
+    expect(lookupFailureOf(second('Not a contract state from ledger 8 or ledger 9.'))).toBe('unreachable');
     expect(lookupFailureOf(new Error('No such transaction.'))).toBe('not-yet');
     expect(lookupFailureOf('something nobody planned for')).toBe('unreadable');
   });
@@ -53,18 +69,7 @@ describe('lookupFailureOf', () => {
   });
 });
 
-describe('pastExpected and indexerTip', () => {
-  it('missing only once the indexer is clearly past the block, or with no block the time, it was named with', () => {
-    expect(pastExpected(undefined, { height: 1 })).toBe(false);
-    expect(pastExpected({ height: 100 + NOT_FOUND_MARGIN_BLOCKS - 1 }, { height: 100 })).toBe(false);
-    expect(pastExpected({ height: 100 + NOT_FOUND_MARGIN_BLOCKS }, { height: 100 })).toBe(true);
-    expect(pastExpected({ time: 10 + NOT_FOUND_MARGIN_MS - 1 }, { time: 10 })).toBe(false);
-    expect(pastExpected({ time: 10 + NOT_FOUND_MARGIN_MS }, { time: 10 })).toBe(true);
-    // A block given wins over a time: a tip with only a time can't be compared with it.
-    expect(pastExpected({ time: 10 ** 13 }, { height: 100, time: 10 })).toBe(false);
-    expect(pastExpected({ height: 10 ** 9, time: 10 ** 13 }, {})).toBe(false);
-  });
-
+describe('indexerTip', () => {
   it('asks the indexer for its latest block, which the relay passes on; never throws', async () => {
     const asked: string[] = [];
     const ok = ((_u: string, init?: RequestInit) => {
@@ -103,24 +108,65 @@ describe('the claim check', () => {
     for (const e of REFUSED) expect(await checkClaim(link, failing(e))).toEqual({ ok: false, reason: e.message });
   });
 
-  it('a transaction the indexer doesn’t have: not yet, until its latest block is clearly past the link’s', async () => {
+  it('a transaction the indexer doesn’t have: not yet only while the indexer is behind the link’s block', async () => {
     const missing = new Error('No such transaction.');
-    for (const tip of [undefined, { height: 500 }, { height: 500 + NOT_FOUND_MARGIN_BLOCKS - 1 }])
-      expect(await checkClaim(link, { ...failing(missing), tip: () => Promise.resolve(tip) })).toMatchObject({
-        ok: false,
-        unreadable: true,
-      });
-    expect(
-      await checkClaim(link, {
+    const at = (tip: unknown) => ({ ...failing(missing), tip: () => Promise.resolve(tip as never), now: () => NOW });
+    for (const tip of [undefined, { height: 500 }, { height: 500 + NOT_FOUND_MARGIN_BLOCKS - 1, time: BEHIND }])
+      expect(await checkClaim(link, at(tip))).toMatchObject({ ok: false, unreadable: true });
+    expect(await checkClaim(link, at({ height: 500 + NOT_FOUND_MARGIN_BLOCKS }))).toEqual({
+      ok: false,
+      reason: 'Midnight has no such transaction.',
+    });
+  });
+
+  // PR #231 review: anyone can write a claim link, its block and time included. A made-up
+  // transaction must fail, never read as "couldn't read it", whatever the link names.
+  describe('a forged claim link with a made-up transaction fails', () => {
+    const missing = new Error('No such transaction.');
+    const TIP = { height: 5_000_000, time: NOW - 20_000 };
+    const forged = (over: object, tip: object = TIP) =>
+      checkClaim({ contract: CONTRACT, txId: 'ab'.repeat(32), ...over } as unknown as MadeClaim, {
         ...failing(missing),
-        tip: () => Promise.resolve({ height: 500 + NOT_FOUND_MARGIN_BLOCKS }),
-      }),
-    ).toEqual({ ok: false, reason: 'Midnight has no such transaction.' });
-    // A link that names no block or time: can't tell, so not yet.
-    const bare = { contract: CONTRACT, txId: 'ab'.repeat(32) } as unknown as MadeClaim;
-    expect(
-      await checkClaim(bare, { ...failing(missing), tip: () => Promise.resolve({ height: 10 ** 9, time: 10 ** 13 }) }),
-    ).toMatchObject({ unreadable: true });
+        tip: () => Promise.resolve(tip),
+        now: () => NOW,
+      });
+    const no = { ok: false, reason: 'Midnight has no such transaction.' };
+
+    it('with no block and no time', async () => expect(await forged({})).toEqual(no));
+    it('with a huge block', async () => {
+      expect(await forged({ blockHeight: Number.MAX_SAFE_INTEGER })).toEqual(no);
+    });
+    it('with a huge block beside an old time', async () => {
+      expect(await forged({ blockHeight: Number.MAX_SAFE_INTEGER, blockTime: NOW - 2 * NOT_FOUND_MARGIN_MS })).toEqual(
+        no,
+      );
+    });
+    it('with a time in the future, even when the indexer is behind', async () => {
+      expect(await forged({ blockTime: NOW + 24 * 3600_000 }, { height: 10, time: BEHIND })).toEqual(no);
+    });
+    it('only a time within the last hour may wait', async () => {
+      expect(await forged({ blockTime: TIP.time - 60_000 })).toMatchObject({ unreadable: true });
+    });
+    it('a claim about two records, the same', async () => {
+      const two = (over: object) =>
+        checkTwoClaim({ contract: CONTRACT, txId: 'ab'.repeat(32), ...over } as unknown as TwoClaim, {
+          ...failing(missing),
+          tip: () => Promise.resolve(TIP),
+          now: () => NOW,
+        });
+      expect(await two({})).toEqual(no);
+      expect(await two({ blockHeight: Number.MAX_SAFE_INTEGER })).toEqual(no);
+      expect(await two({ blockTime: TIP.time - 60_000 })).toMatchObject({ unreadable: true });
+      for (const e of DECODE)
+        expect(
+          await checkTwoClaim({ contract: CONTRACT, txId: 'ab'.repeat(32) } as unknown as TwoClaim, failing(e)),
+          e.message,
+        ).toEqual({ ok: false, reason: e.message, unreadable: true });
+      for (const e of REFUSED)
+        expect(
+          await checkTwoClaim({ contract: CONTRACT, txId: 'ab'.repeat(32) } as unknown as TwoClaim, failing(e)),
+        ).toEqual({ ok: false, reason: e.message });
+    });
   });
 });
 

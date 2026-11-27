@@ -57,9 +57,9 @@ export const verify = {
   'app.verify.anchor.oneIndexer':
     'Nur einer der zwei Midnight-Indexer konnte es bestätigen, und beide müssen es. {date}',
   'app.verify.anchor.unreadable':
-    'Das Datum ließ sich gerade nicht von Midnight lesen. Das heißt nicht, dass mit dem Eintrag etwas nicht stimmt. {date}',
+    'Das Datum ließ sich gerade nicht von Midnight lesen. Verlassen Sie sich nicht auf dieses Datum, bevor es bestätigt ist. {date}',
   'app.verify.anchor.notYet':
-    'Der Midnight-Indexer zeigt diese Transaktion noch nicht. Vielleicht holt er noch auf: Versuchen Sie es in ein paar Minuten erneut. {date}',
+    'Der Midnight-Indexer zeigt diese Transaktion noch nicht. Vielleicht holt er noch auf: Versuchen Sie es in ein paar Minuten erneut, und verlassen Sie sich nicht auf dieses Datum, bevor es bestätigt ist. {date}',
   'app.verify.anchor.noIndexer': 'Kein Midnight-Indexer war erreichbar. {date}',
   'app.verify.anchor.headingTest': 'Datumsstempel in einem Testnetz geprüft: Übungsdaten, kein echtes Datum',
   'app.verify.anchor.headingChecked': 'Datumsstempel auf Midnight geprüft',

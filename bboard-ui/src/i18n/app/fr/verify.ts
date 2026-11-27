@@ -55,9 +55,9 @@ export const verify = {
   'app.verify.anchor.dateNotChecked': 'La date est {date} ; non vérifiée ici.',
   'app.verify.anchor.oneIndexer': 'Un seul des deux indexeurs Midnight a pu le confirmer, et il faut les deux. {date}',
   'app.verify.anchor.unreadable':
-    'Impossible de lire la date sur Midnight pour le moment. Cela ne veut pas dire que l’enregistrement pose problème. {date}',
+    'Impossible de lire la date sur Midnight pour le moment. Ne vous fiez pas à cette date tant qu’elle n’est pas confirmée. {date}',
   'app.verify.anchor.notYet':
-    'L’indexeur Midnight n’affiche pas encore cette transaction. Il est peut-être encore en train de rattraper son retard : réessayez dans quelques minutes. {date}',
+    'L’indexeur Midnight n’affiche pas encore cette transaction. Il est peut-être encore en train de rattraper son retard : réessayez dans quelques minutes, et ne vous fiez pas à cette date tant qu’elle n’est pas confirmée. {date}',
   'app.verify.anchor.noIndexer': 'Impossible de joindre un indexeur Midnight. {date}',
   'app.verify.anchor.headingTest':
     'Horodatage vérifié sur un réseau de test : données d’entraînement, pas une vraie date',

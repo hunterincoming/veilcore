@@ -10,7 +10,7 @@
 // package won't load) is "couldn't read": never a failure, and worth trying again.
 // SPDX-License-Identifier: Apache-2.0
 
-import { blockTimeMs, NOT_FOUND_MARGIN_BLOCKS, NOT_FOUND_MARGIN_MS } from './anchor-check';
+import { blockTimeMs, missingFromChain } from './anchor-check';
 
 export type LookupFailure = 'refused' | 'not-yet' | 'unreachable' | 'unreadable';
 
@@ -21,13 +21,18 @@ const REFUSALS: readonly RegExp[] = [
   /^The indexer gave two different transactions for that hash\./,
   /^That is not a transaction id\./,
   /^The two indexers disagree about that transaction/,
+  // What the state holds, read, and refused: never accepted, so never "try again".
+  /^The contract's maintenance committee holds a key that is not a Schnorr key; refused\./,
+  /^Those cells hold no claim/,
 ];
+
+/** The second indexer's own answer, inside the look-up's "does not confirm" (presentation-lookup.ts lookUp). */
+const SECOND = /^The second indexer does not confirm that transaction \((.*)\)\. Refused\.$/s;
 
 /** The network or the indexer didn't answer (presentation-lookup.ts, and the browser's own fetch errors). */
 const UNREACHABLE: readonly RegExp[] = [
   /^The indexer answered \d+\./,
   /^The indexer refused the query/,
-  /^The second indexer does not confirm that transaction/,
   /Failed to fetch|NetworkError|Load failed|timed? ?out|aborted/i,
 ];
 
@@ -37,6 +42,10 @@ const messageOf = (e: unknown): string => (e instanceof Error ? e.message : Stri
 export const lookupFailureOf = (e: unknown): LookupFailure => {
   const msg = messageOf(e);
   const name = e instanceof Error ? e.name : '';
+  // The second indexer read it and says Midnight contradicts it: both read, and they differ.
+  // Anything else from it (no answer, behind, couldn't decode) is "couldn't confirm".
+  const second = SECOND.exec(msg);
+  if (second) return lookupFailureOf(new Error(second[1])) === 'refused' ? 'refused' : 'unreachable';
   if (REFUSALS.some((r) => r.test(msg))) return 'refused';
   if (/^No such transaction\b/.test(msg)) return 'not-yet';
   if (name === 'AbortError' || name === 'TimeoutError' || UNREACHABLE.some((r) => r.test(msg))) return 'unreachable';
@@ -85,15 +94,24 @@ export const indexerTip = async (indexer: string, f: typeof fetch = fetch, timeo
 };
 
 /**
- * Whether a transaction the indexer doesn't have is missing for good: the indexer's latest
- * block is clearly past the block (or, with no block, the time) the link gives for it. With
- * neither to compare, or no tip, it can't be told: not missing.
+ * A look-up error, for a link whose own block and time say when its transaction landed (a claim
+ * link anyone can write): `refused` for what Midnight contradicts, including a transaction the
+ * indexer doesn't have once it is missing by anchor-check.ts missingFromChain (the link's block
+ * and time can only make that sooner, never later); otherwise couldn't read.
  */
-export const pastExpected = (tip: IndexerTip, expected: { height?: number; time?: number }): boolean => {
-  if (tip === undefined) return false;
-  if (expected.height !== undefined)
-    return tip.height !== undefined && tip.height >= expected.height + NOT_FOUND_MARGIN_BLOCKS;
-  if (expected.time !== undefined && Number.isFinite(expected.time))
-    return tip.time !== undefined && tip.time >= expected.time + NOT_FOUND_MARGIN_MS;
-  return false;
+export const linkReadFailure = async (
+  e: unknown,
+  claimed: { readonly blockHeight?: number; readonly blockTime?: number },
+  tip: () => Promise<IndexerTip>,
+  now: number,
+): Promise<{ refused: true; reason: string } | { refused: false; reason: string }> => {
+  const reason = messageOf(e);
+  const kind = lookupFailureOf(e);
+  if (kind === 'refused') return { refused: true, reason };
+  if (
+    kind === 'not-yet' &&
+    missingFromChain(await tip(), { height: claimed.blockHeight, time: claimed.blockTime }, now)
+  )
+    return { refused: true, reason: 'Midnight has no such transaction.' };
+  return { refused: false, reason };
 };
