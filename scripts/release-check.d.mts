@@ -20,7 +20,10 @@ export type Manifest = {
   headers?: Record<string, string>;
   /** The build mode, every VITE_* setting, and the Node and npm versions (round 6). */
   build?: BuildFacts;
+  /** The proving files this release reads from VeilCore's proof file host instead of serving them. */
+  proofFiles?: ProofFiles;
 };
+export type ProofFiles = { url: string; files: Record<string, string> };
 export type RouteCheck = {
   total: number;
   matched: string[];
@@ -49,6 +52,7 @@ export const SECURITY_HEADERS: readonly string[];
 export const APP_ROUTES: readonly string[];
 export const NAVIGATE_HEADERS: Readonly<Record<string, string>>;
 export function isBuildFacts(v: unknown): v is BuildFacts;
+export function isProofFiles(v: unknown): v is ProofFiles;
 export function routesToCheck(): string[];
 export function checkRoutes(
   site: string,

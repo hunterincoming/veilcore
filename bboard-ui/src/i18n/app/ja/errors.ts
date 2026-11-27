@@ -32,6 +32,10 @@ export const errors = {
   'app.err.chain.circuitFilesMismatch':
     'このサイトの{circuit}用の証明用ファイルは、コントラクトが使うものと一致しません。',
   'app.err.chain.filesMissing': '{circuit}用の証明用ファイルは、まだこのサイトにありません。',
+  'app.err.chain.proofFileWrong':
+    '証明用ファイルが、このサイトの作成時に決めたファイルと完全には一致しなかったため、使いませんでした。何も送信していません。',
+  'app.err.chain.proofFilesUnreachable':
+    '証明用ファイルを今はダウンロードできませんでした。何も送信していません。数分後にもう一度お試しください。',
   'app.err.chain.paramsMissing': '公開パラメーター（k={k}）は、まだこのサイトにありません。',
   'app.err.chain.callFailed': 'ネットワークは呼び出しを取り込みましたが、成功しませんでした（{status}）。',
   'app.err.chain.hashUnreadable': 'ネットワークは取り込みましたが、そのトランザクションハッシュを読み取れませんでした',

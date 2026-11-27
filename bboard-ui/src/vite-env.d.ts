@@ -23,6 +23,11 @@ declare global {
     readonly VITE_REAL_CHAIN_CONTRACT_ADDRESS?: string;
     /** The sponsor service that pays the network fee. */
     readonly VITE_SPONSOR_URL?: string;
+    /**
+     * Where the proving keys and public parameters are read from, each checked against its
+     * pinned SHA-256 (veilcore/chain/proof-files.ts): https://keys.veilcore.org on VeilCore's sites.
+     */
+    readonly VITE_PROOF_FILES_URL?: string;
     /** Optional indexer override; the network's public indexer otherwise. */
     readonly VITE_INDEXER_URL?: string;
     readonly VITE_INDEXER_WS_URL?: string;

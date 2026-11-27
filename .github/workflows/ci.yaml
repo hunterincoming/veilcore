@@ -108,10 +108,11 @@ jobs:
           node --test scripts/committee/committee.test.mjs
 
       # The deploy scripts' refusals (a test site with claims but no claims keys, a mainnet
-      # build with a leftover indexer, a deploy from a commit CI has not passed). Nothing is deployed.
+      # build with a leftover indexer, a deploy from a commit CI has not passed, proving files
+      # not on keys.veilcore.org as pinned). Nothing is deployed.
       - name: Deploy script checks
         run: |
-          node --test scripts/deploy-gate.test.mjs scripts/deploy-test-site.test.mjs scripts/deploy-mainnet.test.mjs scripts/contracts-package.test.mjs
+          node --test scripts/deploy-gate.test.mjs scripts/deploy-test-site.test.mjs scripts/deploy-mainnet.test.mjs scripts/contracts-package.test.mjs scripts/proof-files.test.mjs
 
       # The fee sponsor and its indexer relay (sponsor/): the code veilcore.org's sends go
       # through. Nothing is sent; the network is stood in for.

@@ -10,6 +10,14 @@ section.
 
 ## [Unreleased]
 
+### Proving keys served from keys.veilcore.org, not stored with every deploy (27 Nov 2026, not deployed yet)
+
+- The proving keys and public parameters (over 135 MB) are no longer in the site's build. They are
+  published once on `https://keys.veilcore.org` (`npm run publish:proof-files`), and the page
+  checks every one against the SHA-256 pinned in the build before using it
+  (`docs/proof-files.md`). Each deploy is about 70 MB instead of about 206 MB plus the parameters.
+- `deploy:mainnet` and `deploy:test` refuse unless every pinned file is on that host, byte for byte.
+
 ### Contract version 2 pinned on mainnet, for team testing (25 Nov 2026, not deployed yet)
 
 - Contract version 2 (main `2f3392b6…`, claims `f5bc670d…`) is deployed on mainnet for testing by

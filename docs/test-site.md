@@ -30,10 +30,9 @@ compactc 0.31.1 can no longer be deployed there (`docs/maintenance-committee.md`
 
 Claims (`docs/claims-screen.md`) follow the sponsor: if its `/sponsor/status` names a
 `claimsAddress` (Railway variable `VEILCORE_CLAIMS_ADDRESS`), the site is built to prove on that
-contract, and `deploy:test` refuses unless the claims proving keys
-(`npm exec --package=@veilcore/contracts@0.3.0 -- veilcore-keys fetch --to contract/src/managed`)
-and the k=15 and k=16 parameters (`node scripts/fetch-params.mjs` in `bboard-ui`) are on this
-computer. No claims address at the sponsor: the site offers no claims. There is no site
+contract, and `deploy:test` refuses unless the claims proving keys and the k=15 and k=16
+parameters are among the site's pinned proof files. No claims address at the sponsor: the site
+offers no claims. There is no site
 setting to forget.
 
 Deploy the registry before the site: the site's sample custody fields (the sample details a lab sees, and what it notes on arrival) use the registry's `/transfers/:id/custody` route.
@@ -43,8 +42,10 @@ preprod, the registry's `/health` lists `sealed-records-v1`, `lab-results-v1`,
 `animal-profile-v1`, `claimant-offer-v1`, `sealed-custody-v1`, `record-rev-v1`,
 `license-rev-v1` and the agreement features `license-invites-v1`, `deals-v1` and
 `payment-receipts-v1` (the full list is `scripts/registry-features.mjs`; if not:
-deploy the registry first), the sponsor uses the practice contract, the relay answers for test.veilcore.org, and the proving files
-are on this computer. It makes a preview deployment (never `--prod`) and aliases it to
+deploy the registry first), the sponsor uses the practice contract, the relay answers for test.veilcore.org, and every proving
+key and parameter the site pins is on https://keys.veilcore.org, byte for byte (it downloads and
+checks them all; publish them once with `npm run publish:proof-files`, `docs/proof-files.md`).
+The test site uses the same files as veilcore.org (the practice contract has the same keys). It makes a preview deployment (never `--prod`) and aliases it to
 test.veilcore.org only. The domain is deliberately not added to the Vercel project: a
 project domain would follow every production deploy of veilcore.org.
 

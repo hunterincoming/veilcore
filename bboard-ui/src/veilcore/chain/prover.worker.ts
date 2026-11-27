@@ -13,6 +13,7 @@
 
 import { check, prove } from '@midnight-ntwrk/zkir-v2';
 import { makeKeyMaterialProvider } from './zk-material';
+import { PROOF_FILES_URL } from './proof-files';
 import { solvePow } from './pow';
 
 type In =
@@ -26,7 +27,12 @@ const providers = new Map<string, ReturnType<typeof makeKeyMaterialProvider>>();
 const kmFor = (cacheName: string) => {
   let km = providers.get(cacheName);
   if (!km) {
-    km = makeKeyMaterialProvider(self.location.origin, cacheName, progress);
+    km = makeKeyMaterialProvider(
+      self.location.origin,
+      cacheName,
+      progress,
+      PROOF_FILES_URL ? { host: PROOF_FILES_URL } : undefined,
+    );
     providers.set(cacheName, km);
   }
   return km;

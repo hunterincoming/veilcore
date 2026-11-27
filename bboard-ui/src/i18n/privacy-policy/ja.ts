@@ -184,7 +184,7 @@ export const policyJa: PolicyStrings = {
   'm.pp.col.does': '役割',
   'm.pp.col.gets': '受け取るもの',
   'm.pp.others.vercel.n': 'Vercel',
-  'm.pp.others.vercel.does': 'このウェブサイトのホスティング',
+  'm.pp.others.vercel.does': 'このウェブサイトと、その証明用ファイルを置くkeys.veilcore.orgのホスティング',
   'm.pp.others.vercel.gets':
     'あなたのIPアドレスと、読み込むページやファイル。確認ページのアドレスには記録のIDと証明コードが含まれます。Vercelはリクエストのログを取っています。',
   'm.pp.others.railway.n': 'Railway',
@@ -264,11 +264,11 @@ export const policyJa: PolicyStrings = {
   'm.pp.tech.storage.settings':
     '設定と印：veilcore.langとveilcore.role.v1（設定）、veilcore.bulk-import.stamps-on.v1とveilcore.bulk-import.stamps.v1（取り込んだ記録の鍵の日付スタンプ）、veilcore.sponsor-ticket.v1（手数料サービス用のランダムなチケットで、保有者キーではありません）、veilcore.account-copy.v1（保存したコピーの状態）、veilcore.account.device.v1（そのコピーでのこの端末のランダムなID）、veilcore.account.last-passkey.v1とveilcore:passkey-copy（最後に使ったパスキーのIDで、パスキーそのものではありません）、veilcore.rev.v1（各記録の、見た中で最新の版）、veilcore.records.arrived.v1、veilcore.record-keys.forgotten.v1、veilcore.record-keys.forgotten-at.v1、veilcore.record-keys.restored.v1（バックアップから来た記録、削除した記録、戻した記録のID）、veilcore.attester.backed-up.v1、veilcore.attester.backed-up.copy.v1、veilcore.issuer-deals-backed-up.v1、veilcore.issuer-deals-backed-up.copy.v1、veilcore.device-only-backup.v1、veilcore.receiving-backed-up.v1（確認済みのバックアップに入っているもの）、veilcore.invite-unsure.v1.<license>（はっきりした応答がなかった招待）、veilcore.record-watch.seen.v1、veilcore.ask.seen.v1、veilcore.draft-notice-closed.v1、veilcore.install-card.v1、veilcore.lab-visibility-seen.v2、veilcore.log-kind.v1、veilcore.note.old-links.v1、veilcore.stamp-pressed.v1、veilcore.account.keep-safe-shown.v1、veilcore.account.sheet-reminder.v1（見た、または閉じたお知らせ）、veilcore.lock.<task>（一度に1つのタブだけ、30秒）。Session Storage：veilcore.record-watch.v1（ネットワークを最後に確認したときの結果）、veilcore.homescreen.fresh、veilcore.in-app-notice.closed（このタブで閉じたお知らせ）、veilcore:backup-return（バックアップの後に戻るページ）。',
   'm.pp.tech.storage.caches':
-    'Cache Storage：veilcore-shell-<release>とveilcore-offline-meta（このサイトのコード）、veilcore-zk-<contract>とveilcore-zk-claims-<contract>（このサイトから取得した、証明用の公開ファイル）。',
+    'Cache Storage：veilcore-shell-<release>とveilcore-offline-meta（このサイトのコード）、veilcore-zk-<contract>とveilcore-zk-claims-<contract>（keys.veilcore.orgから取得し、それぞれ1バイトずつ確認した、証明用の公開ファイル）。',
   'm.pp.tech.locking':
     '鍵のかけ方。記録は送信される前に、ブラウザでAES-GCMにより鍵がかけられます。ブラウザがここに保管するもの（書きかけ、保存待ち、この端末だけに保管するもの）は、鍵をかけずに保存されます。保有者キーは、h1:とそのSHA-256の形で保管されます。保存したコピーはAES-256-GCMで、いくつかある大きさの段階のうち次の段階まで埋められ、私たちのサーバーはそれを読み書きするトークンのSHA-256だけを保管します。検査報告書はageで、あなたの記録の鍵に向けて暗号化されます。',
   'm.pp.tech.network':
-    '接続先。このサイトのセキュリティポリシーにより、ページが接続できるのはveilcore.org自身、レジストリ、手数料サービスと中継サービス、mempool.space、blockstream.infoだけです。カメラを求められるのはこのサイトだけで、その前にブラウザがあなたに確認します。マイクと位置情報はオフです。',
+    '接続先。このサイトのセキュリティポリシーにより、ページが接続できるのはveilcore.org自身、keys.veilcore.org（証明用ファイルの置き場所）、レジストリ、手数料サービスと中継サービス、mempool.space、blockstream.infoだけです。カメラを求められるのはこのサイトだけで、その前にブラウザがあなたに確認します。マイクと位置情報はオフです。',
   'm.pp.tech.logs':
     'ログ。レジストリにはリクエストのログ機能がなく、追加されるとテストtest/no-request-logging.test.mjsが失敗します。コンソールに出るのは起動とエラーのメッセージです。利用制限は、アドレスのまとまり（IPv4アドレス、またはIPv6の/64か/48）ごとにメモリ上で数えます。手数料サービスは、アドレスのまとまり（/24か/48）とチケットごとにメモリ上で数え、期間が過ぎたアドレスは忘れ、出来事ごとにカウンターと結果だけを1行記録します。',
   'm.pp.tech.backups':

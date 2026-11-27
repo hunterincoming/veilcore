@@ -33,6 +33,10 @@ export const errors = {
   'app.err.chain.circuitFilesMismatch':
     'Die Beweisdateien dieser Website für {circuit} passen nicht zum Smart Contract.',
   'app.err.chain.filesMissing': 'Die Beweisdateien für {circuit} sind noch nicht auf dieser Website.',
+  'app.err.chain.proofFileWrong':
+    'Eine Beweisdatei war nicht genau die Datei, für die diese Website gebaut wurde, und wurde deshalb nicht verwendet. Es wurde nichts gesendet.',
+  'app.err.chain.proofFilesUnreachable':
+    'Die Beweisdateien konnten gerade nicht heruntergeladen werden. Es wurde nichts gesendet. Versuchen Sie es in ein paar Minuten noch einmal.',
   'app.err.chain.paramsMissing': 'Die öffentlichen Parameter (k={k}) sind noch nicht auf dieser Website.',
   'app.err.chain.callFailed': 'Das Netzwerk hat den Aufruf aufgenommen, aber er war nicht erfolgreich ({status}).',
   'app.err.chain.hashUnreadable':

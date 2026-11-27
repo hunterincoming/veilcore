@@ -1,7 +1,8 @@
 // The midnight-js providers for one call from this browser.
 //
 //   proofs     made in the proving worker, on this device (prover.ts)
-//   keys       this site's /keys, /zkir and /compiler, fetched by the worker
+//   keys       the proving keys from VeilCore's proof file host, each checked against this
+//              build's pinned SHA-256 (proof-files.ts); /zkir and /compiler from this site
 //   chain      Midnight's public indexer (read only)
 //   private    in memory for the length of the call, then dropped
 //   wallet     none: fresh throwaway keys for this one call (VeilCore's circuits use
@@ -26,6 +27,8 @@ import {
 } from '@midnight-ntwrk/midnight-js-types';
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
 import { FetchZkConfigProvider } from '@midnight-ntwrk/midnight-js-fetch-zk-config-provider';
+import type { ProverKey, VerifierKey, ZKIR } from '@midnight-ntwrk/midnight-js-types';
+import { proofFileErrorIn, proofFileFetch } from './proof-files';
 import { inMemoryPrivateStateProvider } from '../../in-memory-private-state-provider';
 import type { VeilcorePrivateState } from '../../../../contract/src/witnesses';
 import { browserCallDeps } from './prover-choice';
@@ -53,6 +56,28 @@ export type Hooks = {
 
 /** A transaction that can be sealed (bound): either ledger's, as the wallet handler decodes it. */
 type Bindable = { bind(): { serialize(): Uint8Array; identifiers(): string[] } };
+
+/**
+ * midnight-js's FetchZkConfigProvider, except that a proving file that was wrong or could not
+ * be had (proof-files.ts) is reported in its own words: the library wraps it as "Failed to
+ * fetch ZK artifact", which would read as the network being down.
+ */
+class PinnedZkConfigProvider extends FetchZkConfigProvider<string> {
+  private static plain<T>(p: Promise<T>): Promise<T> {
+    return p.catch((e: unknown) => {
+      throw proofFileErrorIn(e) ?? e;
+    });
+  }
+  override getProverKey(circuitId: string): Promise<ProverKey> {
+    return PinnedZkConfigProvider.plain(super.getProverKey(circuitId));
+  }
+  override getVerifierKey(circuitId: string): Promise<VerifierKey> {
+    return PinnedZkConfigProvider.plain(super.getVerifierKey(circuitId));
+  }
+  override getZKIR(circuitId: string): Promise<ZKIR> {
+    return PinnedZkConfigProvider.plain(super.getZKIR(circuitId));
+  }
+}
 
 export const makeProviders = <PS = VeilcorePrivateState>(cacheName: string, hooks: Hooks, deps = browserCallDeps()) => {
   // Throwaway keys for this call only.
@@ -107,8 +132,10 @@ export const makeProviders = <PS = VeilcorePrivateState>(cacheName: string, hook
     // manifest. 'require-if-present': a manifest, if one is ever served, must cover every file.
     // The verifier keys are still compared with the chain's before anything is proved
     // (actions.ts), which is the check that matters.
-    zkConfigProvider: new FetchZkConfigProvider<string>(deps.origin, {
-      fetchFunc: deps.fetch,
+    zkConfigProvider: new PinnedZkConfigProvider(deps.origin, {
+      fetchFunc: deps.proofFilesHost
+        ? proofFileFetch(deps.fetch, { host: deps.proofFilesHost, siteOrigin: deps.origin })
+        : deps.fetch,
       verify: 'require-if-present',
     }),
     proofProvider: createProofProviderFromProvingProviders({ v8: proving, v9: proving }),

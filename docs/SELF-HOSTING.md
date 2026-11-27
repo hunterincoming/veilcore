@@ -89,7 +89,10 @@ That also brings the claims contract's keys ("prove a fact"). Never run a bare `
 VeilCore doesn't own that npm name. Keys that don't match the chain make every proof fail; the
 sponsor then leaves its anchoring job off and its log says so.
 
-Then the proving parameters for the site: `cd bboard-ui && node scripts/fetch-params.mjs && cd ..`.
+The site's build no longer carries the keys or the proving parameters: the page reads them from
+`VITE_PROOF_FILES_URL` (`https://keys.veilcore.org`, or your own host) and checks each one against
+the fingerprint pinned in the build (`docs/proof-files.md`). Only to serve them yourself: the
+parameters come from `cd bboard-ui && node scripts/fetch-params.mjs && cd ..`.
 
 ## 1. The registry (veilcore-api)
 
@@ -236,6 +239,7 @@ build in.
 | `VITE_REAL_CHAIN_CONTRACT_VERSION` | Test networks only: `v1` or `v2`, the version of that contract, unless it is one of VeilCore's preprod contracts (`deployments/preprod.json`). Without it, check pages don't look a date up on Midnight: off mainnet a check names its contract version, and a defaulted one is refused. On mainnet the version comes from `deployments/mainnet.json`. |
 | `VITE_REAL_CHAIN_CLAIMS_ADDRESS` | The claims contract, if your sponsor pays for claims (its `/sponsor/status` names a `claimsAddress`). Needs the claims keys from step 0 and the k=15 and k=16 parameters. |
 | `VITE_SPONSOR_URL` | Your sponsor's https address. |
+| `VITE_PROOF_FILES_URL` | Where the browser reads the proving keys and parameters, each checked against the SHA-256 pinned in the build: `https://keys.veilcore.org`, or your own host (`docs/proof-files.md`). A mainnet build with `VITE_REAL_CHAIN=1` refuses to build without it. |
 | `VITE_INDEXER_URL`, `VITE_INDEXER_WS_URL` | Where the browser reads Midnight: on a test network `<sponsor>/indexer` and `wss://<sponsor host>/indexer/ws`; on mainnet `<relay>/indexer` and `wss://<relay host>/indexer/ws`. Never a Blockfrost address with a key in it: the page would publish it (the header step refuses one). |
 | `VITE_INDEXER_RELAY_URL` | Mainnet: `<relay>/indexer`, so check pages look the date up on Midnight. Test networks fall back to `VITE_INDEXER_URL`. |
 | `VITE_NETWORK_ID` | Set by the build: `npm run build` is preprod, `npm run build:mainnet` mainnet. Export `mainnet` too for a mainnet build, so the header step checks the mainnet rules. |
@@ -293,8 +297,11 @@ folder. Other servers need the same rules:
 - any other path that is not a file serves `/index.html`.
 
 Two things to know: the headers include `Strict-Transport-Security` with `includeSubDomains` for
-two years, which covers every name under your domain; and the proving keys and parameters under
-`/keys/` and `/params/` are large single files, so check your host's limit on file size.
+two years, which covers every name under your domain; and the build no longer carries the proving
+keys and parameters (`docs/proof-files.md`): the page reads them from `VITE_PROOF_FILES_URL` and
+checks each against the SHA-256 pinned in the build, so `https://keys.veilcore.org` works for any
+copy. To serve them yourself, put each file at `/sha256/<its SHA-256>` on a host that sends
+`Access-Control-Allow-Origin: *`, or at `/keys/` and `/params/` on your own site (tried second).
 
 Check, after the upload: `npm run check:site -- https://<site>` compares every file and header
 with the release list. Then open your site, seal a record, and copy its check link: it must start

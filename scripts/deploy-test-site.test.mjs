@@ -3,6 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { claimsFor } from "./deploy-test-site.mjs";
+import { readProofFiles } from "./proof-files.mjs";
 
 const CLAIMS =
   "29d3ea80e121518f8fd8bd72533d856cf29cdbddbda1b6f322a661aa4f2484b6";
@@ -19,22 +20,24 @@ test("the sponsor names the claims contract: the site uses that one", () => {
   assert.deepEqual([r.ok, r.address], [true, CLAIMS]);
 });
 
-test("refused without the claims keys or the k=15/k=16 parameters", () => {
+test("refused when the claims keys or the k=15/k=16 parameters are not among the pinned proof files", () => {
   const noKeys = claimsFor(
     { claimsAddress: CLAIMS },
-    (f) => !f.includes("veilcore-claims"),
+    (f) => !f.includes("proveRange"),
   );
   assert.equal(noKeys.ok, false);
-  assert.match(
-    noKeys.problem,
-    /veilcore-keys fetch --to contract\/src\/managed/,
-  );
+  assert.match(noKeys.problem, /keys\/proveRange\.prover in .*proof-files\.json/);
   const noParams = claimsFor(
     { claimsAddress: CLAIMS },
     (f) => !f.endsWith("2p16"),
   );
   assert.equal(noParams.ok, false);
-  assert.match(noParams.problem, /fetch-params/);
+  assert.match(noParams.problem, /k=15 and k=16/);
+  const table = readProofFiles();
+  assert.equal(
+    claimsFor({ claimsAddress: CLAIMS }, (f) => Object.hasOwn(table.files, f)).ok,
+    true,
+  );
 });
 
 test("refused when the address is not one, or is the main contract", () => {

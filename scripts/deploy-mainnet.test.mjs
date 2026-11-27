@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { MAINNET_REGISTRY, chainEnv, httpsOrigin, mainnetClaims, registryAddress, sponsorProblem } from './deploy-mainnet.mjs';
+import { readProofFiles } from './proof-files.mjs';
 
 const PIN = 'a04de0a2684f3713276325649540c7278ffd07cba8b014e7489844f319a02347';
 
@@ -64,7 +65,7 @@ test('the Vercel token comes from the environment or the keychain, and only into
   assert.match(src, /delete env\.VERCEL_TOKEN;/);
 });
 
-test('claims: on only when the sponsor pays for VeilCore\'s pinned claims contract, with the keys here', () => {
+test('claims: on only when the sponsor pays for VeilCore\'s pinned claims contract, with its keys among the pinned proof files', () => {
   const CLAIMS = 'ef763eb4ad1846b716dbfa90c00560a9a943ffb4d1fc638b0707df5adefd070d';
   const all = () => true;
   assert.deepEqual(mainnetClaims({}, CLAIMS, all), {
@@ -75,8 +76,11 @@ test('claims: on only when the sponsor pays for VeilCore\'s pinned claims contra
   assert.equal(mainnetClaims({ claimsAddress: CLAIMS.toUpperCase() }, CLAIMS, all).address, CLAIMS);
   assert.match(mainnetClaims({ claimsAddress: 'ab'.repeat(32) }, CLAIMS, all).problem, /not VeilCore's claims contract/);
   assert.match(mainnetClaims({ claimsAddress: CLAIMS }, '', all).problem, /no claims contract is pinned/);
-  assert.match(mainnetClaims({ claimsAddress: CLAIMS }, CLAIMS, (f) => !f.endsWith('.prover')).problem, /proving keys/);
+  assert.match(mainnetClaims({ claimsAddress: CLAIMS }, CLAIMS, (f) => !f.endsWith('.prover')).problem, /proving keys .*proof-files\.json/);
   assert.match(mainnetClaims({ claimsAddress: CLAIMS }, CLAIMS, (f) => !f.includes('2p16')).problem, /k=15 and k=16/);
+  // The site's own pins carry everything claims need.
+  const table = readProofFiles();
+  assert.equal(mainnetClaims({ claimsAddress: CLAIMS }, CLAIMS, (f) => Object.hasOwn(table.files, f)).ok, true);
 });
 
 test('the registry address: production when unset, any plain https address when set, nothing else', () => {

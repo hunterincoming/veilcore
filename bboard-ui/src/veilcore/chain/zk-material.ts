@@ -1,14 +1,17 @@
-// The files the prover needs, fetched from this site only (CSP connect-src 'self'):
-//   /keys/<circuit>.prover, /keys/<circuit>.verifier   from the contract build
-//   /zkir/<circuit>.bzkir (or .zkir, converted here)    the circuit
-//   /params/bls_midnight_2p<k>                          public parameters, self-hosted
-// Kept in the browser's Cache Storage after the first download. Only the three phase-1
-// circuits are served: a request for any other key is refused, so this prover cannot be
-// used for anything else.
+// The files the prover needs:
+//   keys/<circuit>.prover, keys/<circuit>.verifier     the proving keys      } from VeilCore's proof
+//   params/bls_midnight_2p<k>                          public parameters     } file host, each checked
+//                                                                            } against its pinned SHA-256
+//   /zkir/<circuit>.bzkir (or .zkir, converted here)    the circuit, from this site
+// The keys and parameters come from the host this build names (proof-files.ts, VITE_PROOF_FILES_URL),
+// or, in a build without one, from this site's /keys and /params as before. Kept in the
+// browser's Cache Storage after the first download. Only the circuits this app calls are
+// served: a request for any other key is refused, so this prover cannot be used for anything else.
 // SPDX-License-Identifier: Apache-2.0
 
 import { jsonIrToBinary, type KeyMaterialProvider, type ProvingKeyMaterial } from '@midnight-ntwrk/zkir-v2';
 import { BROWSER_CIRCUITS, CLAIMS_BROWSER_CIRCUITS } from './config';
+import { PROOF_FILES, loadProofFile } from './proof-files';
 
 /**
  * Which circuit a prover is asked for. Ledger 8 names the circuit itself (`anchor`). Ledger 9,
@@ -51,18 +54,47 @@ const fetchBytes = async (url: string, cache: Cache | undefined): Promise<Uint8A
   return new Uint8Array(await res.arrayBuffer());
 };
 
-export const makeKeyMaterialProvider = (origin: string, cacheName: string, progress: Progress): KeyMaterialProvider => {
+/**
+ * `proofFiles`: the proof file host (PROOF_FILES_URL) and, for tests, the pins and a fetch.
+ * Without a host, keys and parameters are read from `origin` as before, unchecked.
+ */
+export type ProofFilesOption = {
+  readonly host: string;
+  readonly files?: Readonly<Record<string, string>>;
+  readonly fetch?: (url: string) => Promise<Response>;
+};
+
+export const makeKeyMaterialProvider = (
+  origin: string,
+  cacheName: string,
+  progress: Progress,
+  proofFiles?: ProofFilesOption,
+): KeyMaterialProvider => {
   const opened =
     typeof caches !== 'undefined' ? caches.open(cacheName).catch(() => undefined) : Promise.resolve(undefined);
   const memo = new Map<string, Promise<ProvingKeyMaterial | undefined>>();
   const params = new Map<number, Promise<Uint8Array>>();
+  const pins = proofFiles?.files ?? PROOF_FILES;
+
+  /** A key or parameter file: checked from the host when this build names one, else from this site. */
+  const bigFile = async (path: string, cache: Cache | undefined): Promise<Uint8Array | undefined> => {
+    if (!proofFiles) return fetchBytes(`${origin}/${path}`, cache);
+    if (!Object.hasOwn(pins, path)) return undefined;
+    return loadProofFile(path, {
+      host: proofFiles.host,
+      siteOrigin: origin,
+      fetch: proofFiles.fetch ?? ((u) => fetch(u)),
+      cache,
+      files: pins,
+    });
+  };
 
   const load = async (circuit: string): Promise<ProvingKeyMaterial | undefined> => {
     const cache = await opened;
     progress('Downloading the proving keys (first time only)…');
     const [proverKey, verifierKey] = await Promise.all([
-      fetchBytes(`${origin}/keys/${circuit}.prover`, cache),
-      fetchBytes(`${origin}/keys/${circuit}.verifier`, cache),
+      bigFile(`keys/${circuit}.prover`, cache),
+      bigFile(`keys/${circuit}.verifier`, cache),
     ]);
     let ir = await fetchBytes(`${origin}/zkir/${circuit}.bzkir`, cache);
     if (!ir) {
@@ -102,7 +134,7 @@ export const makeKeyMaterialProvider = (origin: string, cacheName: string, progr
       if (!p) {
         p = (async () => {
           progress('Downloading the public parameters (first time only)…');
-          const b = await fetchBytes(`${origin}/params/bls_midnight_2p${k}`, await opened);
+          const b = await bigFile(`params/bls_midnight_2p${k}`, await opened);
           if (!b) throw new Error(`The public parameters (k=${k}) are not on this site yet.`);
           return b;
         })();

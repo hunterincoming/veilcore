@@ -1,12 +1,12 @@
-// Copy the claims contract's proving files into the build, next to the main contract's
-// (dist/keys/<circuit>.prover|.verifier, dist/zkir/<circuit>.bzkir|.zkir), for the circuits the
-// browser proves (docs/claims-screen.md): proveRange, proveValue, proveAttested. Their names
-// don't collide with the main contract's circuits.
+// Copy the claims contract's circuits into the build, next to the main contract's
+// (dist/zkir/<circuit>.bzkir|.zkir), for the circuits the browser proves (docs/claims-screen.md):
+// proveRange, proveValue, proveAttested. Their names don't collide with the main contract's
+// circuits.
 //
-// The keys are made where the contracts are compiled with keys (the release zk-r4, or
-// `veilcore-keys fetch`) and are not in git. A build without them still builds: the site then
-// has no claims files, and a claim stops before proving with "the proving files for … are not
-// on this site yet". This says so instead of failing the build.
+// The proving keys are no longer copied into the build (they were about 135 MB of every deploy):
+// they are published once on VeilCore's proof file host and checked against the fingerprints
+// pinned in src/veilcore/chain/proof-files.json (scripts/publish-proof-files.mjs). The file keeps
+// its name so the build scripts and docs that name it stay right.
 // SPDX-License-Identifier: Apache-2.0
 import { cpSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -18,28 +18,17 @@ const dist = join(here, '..', 'dist');
 const CIRCUITS = ['proveRange', 'proveValue', 'proveAttested'];
 
 let copied = 0;
-const missing = [];
+mkdirSync(join(dist, 'zkir'), { recursive: true });
 for (const c of CIRCUITS) {
-  for (const [dir, files] of [
-    ['keys', [`${c}.prover`, `${c}.verifier`]],
-    ['zkir', [`${c}.bzkir`, `${c}.zkir`]],
-  ]) {
-    mkdirSync(join(dist, dir), { recursive: true });
-    for (const f of files) {
-      const from = join(managed, dir, f);
-      if (existsSync(from)) {
-        cpSync(from, join(dist, dir, f));
-        copied++;
-      } else if (dir === 'keys') missing.push(f);
+  for (const f of [`${c}.bzkir`, `${c}.zkir`]) {
+    const from = join(managed, 'zkir', f);
+    if (existsSync(from)) {
+      cpSync(from, join(dist, 'zkir', f));
+      copied++;
     }
   }
 }
-if (missing.length)
-  console.warn(
-    `copy-claims-keys: no claims proving keys here (${missing.join(', ')}); this build makes no claims. ` +
-      'Get them with `veilcore-keys fetch` (release zk-r4) to offer claims.',
-  );
-else console.log(`copy-claims-keys: ${copied} claims proving files copied`);
+console.log(`copy-claims-keys: ${copied} claims circuit files copied (the proving keys come from the proof file host)`);
 
 // midnight-js 5 (Midnight's Ledger 9 fork, 6 Nov 2026) reads which ledger a contract's artifacts
 // are for from compiler/contract-info.json, served next to keys/ and zkir/. Both contracts are

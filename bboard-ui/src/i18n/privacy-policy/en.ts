@@ -191,7 +191,7 @@ export const policyEn = {
   'm.pp.col.does': 'What it does',
   'm.pp.col.gets': 'What it gets',
   'm.pp.others.vercel.n': 'Vercel',
-  'm.pp.others.vercel.does': 'Hosts this website',
+  'm.pp.others.vercel.does': 'Hosts this website and keys.veilcore.org, its proving files',
   'm.pp.others.vercel.gets':
     'Your IP address and the pages and files you load, including a check page’s address, which carries the record’s ID and proof code. Vercel keeps request logs.',
   'm.pp.others.railway.n': 'Railway',
@@ -269,11 +269,11 @@ export const policyEn = {
   'm.pp.tech.storage.settings':
     'Settings and markers: veilcore.lang and veilcore.role.v1 (settings), veilcore.bulk-import.stamps-on.v1 and veilcore.bulk-import.stamps.v1 (key stamps for imports), veilcore.sponsor-ticket.v1 (a random ticket for the fee sponsor, not your holder key), veilcore.account-copy.v1 (the saved copy’s state), veilcore.account.device.v1 (this device’s random ID in that copy), veilcore.account.last-passkey.v1 and veilcore:passkey-copy (the ID of the passkey last used, not the passkey), veilcore.rev.v1 (the newest version of each record seen), veilcore.records.arrived.v1, veilcore.record-keys.forgotten.v1, veilcore.record-keys.forgotten-at.v1 and veilcore.record-keys.restored.v1 (record IDs that came from a backup, or were removed or brought back), veilcore.attester.backed-up.v1, veilcore.attester.backed-up.copy.v1, veilcore.issuer-deals-backed-up.v1, veilcore.issuer-deals-backed-up.copy.v1, veilcore.device-only-backup.v1 and veilcore.receiving-backed-up.v1 (what a checked backup holds), veilcore.invite-unsure.v1.<license> (an invite with no clear answer), veilcore.record-watch.seen.v1, veilcore.ask.seen.v1, veilcore.draft-notice-closed.v1, veilcore.install-card.v1, veilcore.lab-visibility-seen.v2, veilcore.log-kind.v1, veilcore.note.old-links.v1, veilcore.stamp-pressed.v1, veilcore.account.keep-safe-shown.v1 and veilcore.account.sheet-reminder.v1 (notices seen or closed), veilcore.lock.<task> (one tab at a time, 30 seconds). Session storage: veilcore.record-watch.v1 (what the last look at the network found), veilcore.homescreen.fresh, veilcore.in-app-notice.closed (a notice closed in this tab), veilcore:backup-return (the page to go back to after a backup).',
   'm.pp.tech.storage.caches':
-    'Cache Storage: veilcore-shell-<release> and veilcore-offline-meta (this site’s code), veilcore-zk-<contract> and veilcore-zk-claims-<contract> (public proving files from this site).',
+    'Cache Storage: veilcore-shell-<release> and veilcore-offline-meta (this site’s code), veilcore-zk-<contract> and veilcore-zk-claims-<contract> (public proving files from keys.veilcore.org, each checked byte for byte).',
   'm.pp.tech.locking':
     'Locking. Records are locked by your browser with AES-GCM before they are sent; the ones it keeps here (unfinished, waiting to be saved, or kept on this device only) are stored unlocked. Your holder key is stored as h1: and its SHA-256. The saved copy is AES-256-GCM, padded to a size bucket, and our server keeps only the SHA-256 of the tokens that read or change it. Lab reports are encrypted to your record’s key with age.',
   'm.pp.tech.network':
-    'Connections. This site’s security policy lets a page connect only to veilcore.org itself, our registry, our fee sponsor and relay, mempool.space and blockstream.info. Only this site may ask for the camera, and your browser asks you first; the microphone and location are off.',
+    'Connections. This site’s security policy lets a page connect only to veilcore.org itself, keys.veilcore.org (where the proving files are), our registry, our fee sponsor and relay, mempool.space and blockstream.info. Only this site may ask for the camera, and your browser asks you first; the microphone and location are off.',
   'm.pp.tech.logs':
     'Logs. The registry has no request logger, and its test test/no-request-logging.test.mjs fails if one is added; its console shows start-up and error messages. Its rate limits count requests per address block (an IPv4 address, or an IPv6 /64 or /48) in memory. The fee sponsor counts per address block (/24 or /48) and per ticket in memory, forgets an address when its window passes, and logs one line per event with counters and outcomes only.',
   'm.pp.tech.backups':

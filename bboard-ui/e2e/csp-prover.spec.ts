@@ -38,6 +38,7 @@ const deployHeaders = (): Record<string, string> => {
       VITE_REAL_CHAIN: '1',
       VITE_SPONSOR_URL: 'http://sponsor.e2e.invalid',
       VITE_NETWORK_ID: 'preview',
+      VITE_PROOF_FILES_URL: 'https://keys.veilcore.org',
     },
   });
   if (r.status !== 0) throw new Error(String(r.stderr));
@@ -73,6 +74,8 @@ test('the key date stamp starts the prover under the site’s Content-Security-P
   const headers = deployHeaders();
   expect(headers['Content-Security-Policy']).toMatch(/require-trusted-types-for 'script'/);
   expect(headers['Content-Security-Policy']).toMatch(/trusted-types [^;]*veilcore-prover/);
+  // The proving keys come from VeilCore's proof file host (docs/proof-files.md), and only from there.
+  expect(headers['Content-Security-Policy']).toMatch(/connect-src [^;]*https:\/\/keys\.veilcore\.org/);
 
   const server = http.createServer((req, res) => {
     const u = new URL(req.url ?? '/', 'http://x');

@@ -71,6 +71,12 @@ const mainnetBuild = (mode: string, command: string) => {
       throw new Error(
         "\n\nThe mainnet website was not built: VITE_REAL_CHAIN=1 is set without the mainnet sponsor's settings (left from a test run?). Use npm run deploy:mainnet with VEILCORE_MAINNET_SPONSOR, or close this terminal or run: unset VITE_REAL_CHAIN VITE_SPONSOR_URL\n",
       );
+    // The proving keys and parameters are not in the build (src/veilcore/chain/proof-files.ts):
+    // a build that sends transactions must name the host it checks them from.
+    if (!/^https:\/\/[^/]+\/?$/.test((env.VITE_PROOF_FILES_URL ?? '').trim()))
+      throw new Error(
+        '\n\nThe mainnet website was not built: VITE_REAL_CHAIN=1 needs VITE_PROOF_FILES_URL, the https address the proving keys are read from (https://keys.veilcore.org). Use npm run deploy:mainnet, which sets it.\n',
+      );
   }
   if (env.VITE_NETWORK_ID !== 'mainnet') {
     throw new Error(

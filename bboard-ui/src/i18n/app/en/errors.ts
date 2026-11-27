@@ -33,6 +33,10 @@ export const errors = {
     'This site’s proving files are not the ones the claims contract uses. Nothing was sent.',
   'app.err.chain.circuitFilesMismatch': "This site's proving files for {circuit} are not the ones the contract uses.",
   'app.err.chain.filesMissing': 'The proving files for {circuit} are not on this site yet.',
+  'app.err.chain.proofFileWrong':
+    'A proving file was not the exact file this site was built to use, so it was not used. Nothing was sent.',
+  'app.err.chain.proofFilesUnreachable':
+    'The proving files could not be downloaded right now. Nothing was sent. Try again in a few minutes.',
   'app.err.chain.paramsMissing': 'The public parameters (k={k}) are not on this site yet.',
   'app.err.chain.callFailed': 'The network included the call but it did not succeed ({status}).',
   'app.err.chain.hashUnreadable': 'The network included it, but its transaction hash could not be read',
