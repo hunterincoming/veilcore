@@ -8,8 +8,10 @@ VeilCore can promise is this:
 3. Dating keeps to a clock we can publish. For example: every record is dated on at least two
    independent clocks within 2 hours, 99% of the time.
 
-The first is true for every record batched before the holder's last backup (since 26 Nov
-the file holds the Bitcoin stamp and timestamp-service tokens too; see design rule 1). The second is being finished (offline sealing). The third
+The first is true for every record batched before the holder's last backup once this release
+is on veilcore.org, for backups made from then on (the file then holds the Bitcoin stamp and
+timestamp-service tokens too; see design rule 1). The second is being finished (offline
+sealing). The third
 needs the registry's seal timer (below), the monitors, and the rules at the end of this page.
 
 ## What the code does now (pull requests `reliability-1`)
@@ -131,8 +133,8 @@ These come from the audit's Tier 3. Any change to VeilCore should keep them.
 
 1. **Nothing a holder already has can be lost when VeilCore is down.** Every record, proof,
    Bitcoin stamp and timestamp-service token the holder has seen is in their backup file
-   (true since 26 Nov: `recordData`, `proofs` and `stamps`, in `bboard-ui/src/veilcore/backup.ts`
-   and `stamps.ts`). The browser keeps its own copy of the proofs and stamps, so a backup made
+   (true once this release is on veilcore.org, for backups made from then on: `recordData`,
+   `proofs` and `stamps`, in `bboard-ui/src/veilcore/backup.ts` and `stamps.ts`). The browser keeps its own copy of the proofs and stamps, so a backup made
    while the registry is down still carries them, and the evidence bundle uses that copy when
    the registry can't be reached. Not done yet: the backup and the evidence bundle don't refresh
    on their own after each batch is stamped; they are as fresh as the holder's last backup.

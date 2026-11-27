@@ -19,6 +19,8 @@ export type TestTsa = {
   /** The root certificate, PEM, for `openssl ts -verify -CAfile`. */
   readonly caFile: string;
   readonly dir: string;
+  /** The pin for this TSA's signing certificate, as config/tsa-pins.json holds one. */
+  readonly pin: { readonly name: string; readonly certSha256: string };
   done: () => void;
 };
 
@@ -64,8 +66,10 @@ export const testTsa = (name = 'Test TSA'): TestTsa => {
     `[ tsa ]\ndefault_tsa = t\n[ t ]\nserial = ${dir}/serial\nsigner_cert = ${dir}/tsa.pem\nsigner_key = ${dir}/tsa.key\nsigner_digest = sha256\ndefault_policy = 1.2.3.4.1\ndigests = sha256\ness_cert_id_alg = sha256\n`,
   );
   writeFileSync(join(dir, 'serial'), '01\n');
+  const der = ssl('x509', '-in', 'tsa.pem', '-outform', 'DER');
   return {
     dir,
+    pin: { name, certSha256: createHash('sha256').update(der).digest('hex') },
     caFile: join(dir, 'ca.pem'),
     tokenFor: (hex: string) => {
       writeFileSync(join(dir, 'data.bin'), Buffer.from(hex, 'hex'));

@@ -406,7 +406,7 @@ export const withRecordsAndProofs = async (contents: BackupContents): Promise<Ba
   }
   // The Bitcoin and RFC 3161 files for them, and any proof the registry couldn't give now that
   // this browser kept from before (stamps.ts). Never stops the backup.
-  const stamps = await (await import('./stamps')).stampsForBackup(prints, proofs).catch(() => undefined);
+  const stamps = await (await import('./stamps')).stampsForBackup(recordData, proofs).catch(() => undefined);
   const sealedFields: Record<string, Record<string, unknown>> = {};
   for (const r of recordData) {
     if (!r.nonce) continue;
@@ -859,13 +859,7 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
   let stamps = 0;
   try {
     if (v.stamps !== undefined || v.proofs !== undefined)
-      stamps = await (
-        await import('./stamps')
-      ).restoreStamps(
-        v.stamps,
-        v.proofs,
-        allRecords().map((r) => r.recordFingerprint),
-      );
+      stamps = await (await import('./stamps')).restoreStamps(v.stamps, v.proofs, allRecords());
   } catch {
     /* what can't be checked here stays out; the rest of the restore stands */
   }

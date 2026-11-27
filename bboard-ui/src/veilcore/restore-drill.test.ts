@@ -52,11 +52,23 @@ const run = promisify(execFile);
 
 type DealMsg = { seq: number; iv: string; ct: string; receivedAt: number };
 
+// The site trusts only the timestamp authorities it pins (config/tsa-pins.json): here, the drill's
+// own TSA, pinned before any browser loads the app.
+const pinned = vi.hoisted(() => ({ pins: [] as { name: string; certSha256: string }[] }));
+vi.mock('../config/tsa-pins.json', () => ({ default: { format: 'veilcore-tsa-pins/v1', pins: pinned.pins } }));
+
 let tsa: TestTsa;
+/** A TSA the site does not pin: its tokens check against what they stamp, but nobody vouches for it. */
+let stranger: TestTsa;
 beforeAll(() => {
   tsa = testTsa('Drill TSA');
+  stranger = testTsa('Self-made TSA');
+  pinned.pins.push(tsa.pin);
 });
-afterAll(() => tsa.done());
+afterAll(() => {
+  tsa.done();
+  stranger.done();
+});
 
 const STAMP_BLOCK = 870123;
 const BATCH_ID = 'B-20261126-DRILL';
@@ -1092,6 +1104,71 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
       s.records = { [fps[m.animal]]: plant, [fps[m.plant]]: s.records[fps[m.animal]] };
       s.batches = {};
     });
+  });
+  it('a token from a timestamp authority the site doesn’t pin is refused', async () => {
+    await doctoredStamps((s, _m, fps) => {
+      // Real tokens on the right bytes, from a TSA of the file maker's own.
+      const root = s.batches[BATCH_ID].root;
+      s.batches = { [BATCH_ID]: { root, tsts: [{ token: stranger.tokenFor(root) }] } };
+      s.records = Object.fromEntries(
+        Object.values(fps).map((fp) => [fp, { instant: [{ token: stranger.tokenFor(fp) }] }]),
+      );
+    });
+  });
+
+  // Review of PR #233: proof codes are public, so a made-up file can put the holder's own records
+  // under the same batch id with a root of its own. It must not take away the stamps kept here.
+  it('a file naming the same batch with another root takes nothing kept away', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    w.upgrade();
+    const inner = await opened(A, await backUp(A));
+    const done = (inner.stamps as StampsJson).batches[BATCH_ID];
+    expect(done.otsStatus).toBe('bitcoin');
+    const fps = (inner.recordData as { recordFingerprint: string }[]).map((r) => r.recordFingerprint);
+    const other = await buildBatch([...fps, 'aa'.repeat(32)], BATCH_ID);
+    expect(other.root).not.toBe(done.root);
+    const crafted = {
+      ...inner,
+      proofs: other.proofs,
+      stamps: {
+        format: 'veilcore/stamps/v1',
+        batches: {
+          [BATCH_ID]: { root: other.root, ots: otsFile(other.root).toString('base64'), otsStatus: 'pending' },
+        },
+        records: {},
+      },
+    };
+    await A.run(() => A.m.backup.restoreAny(fileOf(JSON.stringify(crafted))));
+    w.goDown();
+    const after = (await opened(A, await backUp(A))).stamps as StampsJson;
+    expect(after.batches[BATCH_ID], 'the finished Bitcoin stamp and its token are still here').toEqual(done);
+    const { ev } = await bundleOf(A, made.plant);
+    expect(ev.batch?.root).toBe(done.root);
+    expect(ev.batch?.opentimestamps).toMatchObject({ available: true, status: 'bitcoin' });
+    expect(ev.batch?.rfc3161.available).toBe(true);
+  });
+
+  it('kept stamps go only when their record is deleted, not when it is missing from one backup', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    await backUp(A);
+    const fpOf = (id: string) => A.run(() => A.m.records.getRecord(id)!.recordFingerprint);
+    const plantFp = await fpOf(made.plant);
+    const animalFp = await fpOf(made.animal);
+    w.goDown();
+    // A backup that lists only the plant (another record locked here, say) keeps the animal's.
+    await A.run(() => A.m.stamps.stampsForBackup([{ id: made.plant, recordFingerprint: plantFp }], {}));
+    expect(await A.run(() => A.m.stamps.keptEvidence(animalFp))).not.toBeNull();
+    // Deleted on this browser: its kept copy goes at the next backup; the plant's stays.
+    await A.run(() => A.m.keys.forgetKeys(made.animal));
+    await A.run(() => A.m.stamps.stampsForBackup([{ id: made.plant, recordFingerprint: plantFp }], {}));
+    expect(await A.run(() => A.m.stamps.keptEvidence(animalFp))).toBeNull();
+    expect((await A.run(() => A.m.stamps.keptEvidence(plantFp)))?.ots).toBeTruthy();
   });
 });
 

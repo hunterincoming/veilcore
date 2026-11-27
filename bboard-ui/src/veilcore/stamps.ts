@@ -16,17 +16,23 @@
 //     carries everything this browser kept before, proofs included;
 //   - a restore (backup.ts restoreAny) puts them back only once each one checks, never on the
 //     file's word: a batch's files only for a batch an inclusion proof of a record here leads to,
-//     with that proof's root (a stamp moved to another batch starts from the wrong root and is
-//     refused); the Bitcoin file must start from SHA-256 of that root (verify.html's own reader);
-//     every RFC 3161 token must verify against the bytes it stamps (the batch root, or the
-//     record's proof code). An item that fails is left out; nothing of it is written;
+//     with that proof's root, the proof this browser already kept coming before the file's (a
+//     stamp moved to another batch starts from the wrong root and is refused); the Bitcoin file
+//     must start from SHA-256 of that root (verify.html's own reader); every RFC 3161 token must
+//     verify against the bytes it stamps (the batch root, or the record's proof code) and be
+//     signed by a timestamp authority this site pins (config/tsa-pins.json, as instant-stamp.ts
+//     shows them). An item that fails is left out; nothing of it is written;
+//   - nothing kept is ever replaced by a file, or by an answer for another root: a batch's files
+//     are kept by batch id AND root, so a file (or a registry) naming the same batch with another
+//     root adds an entry beside the kept one and never removes it (review of PR #233). What is
+//     kept goes only when its record is deleted on this browser (record-keys.ts wasForgotten),
+//     never because a record is missing from one backup (a locked record, say);
 //   - the evidence bundle (evidence/bundle.ts gatherEvidence) uses what is kept here when the
 //     registry can't be reached, so it still carries root.bin.ots and root.tst.
 //
 // Everything here is public data (the registry serves it to anyone with the proof code); it is
 // stored compressed, because a TSA token carries its certificate chain (a few kilobytes) and
-// those repeat from token to token. Kept for the records this browser holds now; a deleted
-// record's go at the next backup.
+// those repeat from token to token.
 // SPDX-License-Identifier: Apache-2.0
 
 import { deflateSync, inflateSync, strFromU8, strToU8 } from 'fflate';
@@ -35,6 +41,9 @@ import { verifyTimestampToken, type InclusionProof } from 'veilcore-records';
 import { VeilcoreVerify } from '../../evidence-page/verify-core.js';
 import { checkProof } from './proofs';
 import { isNumber, isObject, isString } from './json';
+import { wasForgotten } from './record-keys';
+import { TSA_PINS, withinPin } from './instant-stamp';
+import { pinOf, stripCertificates, type TsaPin } from '../../../scripts/tsa-signer.mjs';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 export const STAMPS_KEY = 'veilcore.stamps.v1';
@@ -81,14 +90,21 @@ export type StampsInFile = {
   readonly records: Readonly<Record<string, RecordStamps>>;
 };
 
-/** What this browser keeps: the same, and each record's inclusion proof (by proof code). */
+/**
+ * What this browser keeps: the same, with batches by batch id and root (batchKey), each record's
+ * inclusion proof (by proof code), and which record each proof code is (so a deleted record's go).
+ */
 type Kept = {
   batches: Record<string, BatchStamps>;
   records: Record<string, RecordStamps>;
   proofs: Record<string, InclusionProof>;
+  ids: Record<string, string>;
 };
 
-const empty = (): Kept => ({ batches: {}, records: {}, proofs: {} });
+/** A kept batch's key: its id and its root, so one root's files never stand in for another's. */
+const batchKey = (batchId: string, root: string): string => `${batchId} ${root}`;
+
+const empty = (): Kept => ({ batches: {}, records: {}, proofs: {}, ids: {} });
 
 const load = (): Kept => {
   try {
@@ -98,10 +114,17 @@ const load = (): Kept => {
     if (!isObject(box) || box.v !== 1 || !isString(box.z)) return empty();
     const v: unknown = JSON.parse(strFromU8(inflateSync(base64.decode(box.z))));
     if (!isObject(v)) return empty();
+    const batches: Kept['batches'] = {};
+    for (const [k, b] of Object.entries(isObject(v.batches) ? v.batches : {})) {
+      if (!isObject(b) || !isString(b.root) || !HEX64.test(b.root)) continue;
+      const id = k.includes(' ') ? k.slice(0, k.indexOf(' ')) : k;
+      batches[batchKey(id, b.root)] = b as unknown as BatchStamps;
+    }
     return {
-      batches: isObject(v.batches) ? (v.batches as Kept['batches']) : {},
+      batches,
       records: isObject(v.records) ? (v.records as Kept['records']) : {},
       proofs: isObject(v.proofs) ? (v.proofs as Kept['proofs']) : {},
+      ids: isObject(v.ids) ? (v.ids as Kept['ids']) : {},
     };
   } catch {
     return empty();
@@ -172,14 +195,60 @@ const mergeTokens = (had: readonly TokenEntry[] = [], add: readonly TokenEntry[]
   return out;
 };
 
-/** The checked tokens of a list as it arrived (a registry's answer or a file's entry). */
-const checkedTokens = async (list: unknown, stamped: Uint8Array): Promise<TokenEntry[]> => {
+/**
+ * A token from a file: it verifies against the bytes it stamps with the certificate this site
+ * pins for its authority, and its time lies within that certificate's life (instant-stamp.ts,
+ * security review of PR #145, TSA-1). A token signed by a certificate of anyone's making, as a
+ * made-up file could carry, is not taken.
+ */
+const pinnedTokenChecks = async (t: unknown, stamped: Uint8Array, pins: readonly TsaPin[]): Promise<boolean> => {
+  if (!isString(t) || t.length > MAX_FILE_CHARS || pins.length === 0) return false;
+  try {
+    const der = b64Bytes(t);
+    if (!der) return false;
+    const pin = await pinOf(der, pins);
+    if (!pin) return false;
+    const v = await verifyTimestampToken(stripCertificates(der), stamped, { certificates: [pin.cert] });
+    return v.ok && !!v.genTime && withinPin(pin, v.genTime);
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * The checked tokens of a list as it arrived: a registry's answer (checked against the bytes it
+ * stamps), or, with `pins`, a file's entry (also signed by a pinned authority).
+ */
+const checkedTokens = async (list: unknown, stamped: Uint8Array, pins?: readonly TsaPin[]): Promise<TokenEntry[]> => {
   const out: TokenEntry[] = [];
   for (const t of Array.isArray(list) ? list.slice(0, MAX_TOKENS) : []) {
-    if (!isObject(t) || !(await tokenChecks(t.token, stamped))) continue;
+    if (!isObject(t)) continue;
+    if (!(await (pins ? pinnedTokenChecks(t.token, stamped, pins) : tokenChecks(t.token, stamped)))) continue;
     out.push({ token: t.token as string, ...(isString(t.tsa) && t.tsa.length < 512 ? { tsa: t.tsa } : {}) });
   }
   return out;
+};
+
+/**
+ * Take out what belongs only to records deleted on this browser: their proofs and own tokens, and
+ * a batch's files once no record kept here leads to that batch and root. Nothing else is removed.
+ */
+const pruneDeleted = (kept: Kept): void => {
+  const gone = Object.keys(kept.ids).filter((fp) => wasForgotten(kept.ids[fp]));
+  if (gone.length === 0) return;
+  const before = new Set(
+    gone
+      .map((fp) => kept.proofs[fp])
+      .filter(Boolean)
+      .map((p) => batchKey(p.batchId, p.root)),
+  );
+  for (const fp of gone) {
+    delete kept.proofs[fp];
+    delete kept.records[fp];
+    delete kept.ids[fp];
+  }
+  const still = new Set(Object.values(kept.proofs).map((p) => batchKey(p.batchId, p.root)));
+  for (const k of before) if (!still.has(k)) delete kept.batches[k];
 };
 
 /** A proof as kept here: the registry's anchors without the batch tokens (kept once, per batch). */
@@ -260,11 +329,18 @@ const getInstant = async (fp: string): Promise<{ status: number; body: unknown }
  * throws: what can't be had now is what was kept before.
  */
 export const stampsForBackup = async (
-  prints: readonly string[],
+  records: readonly { readonly id: string; readonly recordFingerprint?: string }[],
   proofs: Record<string, unknown>,
 ): Promise<StampsInFile | undefined> => {
   const kept = load();
-  const wanted = new Set(prints.filter((p) => HEX64.test(p)));
+  pruneDeleted(kept);
+  const wanted = new Set<string>();
+  for (const r of records) {
+    const fp = r.recordFingerprint;
+    if (!fp || !HEX64.test(fp)) continue;
+    wanted.add(fp);
+    kept.ids[fp] = r.id;
+  }
   // Proofs: the registry's new answer, or the one kept here.
   for (const fp of wanted) {
     const fresh = proofs[fp];
@@ -279,28 +355,25 @@ export const stampsForBackup = async (
     if (s.status === 'none') delete kept.proofs[fp];
     else proofs[fp] = s.proof;
   }
-  // A deleted record's go.
-  for (const fp of Object.keys(kept.proofs)) if (!wanted.has(fp)) delete kept.proofs[fp];
-  for (const fp of Object.keys(kept.records)) if (!wanted.has(fp)) delete kept.records[fp];
-
-  // Each batch these records sit in, once.
+  // Each batch (id and root) these records sit in, once.
   const batchOf = new Map<string, InclusionProof>();
   for (const fp of wanted) {
     const p = kept.proofs[fp];
-    if (p && !batchOf.has(p.batchId)) batchOf.set(p.batchId, p);
+    if (p && !batchOf.has(batchKey(p.batchId, p.root))) batchOf.set(batchKey(p.batchId, p.root), p);
   }
-  for (const id of Object.keys(kept.batches)) if (!batchOf.has(id)) delete kept.batches[id];
   // The registry's answer for each batch just now (one of its records' proofs), if it gave one.
   const freshOf = new Map<string, unknown>();
   for (const fp of wanted) {
     const f = proofs[fp];
-    if (isObject(f) && isString(f.batchId) && !freshOf.has(f.batchId) && f.root === kept.proofs[fp]?.root)
-      freshOf.set(f.batchId, f);
+    if (isObject(f) && isString(f.batchId) && isString(f.root) && f.root === kept.proofs[fp]?.root) {
+      const k = batchKey(f.batchId, f.root);
+      if (!freshOf.has(k)) freshOf.set(k, f);
+    }
   }
-  await inBatches([...batchOf.values()], async (p) => {
-    let b: BatchStamps = kept.batches[p.batchId]?.root === p.root ? kept.batches[p.batchId] : { root: p.root };
+  await inBatches([...batchOf.entries()], async ([key, p]) => {
+    let b: BatchStamps = kept.batches[key] ?? { root: p.root };
     // The batch's RFC 3161 tokens come in the proof's anchors; each checked against the root.
-    const fresh = freshOf.get(p.batchId);
+    const fresh = freshOf.get(key);
     const tsts = await checkedTokens(isObject(fresh) ? batchTokensOf(fresh as InclusionProof) : [], hexBytes(p.root));
     if (tsts.length) b = { ...b, tsts: mergeTokens(b.tsts, tsts) };
     // The Bitcoin file: fetched until it is finished, and kept only when it starts from this root.
@@ -310,7 +383,7 @@ export const stampsForBackup = async (
       const read = ots ? await readOts(ots, p.root) : null;
       if (ots && read && better(b, read.status, true)) b = withOts(b, ots, read);
     }
-    kept.batches[p.batchId] = b;
+    if (b.ots || b.tsts?.length) kept.batches[key] = b;
   });
 
   // Each record's own tokens, until it has them all.
@@ -338,8 +411,8 @@ const inFile = (kept: Kept, wanted: ReadonlySet<string>): StampsInFile | undefin
   const records: Record<string, RecordStamps> = {};
   for (const fp of wanted) {
     const p = kept.proofs[fp];
-    const b = p ? kept.batches[p.batchId] : undefined;
-    if (p && b && (b.ots || b.tsts?.length)) batches[p.batchId] = b;
+    const b = p ? kept.batches[batchKey(p.batchId, p.root)] : undefined;
+    if (p && b && (b.ots || b.tsts?.length) && !batches[p.batchId]) batches[p.batchId] = b;
     const r = kept.records[fp];
     if (r?.instant?.length) records[fp] = { instant: r.instant };
   }
@@ -350,57 +423,74 @@ const inFile = (kept: Kept, wanted: ReadonlySet<string>): StampsInFile | undefin
 
 /**
  * Put back what a backup file carries, for the records here, each checked first (see the top of
- * this file). `fileProofs` is the file's `proofs`; `fingerprints` are the proof codes of the
- * records this browser holds after the restore. Returns how many stamp files went back.
+ * this file). `fileProofs` is the file's `proofs`; `records` are the records this browser holds
+ * after the restore. `pins` are the timestamp authorities this site trusts (tests pass their own).
+ * Adds only: nothing kept here is replaced or removed. Returns how many stamp files went back.
  */
 export const restoreStamps = async (
   fromFile: unknown,
   fileProofs: unknown,
-  fingerprints: readonly string[],
+  records: readonly { readonly id: string; readonly recordFingerprint?: string }[],
+  pins: readonly TsaPin[] = TSA_PINS,
 ): Promise<number> => {
-  const here = new Set(fingerprints.filter((f) => HEX64.test(f)));
-  if (here.size === 0) return 0;
+  const here = new Set<string>();
   const kept = load();
-  // The batches an inclusion proof of a record here leads to, and each one's root.
+  for (const r of records) {
+    const fp = r.recordFingerprint;
+    if (!fp || !HEX64.test(fp)) continue;
+    here.add(fp);
+    kept.ids[fp] = r.id;
+  }
+  if (here.size === 0) return 0;
+  // The batches an inclusion proof of a record here leads to, and each one's root: the proof this
+  // browser kept comes first, the file's only for a record it has none for. A batch id two proofs
+  // give different roots for is left out altogether: one of them isn't that batch's.
   const roots = new Map<string, string>();
+  const torn = new Set<string>();
   for (const fp of here) {
-    const candidates = [isObject(fileProofs) ? fileProofs[fp] : undefined, kept.proofs[fp]];
-    for (const c of candidates) {
+    for (const c of [kept.proofs[fp], isObject(fileProofs) ? fileProofs[fp] : undefined]) {
       if (c === undefined) continue;
       const s = await checkProof(fp, c);
       if (s.status === 'none') continue;
       kept.proofs[fp] ??= keepable(s.proof);
+      const had = roots.get(s.proof.batchId);
+      if (had !== undefined && had !== s.proof.root) torn.add(s.proof.batchId);
       roots.set(s.proof.batchId, s.proof.root);
       break;
     }
+  }
+  for (const k of Object.keys(kept.batches)) {
+    const id = k.slice(0, k.indexOf(' '));
+    if (roots.has(id) && roots.get(id) !== kept.batches[k].root) torn.add(id);
   }
   let back = 0;
   const file = isObject(fromFile) && fromFile.format === STAMPS_FORMAT ? fromFile : undefined;
   const batches = file && isObject(file.batches) ? file.batches : {};
   for (const [id, raw] of Object.entries(batches)) {
     const root = roots.get(id);
-    // Not a batch a record here sits in, or a root that isn't that batch's: none of it.
-    if (!root || !isObject(raw) || raw.root !== root) continue;
-    let b: BatchStamps = kept.batches[id]?.root === root ? kept.batches[id] : { root };
+    // Not a batch a record here sits in, a root that isn't that batch's, or a batch whose root is
+    // in doubt: none of it.
+    if (!root || torn.has(id) || !isObject(raw) || raw.root !== root) continue;
+    let b: BatchStamps = kept.batches[batchKey(id, root)] ?? { root };
     const read = await readOts(raw.ots, root);
     if (read && better(b, read.status, false)) {
       b = withOts(b, raw.ots as string, read);
       back++;
     }
-    const tsts = (await checkedTokens(raw.tsts, hexBytes(root))).filter(
+    const tsts = (await checkedTokens(raw.tsts, hexBytes(root), pins)).filter(
       (t) => !b.tsts?.some((x) => x.token === t.token),
     );
     if (tsts.length) {
       b = { ...b, tsts: mergeTokens(b.tsts, tsts) };
       back += tsts.length;
     }
-    if (b.ots || b.tsts?.length) kept.batches[id] = b;
+    if (b.ots || b.tsts?.length) kept.batches[batchKey(id, root)] = b;
   }
-  const records = file && isObject(file.records) ? file.records : {};
-  for (const [fp, raw] of Object.entries(records)) {
+  const fileRecords = file && isObject(file.records) ? file.records : {};
+  for (const [fp, raw] of Object.entries(fileRecords)) {
     if (!here.has(fp) || !isObject(raw)) continue;
     const had = kept.records[fp];
-    const tokens = (await checkedTokens(raw.instant, hexBytes(fp))).filter(
+    const tokens = (await checkedTokens(raw.instant, hexBytes(fp), pins)).filter(
       (t) => !had?.instant?.some((x) => x.token === t.token),
     );
     if (!tokens.length) continue;
@@ -422,8 +512,7 @@ export const keptEvidence = async (
   const s = await checkProof(fp, raw);
   if (s.status === 'none') return null;
   const proof = s.proof;
-  const b = kept.batches[proof.batchId];
-  const mine = b && b.root === proof.root ? b : undefined;
+  const mine = kept.batches[batchKey(proof.batchId, proof.root)];
   const read = mine?.ots ? await readOts(mine.ots, proof.root) : null;
   const tst = mine?.tsts?.[0];
   return {

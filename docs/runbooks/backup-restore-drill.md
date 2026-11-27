@@ -43,7 +43,12 @@ The app's own code, in several pretend browsers against a stand-in registry:
 - Doctored stamps are refused and nothing of them is written (no stamp comes back, the bundle
   has none, a backup made there carries none): another batch's files under this batch (with
   its own root, or said to start from this root), this batch's files under another batch's
-  name, a changed token or Bitcoin file, and one record's token moved onto another record.
+  name, a changed token or Bitcoin file, one record's token moved onto another record, and a
+  token from a timestamp authority the site doesn't pin.
+- A made-up file that names the same batch with another root (proof codes are public, so anyone
+  can build one) takes nothing away: the finished Bitcoin stamp and token kept in the browser
+  are still in the next backup and the evidence bundle (review of PR #233). Kept stamps go only
+  when their record is deleted on that browser, not when a record is missing from one backup.
 - A wrong password, no password, a cut-off file and a changed file are all refused, and nothing
   is written. A file with a record that was edited after sealing puts back none of the records
   (all or nothing) and says why; the keys come back.
@@ -74,7 +79,11 @@ restore, and lab signatures left out), then put back. The stamp tests were check
 (26 Nov), one break at a time: stamps left out of the file, left out of the restore, the
 evidence bundle not using the device's copy, the file's own root trusted, the Bitcoin file's
 root not checked, tokens not checked, any batch name accepted, a pending stamp never finished,
-and a finished stamp swapped back. Each break made at least one of them fail.
+and a finished stamp swapped back. Each break made at least one of them fail. After the review
+of PR #233, the same for the new tests: the restore as it was (the file's proof first, no check
+for a batch named with two roots, another root's files replacing the kept ones), tokens from an
+unpinned authority taken, kept stamps removed when a record is missing from a backup, and kept
+stamps never removed on delete.
 
 ## What the drill found (26 Nov 2026)
 

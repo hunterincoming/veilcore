@@ -72,7 +72,8 @@ the code stands for. Now the file also carries:
   backup made while the registry is out of reach still carries them (and the proofs). On
   restore, each goes back only if it checks: a Bitcoin file must start from SHA-256 of the
   batch root its record's proof leads to, and a token must verify against the root or the
-  proof code it stamps. `npx veilcore-records backup` doesn't read `stamps` yet (a change
+  proof code it stamps and be signed by a timestamp authority the site pins. A restore only
+  adds: nothing the browser already kept is replaced or removed. `npx veilcore-records backup` doesn't read `stamps` yet (a change
   for veilcore-sdk); the files inside are the same `.ots` and `.tst` files the registry
   serves, base64, for `ots verify` and `openssl ts -verify`.
 

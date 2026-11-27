@@ -59,7 +59,13 @@ const registry = () => {
   const ots = new Map<string, Buffer>();
   const instant = new Map<string, string>();
   const rowsOf = (table: Map<string, Row>, holder: string) =>
-    [...table.values()].filter((r) => r.holder === holder).map(({ holder: _h, ...r }) => r);
+    [...table.values()]
+      .filter((r) => r.holder === holder)
+      .map((r) => {
+        const out: Record<string, unknown> = { ...r };
+        delete out.holder;
+        return out;
+      });
 
   const handle = async (route: Route) => {
     const req = route.request();
@@ -205,13 +211,20 @@ const fresh = async (browser: Browser, reg: Reg, down = false) => {
   const ctx = await browser.newContext({ acceptDownloads: true });
   const page = await ctx.newPage();
   const errors = watch(page);
-  await page.addInitScript(() => localStorage.setItem('veilcore.role.v1', 'breeder'));
+  // The drill's TSA, pinned as the site pins the real ones (only the end-to-end build reads this).
+  await page.addInitScript((pin) => {
+    localStorage.setItem('veilcore.role.v1', 'breeder');
+    localStorage.setItem('veilcore.e2e.tsa-pins', JSON.stringify({ format: 'veilcore-tsa-pins/v1', pins: [pin] }));
+  }, reg.tsa.pin);
   await reg.attach(page, down);
   return { ctx, page, errors };
 };
 
 /** What this browser keeps, by storage name (the role aside). */
-const stored = (page: Page) => page.evaluate(() => Object.keys(localStorage).filter((k) => k !== 'veilcore.role.v1'));
+const stored = (page: Page) =>
+  page.evaluate(() =>
+    Object.keys(localStorage).filter((k) => k !== 'veilcore.role.v1' && k !== 'veilcore.e2e.tsa-pins'),
+  );
 
 /** On a page showing the backup step: save the file locked with the password, open it again, see it pass. */
 const saveLocked = async (page: Page): Promise<string> => {
