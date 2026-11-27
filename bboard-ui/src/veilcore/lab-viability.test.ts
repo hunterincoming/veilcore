@@ -4,7 +4,7 @@
 // the words every page uses: what the lab recovered under its stated method and limit, never
 // "dead", "sterile" or "proves", in any language.
 // SPDX-License-Identifier: Apache-2.0
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { generateKeypair } from 'veilcore-records';
@@ -39,6 +39,19 @@ import { lab as deLab } from '../i18n/app/de/lab';
 import { lab as esLab } from '../i18n/app/es/lab';
 import { lab as frLab } from '../i18n/app/fr/lab';
 import { lab as jaLab } from '../i18n/app/ja/lab';
+
+// The results below are dated 2026-11-10 and 11, and the form refuses a date in the future by
+// the clock. So the clock is set to a day after them for every test here (as #236 did for
+// lab-identity.test.ts), never the real one: on a clock set earlier the tests would fail with
+// nothing in the code changed.
+const NOW = Date.parse('2026-11-21T12:00:00Z');
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(NOW);
+});
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 const STRAIN = 'd4'.repeat(32);
 const SAMPLE_RECORD = 'a1'.repeat(32);
