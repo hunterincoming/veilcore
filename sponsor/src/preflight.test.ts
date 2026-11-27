@@ -87,9 +87,9 @@ describe('preflight (the ledger check before sending)', () => {
     expect(r.error).toMatch(/invalid balance -\d+ for token Dust in segment 0/);
     expect(r.facts.dustSpends).toBe(0);
     expect(r.facts.dustPaid).toBe(0n);
-    expect(typeof r.facts.ledgerFee).toBe('bigint');
+    expect(typeof r.facts.ledgerFeeNoMargin).toBe('bigint');
     // The shortfall the ledger names is the fee it works out (nothing was paid).
-    expect(r.error).toContain(`-${r.facts.ledgerFee}`);
+    expect(r.error).toContain(`-${r.facts.ledgerFeeNoMargin}`);
   });
 
   it('does not refuse a contract call for want of contract state (the wallet SDK check would)', async () => {
@@ -116,6 +116,16 @@ describe('preflight (the ledger check before sending)', () => {
     expect(preflight(await sealedCall('anchor'), undefined, 'preprod', new Date()).ok).toBe('skipped');
     expect(preflight(await sealedCall('anchor'), { not: 'params' }, 'preprod', new Date()).ok).toBe('skipped');
     expect(preflight(new Uint8Array([1, 2, 3]), PARAMS(), 'preprod', new Date()).ok).toBe('skipped');
+  });
+
+  it('a check that cannot be set up is skipped, not a refusal (a wasm trap in LedgerState.blank)', async () => {
+    const bytes = await sealedCall('anchor');
+    vi.spyOn(Ledger9.LedgerState, 'blank').mockImplementation(() => {
+      throw new Error('RuntimeError: unreachable (wasm trap)');
+    });
+    const r = preflight(bytes, PARAMS(), 'preprod', new Date());
+    expect(r.ok).toBe('skipped');
+    if (r.ok === 'skipped') expect(r.why).toContain('wasm trap');
   });
 
   it('reads entry points and DUST spends, and never throws on odd shapes', () => {
@@ -153,27 +163,35 @@ describe('sponsor wallet: check before sending, and the logs', () => {
       dustPaid: '0',
       nodeError: '138',
     });
-    expect(lines[0].ledgerFee).toMatch(/^\d+$/);
+    expect(lines[0].ledgerFeeNoMargin).toMatch(/^\d+$/);
     expect(lines[0].error).toMatch(/invalid balance/);
     expectNoSecretMaterial(raw);
   });
 
-  it('the refusal line names the circuit, and has no node number when the ledger reason has none', async () => {
+  it('a refusal other than 138 is logged with the circuit, and the call is sent anyway (the node judges)', async () => {
     const bytes = await sealedCall('countersignLicense');
     const { f, calls } = facade(bytes, PARAMS());
     const w = FacadeWallet.forTests(f, { network: 'preprod', preflight });
-    let e: unknown;
+    let out: unknown;
     const { lines, raw } = await captureLog(async () => {
-      e = await w.payAndSubmit(asSealed(bytes), new Date(), () => undefined).catch((x: unknown) => x);
+      out = await w.payAndSubmit(asSealed(bytes), new Date(), () => undefined);
     });
-    expect((e as NotSentError).message).toBe('The network would refuse the transaction. Nothing was sent.');
-    expect(calls).not.toContain('submit');
-    expect(lines[0]).toMatchObject({ msg: 'sponsor: the network would refuse this; not sent', circuit: 'countersignLicense' });
+    expect(out).toEqual({ txId: 'txid-1', fee: 4_000n });
+    expect(calls).toContain('submit');
+    expect(calls).not.toContain('revert:finalized');
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toMatchObject({
+      level: 'warn',
+      msg: 'sponsor: the ledger check would refuse this; sent anyway',
+      circuit: 'countersignLicense',
+      feeWithMargin: '4000',
+    });
     expect(lines[0].nodeError).toBeUndefined();
+    expect(typeof lines[0].error).toBe('string');
     expectNoSecretMaterial(raw);
   });
 
-  it('DUST dated outside its window (171) is "try later", as from the node, and not sent', async () => {
+  it('DUST dated outside its window (171) is logged and sent anyway: the node judges by the block, not this clock', async () => {
     const { f, calls } = facade(new Uint8Array(3), PARAMS());
     const late = () => ({
       ok: false as const,
@@ -182,14 +200,38 @@ describe('sponsor wallet: check before sending, and the logs', () => {
       code: '171',
     });
     const w = FacadeWallet.forTests(f, { preflight: late });
-    let e: unknown;
-    await captureLog(async () => {
-      e = await w.payAndSubmit(asSealed(new Uint8Array(3)), new Date(), () => undefined).catch((x: unknown) => x);
+    let out: unknown;
+    const { lines } = await captureLog(async () => {
+      out = await w.payAndSubmit(asSealed(new Uint8Array(3)), new Date(), () => undefined);
     });
-    expect(e).toBeInstanceOf(NotSentError);
-    expect((e as NotSentError).retryable).toBe(true);
-    expect(calls).not.toContain('submit');
-    expect(calls).toContain('revert:finalized');
+    expect(out).toEqual({ txId: 'txid-1', fee: 4_000n });
+    expect(calls).toContain('submit');
+    expect(calls).not.toContain('revert:finalized');
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toMatchObject({
+      level: 'warn',
+      msg: 'sponsor: the ledger check would refuse this; sent anyway',
+      circuit: 'anchor',
+      nodeError: '171',
+    });
+  });
+
+  it('a check that cannot be set up (LedgerState.blank throws) still sends, logged once as not checked', async () => {
+    const bytes = await unpaid(); // would be a 138 refusal if the check ran
+    const { f, calls } = facade(bytes, PARAMS());
+    vi.spyOn(Ledger9.LedgerState, 'blank').mockImplementation(() => {
+      throw new Error('RuntimeError: unreachable (wasm trap)');
+    });
+    const w = FacadeWallet.forTests(f, { network: 'preprod', preflight });
+    let out: unknown;
+    const { lines } = await captureLog(async () => {
+      out = await w.payAndSubmit(asSealed(bytes), new Date(), () => undefined);
+    });
+    expect(out).toEqual({ txId: 'txid-1', fee: 4_000n });
+    expect(calls).toContain('submit');
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toMatchObject({ level: 'info', msg: 'sponsor: not checked before sending' });
+    expect(String(lines[0].why)).toContain('wasm trap');
   });
 
   it('a call that passes the check is sent, and nothing extra is logged', async () => {
@@ -218,7 +260,7 @@ describe('sponsor wallet: check before sending, and the logs', () => {
   it('a refusal after sending logs the full node error with the same fields', async () => {
     const node = new Error('1010: Invalid Transaction: Custom error: 138');
     const { f } = facade(new Uint8Array(3), PARAMS(), { submitTransaction: () => Promise.reject(node) });
-    const facts = { circuits: ['countersignLicense'], dustSpends: 2, dustPaid: 5_000n, ledgerFee: 3_900n };
+    const facts = { circuits: ['countersignLicense'], dustSpends: 2, dustPaid: 5_000n, ledgerFeeNoMargin: 3_900n };
     const w = FacadeWallet.forTests(f, { preflight: () => ({ ok: true, facts }) });
     let e: unknown;
     const { lines, raw } = await captureLog(async () => {
@@ -231,7 +273,7 @@ describe('sponsor wallet: check before sending, and the logs', () => {
       msg: 'sponsor: the network refused this',
       circuit: 'countersignLicense',
       feeWithMargin: '4000',
-      ledgerFee: '3900',
+      ledgerFeeNoMargin: '3900',
       dustSpends: 2,
       dustPaid: '5000',
       nodeError: '138',
@@ -255,7 +297,8 @@ describe('the public endpoint with the check in place', () => {
     const t = Date.now();
     const now = () => t;
     const bytes = await sealedCall('countersignLicense');
-    const { f, calls } = facade(bytes, PARAMS(), { estimateTransactionFee: () => Promise.resolve(4_000n) });
+    // What the wallet finished is short of its fee (138), the one refusal that stops a call.
+    const { f, calls } = facade(await unpaid(), PARAMS(), { estimateTransactionFee: () => Promise.resolve(4_000n) });
     const wallet = FacadeWallet.forTests(f, { network: 'preprod', preflight });
     vi.spyOn(wallet, 'isSynced').mockReturnValue(true);
     const pow = new ProofOfWork(new Uint8Array(32).fill(3), 6, 600_000, now);

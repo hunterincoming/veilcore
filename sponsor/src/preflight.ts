@@ -3,20 +3,30 @@
 // Why. Licence activation (countersignLicense) was refused by mainnet with error 138 ("pays
 // less than its fee") three times in three, and nothing was logged: the fee, the DUST spends
 // and the node's message were thrown away. This runs the ledger's own well-formedness check
-// on the finished transaction, with the ledger parameters the fee was priced at, so a
-// shortfall is caught (and logged with the exact amount) before anything is sent.
+// on the finished transaction, with the ledger parameters from when its fee was worked out
+// (the balancing recipe's block), so a shortfall is caught, and logged with the exact amount,
+// before anything is sent.
 //
 // Why not the wallet SDK's validateTransaction. It checks against a blank ledger state with
 // contract-proof checking left on, and a blank state holds no contracts, so it refuses every
 // contract call ("call to non-existant contract"): the sponsor would refuse everything. Here
-// the same ledger check runs with contract-proof checking off (the node checks those against
-// the real contract) and everything else on: balancing and fees, signatures, size limits,
-// DUST and Zswap proofs, network and time-to-live.
+// the same ledger check runs with balancing and fees, signatures, size limits, network and
+// time-to-live on, and two things off:
+// - contract proofs: they need the contract's state; the node checks them against it;
+// - DUST proofs: a blank state has no DUST tree roots to check them against, and this ledger
+//   build (ledger-v9, built without proof verification) does not check them anyway.
+// A visitor's call has no Zswap part, so there are no Zswap proofs to check.
 //
-// With no contract state, the fee is worked out with the ledger's default verifier-key size,
-// which is larger than VeilCore's real keys: the check is a little stricter than the node,
-// never looser. The wallet SDK prices fees the same way (with its margin on top), so a
-// transaction it balanced correctly passes.
+// The fee. With no contract state the ledger prices the verifier-key read with its default
+// key size. Reads are priced per 4 KiB block, and both that default and VeilCore's real keys
+// fit in one, so the fee this check works out equals the node's. It is worked out at the
+// parameters from when the fee was priced: if prices rise before the call is included, the
+// node asks for more than this check did. The wallet SDK's margin covers that, and the log
+// line after sending catches it if not.
+//
+// What it decides. Only a balance refusal (the node's 138) is shown to match the node
+// exactly, so only that stops a call (wallet.ts). Any other refusal is logged and the call is
+// sent: the node is the judge. If the check itself cannot be set up, it is "skipped".
 //
 // Nothing here is a secret: entry point names, counts, DUST amounts and the ledger's error
 // text (redacted by describeError all the same).
@@ -33,14 +43,14 @@ export type TxFacts = {
   /** How many DUST spends pay its fee, and what they carry in total, in SPECKs. */
   readonly dustSpends: number;
   readonly dustPaid: bigint;
-  /** The fee the ledger works out for it with these parameters (no margin), if it could. */
-  readonly ledgerFee?: bigint;
+  /** The fee the ledger works out for it with these parameters, before any margin, if it could. */
+  readonly ledgerFeeNoMargin?: bigint;
 };
 
 export type Preflight =
   | { readonly ok: true; readonly facts: TxFacts }
   | { readonly ok: false; readonly facts: TxFacts; readonly error: string; readonly code?: string }
-  /** Not checked (no ledger 9 parameters, or bytes ledger 9 cannot read): sent as before. */
+  /** Not checked (no ledger 9 parameters, bytes ledger 9 cannot read, or the check could not be set up): sent as before. */
   | { readonly ok: 'skipped'; readonly facts: TxFacts; readonly why: string };
 
 const NO_FACTS: TxFacts = { circuits: [], dustSpends: 0, dustPaid: 0n };
@@ -77,14 +87,22 @@ const nodeCodeOf = (error: string): string | undefined =>
   /invalid balance -?\d+ for token Dust in segment \d+/i.test(error)
     ? '138' // BalanceCheckOverspend: pays less than its fee
     : /dust is outside of its validity window/i.test(error)
-      ? '171' // OutOfDustValidityWindow: the indexer is behind (or this clock is); worth a retry
+      ? '171' // OutOfDustValidityWindow: judged here by this machine's clock, by the node by the block's
       : undefined;
 
 /**
  * Check a finished transaction (its bytes) as the node would, before it is sent.
- * `parameters`: the ledger parameters its fee was priced with (the balancing recipe's block).
+ * `parameters`: the ledger parameters from when its fee was worked out (the balancing recipe's block).
+ * `opts.enforceBalancing: false` (tests only) checks everything but the fee: an unpaid call
+ * as the browser builds it, before the sponsor adds DUST, passes then.
  */
-export const preflight = (bytes: Uint8Array, parameters: unknown, networkId: string, now: Date): Preflight => {
+export const preflight = (
+  bytes: Uint8Array,
+  parameters: unknown,
+  networkId: string,
+  now: Date,
+  opts: { readonly enforceBalancing?: boolean } = {},
+): Preflight => {
   let tx: Transaction<never, never, never>;
   try {
     tx = Transaction.deserialize('signature', 'proof', 'binding', bytes) as never;
@@ -95,22 +113,29 @@ export const preflight = (bytes: Uint8Array, parameters: unknown, networkId: str
   if (!(parameters instanceof LedgerParameters)) {
     return { ok: 'skipped', facts: base, why: 'no ledger 9 parameters from balancing' };
   }
-  let ledgerFee: bigint | undefined;
+  let ledgerFeeNoMargin: bigint | undefined;
   try {
-    ledgerFee = tx.fees(parameters);
+    ledgerFeeNoMargin = tx.fees(parameters);
   } catch {
-    ledgerFee = undefined;
+    ledgerFeeNoMargin = undefined;
   }
-  const facts: TxFacts = { ...base, ...(ledgerFee !== undefined ? { ledgerFee } : {}) };
+  const facts: TxFacts = { ...base, ...(ledgerFeeNoMargin !== undefined ? { ledgerFeeNoMargin } : {}) };
+  // Setting up the check is not the check: if this breaks, nothing is known about the call.
+  let state: LedgerState;
+  let strict: WellFormedStrictness;
   try {
-    const state = LedgerState.blank(networkId);
+    state = LedgerState.blank(networkId);
     state.parameters = parameters;
-    const strict = new WellFormedStrictness();
-    strict.enforceBalancing = true;
+    strict = new WellFormedStrictness();
+    strict.enforceBalancing = opts.enforceBalancing ?? true;
     strict.verifySignatures = true;
     strict.enforceLimits = true;
-    strict.verifyNativeProofs = true;
+    strict.verifyNativeProofs = false; // DUST proofs: no DUST roots in a blank state (see above)
     strict.verifyContractProofs = false; // needs the contract's state; the node checks it
+  } catch (e) {
+    return { ok: 'skipped', facts, why: `check failed: ${describeError(e)}` };
+  }
+  try {
     tx.wellFormed(state, strict, now);
     return { ok: true, facts };
   } catch (e) {

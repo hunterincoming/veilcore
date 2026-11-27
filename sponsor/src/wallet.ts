@@ -223,7 +223,7 @@ const logSponsored = (
     log(level, msg, {
       circuit: facts.circuits.join(',') || 'unknown',
       feeWithMargin,
-      ...(facts.ledgerFee !== undefined ? { ledgerFee: facts.ledgerFee } : {}),
+      ...(facts.ledgerFeeNoMargin !== undefined ? { ledgerFeeNoMargin: facts.ledgerFeeNoMargin } : {}),
       dustSpends: facts.dustSpends,
       dustPaid: facts.dustPaid,
       ...extra,
@@ -547,23 +547,24 @@ export class FacadeWallet implements PayingWallet {
       if (e instanceof NotSentError) throw e;
       throw new NotSentError('The sponsor could not work out its fee payment. Try again.', true, { cause: e });
     }
-    // Would the network take it? The ledger's own check, at the parameters the fee was priced
-    // with (preflight.ts). A refusal here sends nothing and spends no DUST.
+    // Would the network take it? The ledger's own check, at the parameters from when the fee
+    // was worked out (preflight.ts). Only a fee shortfall (138), where the check is shown to
+    // match the node, stops the call: nothing is sent and no DUST is spent. Any other refusal
+    // is logged and the call is sent as before; the node is the judge of those.
     const checked = this.checkBeforeSending(finalized, recipe);
-    if (checked.ok === false) {
+    if (checked.ok === false && checked.code === '138') {
       logSponsored('warn', 'sponsor: the network would refuse this; not sent', checked.facts, fee, {
+        error: checked.error,
+        nodeError: checked.code,
+      });
+      await this.facade.revert(finalized).catch(() => undefined);
+      throw new NotSentError('The network would refuse the transaction (error 138). Nothing was sent.', false);
+    }
+    if (checked.ok === false) {
+      logSponsored('warn', 'sponsor: the ledger check would refuse this; sent anyway', checked.facts, fee, {
         error: checked.error,
         ...(checked.code ? { nodeError: checked.code } : {}),
       });
-      await this.facade.revert(finalized).catch(() => undefined);
-      // 171 (DUST dated outside its window) is "try later", as it is from the node.
-      if (checked.code === '171') {
-        throw new NotSentError('The network’s indexer is behind. Try again in a few minutes.', true);
-      }
-      throw new NotSentError(
-        `The network would refuse the transaction${checked.code ? ` (error ${checked.code})` : ''}. Nothing was sent.`,
-        false,
-      );
     }
     if (checked.ok === 'skipped') logSponsored('info', 'sponsor: not checked before sending', checked.facts, fee, { why: checked.why });
     try {
