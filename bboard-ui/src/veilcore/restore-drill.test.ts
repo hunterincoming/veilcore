@@ -1022,7 +1022,7 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     w.goDown();
     const { b: A3, out } = await restoreInto('breeder-registry-gone', text);
     // One section kept: a copy of what the file said, never counted as put back.
-    expect(out.stampSections).toEqual({ kept: 1, already: 0, refused: 0, tooBig: 0 });
+    expect(out.stampSections).toEqual({ kept: 1, already: 0, refused: 0, tooBig: 0, limits: 0, contradicts: 0 });
     expect((out as Record<string, unknown>).stamps).toBeUndefined();
     expect(out.stampsDisagree ?? 0).toBe(0);
     for (const id of [made.plant, made.animal, made.doc, made.local]) {
@@ -1063,6 +1063,8 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
       already: 1,
       refused: 0,
       tooBig: 0,
+      limits: 0,
+      contradicts: 0,
     });
     // The registry back: the next backup's own part comes from it, and the bundle is this device's.
     w.goUp();
@@ -1362,12 +1364,16 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
       );
       const after = stampsOf(await opened(N, await backUp(N)));
       expect(genuineIn(after, done), 'the genuine section is there, unchanged').toEqual(before);
-      // Both shown side by side, each in its own folder, none first.
+      // The same root is shown once, given by two copies, with both stamp files in its folder.
       const { ev, file } = await bundleOf(N, made.plant);
-      expect(ev.registry.carried).toHaveLength(2);
-      const otsFiles = [1, 2].map((n) => Buffer.from(file(`proof/backup-file-${n}/root.bin.ots`)!).toString('base64'));
+      expect(ev.registry.carried).toHaveLength(1);
+      expect(ev.registry.carried![0]).toMatchObject({ copies: 2, otsFiles: 2 });
+      const otsFiles = [1, 2].map((n) =>
+        Buffer.from(file(`proof/backup-file-1/root-${n}.bin.ots`)!).toString('base64'),
+      );
       expect(otsFiles).toContain(done.ots);
       expect(otsFiles).toContain(fake);
+      expect(textOf(file('README.txt'))).toContain('2 different Bitcoin stamp files: they differ, check each');
     });
 
   it('a made-up file restored first can’t keep the genuine tokens out (review 4, R4-3)', async () => {
@@ -1469,7 +1475,7 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     await N.run(() => N.m.backup.restoreAny(fileOf(recordsOnly)));
     const out = await N.run(async () => N.m.backup.restoreAny(fileOf((await crafted()).text)));
     expect((out as Record<string, unknown>).stamps).toBeUndefined();
-    expect(out.stampSections).toEqual({ kept: 1, already: 0, refused: 0, tooBig: 0 });
+    expect(out.stampSections).toEqual({ kept: 1, already: 0, refused: 0, tooBig: 0, limits: 0, contradicts: 0 });
   });
 
   // Review 5.
@@ -1637,6 +1643,140 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     expect(got).toMatchObject({ kept: 0, tooBig: 1, refused: 0 });
     expect(await N.run(() => N.m.stamps.carriedCount())).toBe(0);
     void text;
+  });
+
+  // Review 6: nothing from a backup file is ever silently cut.
+  it('a made-up 15-part section kept first can’t push the genuine one out of later backups (R6-1)', async () => {
+    const { made, text, done, fakeItem, fileWith, recordsOnly } = await craftedSet();
+    w.goDown();
+    const N = await browser('new-device');
+    await N.run(() => N.m.backup.restoreAny(fileOf(recordsOnly)));
+    const one = await fakeItem(BATCH_ID, 'f6');
+    const parts = Array.from({ length: 15 }, () => ({
+      items: [{ ...(one.item as object), ots: otsFile(one.root).toString('base64') }],
+    }));
+    expect(
+      (await N.run(() => N.m.backup.restoreAny(fileOf(fileWith({ carried: [{ id: 'x', parts }] }))))).stampSections
+        ?.kept,
+    ).toBe(1);
+    expect((await N.run(() => N.m.backup.restoreAny(fileOf(text), PASSWORD))).stampSections?.kept).toBe(1);
+    // Same root, many copies: shown once, with the count and every stamp file.
+    const onN = (await bundleOf(N, made.plant)).ev.registry.carried!;
+    expect(onN.map((c) => c.root).sort()).toEqual([done.root, one.root].sort());
+    expect(onN.find((c) => c.root === one.root)).toMatchObject({ copies: 15, otsFiles: 15 });
+    // The holder's latest backup, made there, restored on a third device: the genuine root is there.
+    const latest = await backUp(N);
+    const N2 = await browser('new-device-2');
+    const r = await N2.run(() => N2.m.backup.restoreAny(fileOf(latest), PASSWORD));
+    expect(r.stampSections?.kept).toBe(1);
+    const { ev, gathered } = await bundleOf(N2, made.plant);
+    expect(gathered.source).toBe('backup-file');
+    expect(ev.registry.carried?.map((c) => c.root)).toContain(done.root);
+    expect(genuineIn(stampsOf(await opened(N2, await backUp(N2))), done).length).toBeGreaterThan(0);
+  });
+
+  it('files that carried each other are recognised as the same (R6-2)', async () => {
+    const { text, recordsOnly } = await craftedSet();
+    w.goDown();
+    const N = await browser('new-device');
+    await N.run(() => N.m.backup.restoreAny(fileOf(recordsOnly)));
+    await N.run(() => N.m.backup.restoreAny(fileOf(text), PASSWORD));
+    const f2 = await backUp(N);
+    expect((await N.run(() => N.m.backup.restoreAny(fileOf(f2), PASSWORD))).stampSections).toMatchObject({
+      already: 1,
+    });
+    const N2 = await browser('new-device-2');
+    await N2.run(() => N2.m.backup.restoreAny(fileOf(recordsOnly)));
+    await N2.run(() => N2.m.backup.restoreAny(fileOf(text), PASSWORD));
+    expect((await N2.run(() => N2.m.backup.restoreAny(fileOf(f2), PASSWORD))).stampSections).toMatchObject({
+      already: 1,
+    });
+    expect(await N2.run(() => N2.m.stamps.carriedCount())).toBe(1);
+  });
+
+  it('a kept proof keeps its format version, as the registry sends it (R6-3)', async () => {
+    const { A, made, inner } = await craftedSet();
+    w.goDown();
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    const reg = (inner.proofs as Record<string, Record<string, unknown>>)[fp];
+    expect(typeof reg.formatVersion).toBe('string');
+    const { file } = await bundleOf(A, made.plant);
+    const kept = JSON.parse(Buffer.from(file('proof/inclusion-proof.json')!).toString()) as Record<string, unknown>;
+    expect(kept.formatVersion).toBe(reg.formatVersion);
+    const next = await opened(A, await backUp(A));
+    expect((next.proofs as Record<string, Record<string, unknown>>)[fp].formatVersion).toBe(reg.formatVersion);
+  });
+
+  it('after clearing, restoring the file again brings its date proofs back (R6-4)', async () => {
+    const { text, done, recordsOnly } = await craftedSet();
+    w.goDown();
+    const N = await browser('new-device');
+    await N.run(() => N.m.backup.restoreAny(fileOf(recordsOnly)));
+    await N.run(() => N.m.backup.restoreAny(fileOf(text), PASSWORD));
+    await N.run(() => N.m.stamps.clearCarried());
+    // A backup made before restoring again doesn't hold them: the cleared message says so.
+    expect(genuineIn(stampsOf(await opened(N, await backUp(N))), done)).toHaveLength(0);
+    const { backup } = await import('../i18n/app/en/backup');
+    expect((backup as Record<string, string>)['app.carried.cleared']).toContain('restore your backup file again');
+    await N.run(() => N.m.backup.restoreAny(fileOf(text), PASSWORD));
+    expect(genuineIn(stampsOf(await opened(N, await backUp(N))), done)).toHaveLength(1);
+  });
+
+  // Any limit a file goes past refuses the whole file, with its reason; nothing kept changes.
+  const refusedWhole = async (
+    shape: (inner: Record<string, unknown>, h: Awaited<ReturnType<typeof craftedSet>>) => string | Promise<string>,
+    why: 'limits' | 'contradicts',
+  ) => {
+    const h = await craftedSet();
+    w.goDown();
+    const N = await browser('new-device');
+    await N.run(() => N.m.backup.restoreAny(fileOf(h.recordsOnly)));
+    await N.run(async () => N.m.backup.restoreAny(fileOf((await h.crafted('11')).text)));
+    const before = stampsOf(await opened(N, await backUp(N)));
+    const out = await N.run(async () => N.m.backup.restoreAny(fileOf(await shape(h.inner, h))));
+    expect(out.stampSections).toMatchObject({ kept: 0, [why]: 1 });
+    expect(stampsOf(await opened(N, await backUp(N))), 'nothing kept changed').toEqual(before);
+  };
+
+  it('a file carrying more sections than a browser keeps is refused whole, never cut', async () => {
+    await refusedWhole(async (_i, h) => {
+      const carried = [];
+      for (let i = 0; i < 10; i++) carried.push({ id: String(i), items: [(await h.fakeItem(BATCH_ID, `${i}a`)).item] });
+      return h.fileWith({ carried }, h.inner.proofs);
+    }, 'limits');
+  });
+
+  it('a section with more parts than the limit is refused whole, never cut', async () => {
+    await refusedWhole(async (_i, h) => {
+      const one = await h.fakeItem(BATCH_ID, 'ab');
+      const parts = Array.from({ length: 65 }, () => ({ items: [one.item] }));
+      return h.fileWith({ carried: [{ id: 'x', parts }] }, h.inner.proofs);
+    }, 'limits');
+  });
+
+  it('more tokens on an item than the limit is refused whole, never cut', async () => {
+    await refusedWhole((inner, h) => {
+      const b = stampsOf(inner)!.batches[BATCH_ID];
+      return h.fileWith(
+        { batches: { [BATCH_ID]: { ...b, tsts: Array.from({ length: 9 }, () => ({ token: tsa.tokenFor(b.root) })) } } },
+        inner.proofs,
+      );
+    }, 'limits');
+  });
+
+  it('a stamp file too big is refused whole, never cut', async () => {
+    await refusedWhole((inner, h) => {
+      const b = stampsOf(inner)!.batches[BATCH_ID];
+      return h.fileWith({ batches: { [BATCH_ID]: { ...b, ots: 'A'.repeat(17 * 1024) } } }, inner.proofs);
+    }, 'limits');
+  });
+
+  it('a part naming a record under two batches is refused whole, as contradicting itself', async () => {
+    await refusedWhole(async (_i, h) => {
+      const y = await h.fakeItem('B-TWO-Y', 'c1');
+      const z = await h.fakeItem('B-TWO-Z', 'c2');
+      return h.fileWith({ carried: [{ id: 'x', items: [y.item, z.item] }] });
+    }, 'contradicts');
   });
 
   it('flags in a file claiming its data is confirmed change nothing (review 3, C3)', async () => {

@@ -730,7 +730,10 @@ export const custodyEntries = async (
 /** One carried section in evidence.json (source `backup-file`). */
 export type CarriedFacts = {
   readonly folder: string;
-  readonly section: string;
+  /** The ids of the kept sections that give this batch and root. */
+  readonly sections: readonly string[];
+  /** How many copies kept from backup files give this batch and root (shown once, review 6). */
+  readonly copies: number;
   readonly batchId: string;
   readonly root: string;
   readonly proof: InclusionProof;
@@ -740,8 +743,10 @@ export type CarriedFacts = {
     readonly status: string;
     readonly bitcoinBlockHeight?: number;
   };
-  /** The stamp file, base64, so verify.html can read it with no other file. */
+  /** The first stamp file (a finished one when there is one), base64, so verify.html can read it. */
   readonly ots?: string;
+  /** How many distinct stamp files the copies carry (more than one: they differ; check each). */
+  readonly otsFiles: number;
   readonly tokens: number;
   readonly files: readonly string[];
 };
@@ -750,30 +755,34 @@ const toB64 = (b: Uint8Array): string => btoa(String.fromCharCode(...b));
 
 const tstNames = (n: number): string[] =>
   n === 1 ? ['root.tst'] : Array.from({ length: n }, (_, i) => `root-${i + 1}.tst`);
+const otsNames = (n: number): string[] =>
+  n === 1 ? ['root.bin.ots'] : Array.from({ length: n }, (_, i) => `root-${i + 1}.bin.ots`);
 
 const carriedFacts = (c: import('../stamps').CarriedEvidence, i: number): CarriedFacts => {
   const folder = `proof/backup-file-${i + 1}`;
   return {
     folder,
-    section: c.section,
+    sections: c.sections,
+    copies: c.copies,
     batchId: c.batchId,
     root: c.root,
     proof: c.proof,
     anchor: c.proof.anchor ?? null,
-    opentimestamps: c.ots
+    opentimestamps: c.ots[0]
       ? {
           available: true,
-          status: c.otsStatus ?? 'pending',
-          ...(c.bitcoinBlockHeight !== undefined ? { bitcoinBlockHeight: c.bitcoinBlockHeight } : {}),
+          status: c.ots[0].status,
+          ...(c.ots[0].height !== undefined ? { bitcoinBlockHeight: c.ots[0].height } : {}),
         }
       : { available: false, status: 'none' },
-    ...(c.ots ? { ots: toB64(c.ots) } : {}),
+    ...(c.ots[0] ? { ots: toB64(c.ots[0].bytes) } : {}),
+    otsFiles: c.ots.length,
     tokens: c.tsts.length,
     files: [
       'inclusion-proof.json',
       'batch-root.txt',
       'root.bin',
-      ...(c.ots ? ['root.bin.ots'] : []),
+      ...otsNames(c.ots.length),
       ...tstNames(c.tsts.length),
       'check-on-midnight.mjs',
     ].map((f) => `${folder}/${f}`),
@@ -1352,7 +1361,7 @@ export const readmeText = (
     );
     for (const c of carried)
       L.push(
-        `- ${c.folder}: batch ${oneLine(c.batchId)}, batch root ${c.root}${c.opentimestamps.available ? `, a Bitcoin stamp file (${c.opentimestamps.status === 'bitcoin' ? `names block ${c.opentimestamps.bitcoinBlockHeight ?? '?'}` : 'pending'})` : ''}${c.tokens ? `, ${c.tokens} RFC 3161 token${c.tokens === 1 ? '' : 's'}` : ''}.`,
+        `- ${c.folder}: batch ${oneLine(c.batchId)}, batch root ${c.root}${c.copies > 1 ? ` (given by ${c.copies} copies kept from backup files)` : ''}${c.opentimestamps.available ? `, ${c.otsFiles > 1 ? `${c.otsFiles} different Bitcoin stamp files: they differ, check each; the first` : 'a Bitcoin stamp file'} (${c.opentimestamps.status === 'bitcoin' ? `names block ${c.opentimestamps.bitcoinBlockHeight ?? '?'}` : 'pending'})` : ''}${c.tokens ? `, ${c.tokens} RFC 3161 token${c.tokens === 1 ? '' : 's'}` : ''}.`,
       );
     if (carriedDisagree(ev)) L.push(`BACKUP FILES DISAGREE: ${DISAGREE_WORDS}`);
     for (const r of ev.registry.registryRoots ?? [])
@@ -1646,7 +1655,7 @@ export const bundleFiles = async (
       at('root.bin'),
       Uint8Array.from(c.root.match(/../g) ?? [], (x) => parseInt(x, 16)),
     );
-    if (g.ots) add(at('root.bin.ots'), g.ots);
+    otsNames(g.ots.length).forEach((n, k) => add(at(n), g.ots[k].bytes));
     tstNames(g.tsts.length).forEach((n, k) => add(at(n), g.tsts[k]));
     const anchor = isObject(c.anchor) ? c.anchor : null;
     const script = checkScriptFor({

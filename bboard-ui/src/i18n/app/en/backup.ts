@@ -174,7 +174,14 @@ export const backup = {
   'app.carried.confirmText':
     'This removes only the copies of date proofs this browser kept from backup files you restored. What VeilCore’s server gave this browser stays. Your backup files on your device are unchanged, and you can restore the right one again.',
   'app.carried.confirm': 'Clear them',
-  'app.carried.cleared': 'Cleared. Your backup files on your device are unchanged.',
+  'app.carried.cleared':
+    'Cleared. Your backup files on your device are unchanged. Now restore your backup file again to keep its date proofs here; backups made before then won’t hold them.',
+  'app.carried.what':
+    'Copies of date proofs from backup files you restored. They’re used only when VeilCore can’t be reached, and never count as checked by VeilCore.',
+  'app.backup.stampsLimits':
+    'This backup file holds more date proofs than this browser keeps from one file, so none of them were kept: keeping some would mean leaving others out. Nothing already kept was changed. The file itself still holds them all: keep it safe.',
+  'app.backup.stampsContradicts':
+    'This backup file names one of your records in two different places at once, so none of its date proofs were kept. Nothing already kept was changed. Keep the file, and restore one you trust.',
   'app.backup.fileIsLasting':
     'Your backup file on your own device is never changed by restoring; keep it — it’s the lasting copy.',
   'app.backup.rootChanged':

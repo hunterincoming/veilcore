@@ -45,6 +45,11 @@ export const ClearCarriedCopies: React.FC<{
   };
   return (
     <Stack spacing={0.5} data-carried-clear="">
+      {!always && (
+        <Typography variant="body2" color="text.secondary" data-carried-what="">
+          {t('app.carried.what')}
+        </Typography>
+      )}
       <Button size="small" variant="outlined" onClick={() => setAsking(true)} sx={{ alignSelf: 'flex-start' }}>
         {t('app.carried.clear')}
       </Button>

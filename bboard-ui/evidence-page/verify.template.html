@@ -415,11 +415,13 @@ return canonicalise;
         var cc = LK.carried[ci];
         var ck = CR[ci] || {};
         var lines = [
-          'Batch ' + cc.batchId + ', batch root ' + cc.root + ' (' + cc.folder + ').',
+          'Batch ' + cc.batchId + ', batch root ' + cc.root + ' (' + cc.folder + ')' + (cc.copies > 1 ? ', given by ' + cc.copies + ' copies kept from backup files' : '') + '.',
+          cc.otsFiles > 1 ? 'Those copies carry ' + cc.otsFiles + ' different Bitcoin stamp files, all in that folder: they differ, so check each; the one read here is the first.' : '',
           ck.proof && ck.proof.status === 'ok' ? 'Its proof leads from this record’s proof code to that root.' : 'Its proof does not check: ' + ((ck.proof && ck.proof.reason) || 'none') + '.',
           ck.stamp && ck.stamp.status === 'bitcoin' ? 'Its Bitcoin stamp file starts from that root and names block ' + ck.stamp.bitcoin.map(function (x) { return x.height; }).join(', ') + '; check it against Bitcoin (ots verify root.bin.ots in that folder).' : ck.stamp && ck.stamp.status === 'pending' ? 'Its Bitcoin stamp file starts from that root but holds only a promise, not yet a Bitcoin block.' : 'No Bitcoin stamp file that starts from that root.',
           (ck.tokens ? ck.tokens + ' RFC 3161 token' + (ck.tokens === 1 ? '' : 's') + ' in that folder (openssl ts -verify).' : 'No RFC 3161 token.'),
         ];
+        lines = lines.filter(function (l) { return l !== ''; });
         if (cc.midnight && cc.midnight.txHash) lines = lines.concat(VeilcoreVerify.midnightSteps(cc.midnight));
         else lines.push('The backup file names no Midnight transaction for it.');
         cards.push(el('h3', null, 'From a backup file: ' + cc.folder));

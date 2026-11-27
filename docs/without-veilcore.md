@@ -83,25 +83,37 @@ the code stands for. Now the file also carries:
   and named by the SHA-256 of their canonical bytes: the same evidence in another order is
   recognised as already kept. One file takes one place, however many sections it carries.
   Sections are never merged, edited, upgraded or evicted: a later file can't change or remove an
-  earlier one. Every later backup file carries every section as it is (`stamps.carried`). At
-  most 8 sections and 512 KB (compressed) are kept. Past that, a new file's section is refused,
-  nothing already kept changes, and the restore page says so and offers **Clear copies from
-  backup files** (also in the evidence bundle dialog under Technical details): it removes only
-  these copies, never what our registry gave, after asking, and your backup files are
-  unchanged, so you can restore the right one again. A single file whose date proofs alone are
-  bigger than the limit is refused with its own message.
+  earlier one. Every later backup file carries every section as it is (`stamps.carried`), and a
+  restore reads every one of them, every part of each: **nothing from a backup file is ever
+  cut or left out.** At most 8 sections and 512 KB (compressed) are kept. Past that, a new
+  file's section is refused, nothing already kept changes, and the restore page says so and
+  offers **Clear copies from backup files** (also in the evidence bundle dialog under Technical
+  details, with one sentence on what it does): it removes only these copies, never what our
+  registry gave, after asking, and your backup files are unchanged. After clearing, restore
+  your backup file again before making a new backup; a backup made before then won't hold
+  those date proofs, and the page says so. A single file whose date proofs alone are bigger
+  than the limit is refused with its own message.
+- **Limits refuse the whole file, never part of it.** A file is read only within these limits:
+  9 carried sections (8 plus the registry's changed answer), 64 parts per section, 4,096 items
+  per part, 8 tokens per item, 16 KB per Bitcoin file or token, 512 KB in all. A file that goes
+  past any of them, or that names one record under two batches in one part, has none of its
+  date proofs kept, the restore page gives the reason, and nothing already kept changes. Its
+  records, keys and the rest still come back as usual.
 - **What is checked about a section.** Only its form, so junk stays out: each proof must lead
   from one of your records to the root it names (one batch per record per section), a Bitcoin
   file must start from SHA-256 of that root, a token must verify against what it stamps and be
   signed by a timestamp authority the site pins, within that certificate's dates, and each file
-  or token is at most 16 KB, four tokens per item.
+  or token is at most 16 KB, eight tokens per item. The proof's `formatVersion` is kept as the
+  registry sends it (text).
 - **When it is used.** Only for an evidence bundle when our registry can't be reached and it has
   no answer of its own for the record. One case counts as the registry's: a section's proof that
   leads to a root our registry gave the same batch (for another of your records). Then only the
   path is taken from the file; the transaction, block, times and the rest come from the
-  registry's own proof for that batch. The bundle then carries *every* section that covers the
-  record, each in its own folder (`proof/backup-file-*`) with all its files (the proof, the
-  root, the Bitcoin file, the tokens, the Midnight check), none ranked first. Every page says
+  registry's own proof for that batch. The bundle then carries *every* root that the sections
+  give for the record, each in its own folder (`proof/backup-file-*`) with all its files (the
+  proof, the root, every different Bitcoin file, the tokens, the Midnight check), none ranked
+  first. Sections giving the same batch and root are shown once, with how many copies gave it;
+  if their Bitcoin files differ, each is included and the pages say to check each. Every page says
   so: README.txt, EXAMINER-SUMMARY.html, evidence.json and verify.html (which reads
   `registry.source` and lists the sections side by side) say the batch data was "restored from a
   backup file, not yet confirmed with VeilCore's registry or Midnight", and that the holder's

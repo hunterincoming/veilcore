@@ -278,6 +278,17 @@ export const RestorePage: React.FC = () => {
                 </Alert>
               )}
               {/* This one file's date proofs alone are bigger than this browser keeps a copy of. */}
+              {/* The file goes past a limit on what one file may bring, or contradicts itself: refused whole. */}
+              {!!done.stampSections?.limits && (
+                <Alert severity="warning" variant="outlined" data-restore-stamps-limits="">
+                  {t('app.backup.stampsLimits')}
+                </Alert>
+              )}
+              {!!done.stampSections?.contradicts && (
+                <Alert severity="warning" variant="outlined" data-restore-stamps-contradicts="">
+                  {t('app.backup.stampsContradicts')}
+                </Alert>
+              )}
               {!!done.stampSections?.tooBig && (
                 <Alert severity="warning" variant="outlined" data-restore-stamps-too-big="">
                   {t('app.backup.stampsTooBig')}

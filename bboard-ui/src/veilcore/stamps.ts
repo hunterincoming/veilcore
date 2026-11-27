@@ -26,11 +26,14 @@
 //     sections and CARRIED_BUDGET compressed bytes: past that a new section is refused, the
 //     restore page says so, and nothing kept is changed. Every later backup writes every section
 //     as it is (`stamps.carried`). The checks, so junk stays out: each proof must lead from one of
-//     this holder's records to the root it names (one batch per record per section), a Bitcoin
-//     file must start from SHA-256 of that root (verify.html's reader), a token must verify
-//     against what it stamps and be signed by a timestamp authority this site pins, within that
-//     certificate's dates (config/tsa-pins.json, as instant-stamp.ts), and each file or token is
-//     at most CARRIED_FILE_CHARS, at most MAX_CARRIED_TOKENS per item. A section is a copy of
+//     this holder's records to the root it names, a Bitcoin file must start from SHA-256 of that
+//     root (verify.html's reader), a token must verify against what it stamps and be signed by a
+//     timestamp authority this site pins, within that certificate's dates (config/tsa-pins.json,
+//     as instant-stamp.ts). What fails a check is junk and is left out. NOTHING else is ever cut
+//     (review 6): a file that goes past a limit (more than MAX_FILE_SECTIONS sections, a section
+//     with more than MAX_PARTS_PER_SECTION parts, more than MAX_CARRIED_TOKENS tokens on an item,
+//     a file or token over CARRIED_FILE_CHARS, a section over CARRIED_BUDGET) or names a record
+//     under two batches in one part is refused whole, with its reason. A section is a copy of
 //     what a file said, never VeilCore's answer: it is used only for an evidence bundle when the
 //     registry can't be reached, every section that covers the record side by side, none ranked
 //     first, each labelled on every page as restored from a backup file and not yet confirmed.
@@ -62,15 +65,30 @@ const MAX_TOKENS = 8;
 const MAX_FILE_CHARS = 64 * 1024;
 /** From a backup file: real stamp files and tokens are a few kilobytes. */
 export const CARRIED_FILE_CHARS = 16 * 1024;
-const MAX_CARRIED_TOKENS = 4;
+/** Tokens per item from a backup file: as many as the registry ever gives (one per TSA). */
+const MAX_CARRIED_TOKENS = MAX_TOKENS;
 /** Carried sections kept at most (one per restored backup file). */
 export const MAX_SECTIONS = 8;
 /** All carried sections together, compressed as stored. */
 export const CARRIED_BUDGET = 512 * 1024;
-/** Items a part may hold before the rest are left out (a file names one batch per record). */
+/** Items one part may hold (a file names one batch per record). */
 const MAX_SECTION_ITEMS = 4096;
-/** Parts one file's section may hold (its own and the ones it carried). */
-const MAX_PARTS = 16;
+/** Parts one carried section may hold (it grows by one each time a file carries it on). */
+const MAX_PARTS_PER_SECTION = 64;
+/** Carried sections one file may bring: as many as a browser keeps, and the registry's changed answer. */
+const MAX_FILE_SECTIONS = MAX_SECTIONS + 1;
+
+/**
+ * A limit a backup file goes past. Nothing from a file is ever cut short (review 6): when any
+ * part of a file would have to be left out to fit, none of its date proofs are kept, the restore
+ * page says why, and nothing already kept changes.
+ */
+class CapExceeded extends Error {
+  constructor(readonly why: 'limits' | 'contradicts') {
+    super(why);
+  }
+}
+const isCap = (e: unknown): e is CapExceeded => e instanceof CapExceeded;
 const FETCHES = 6;
 
 /** An RFC 3161 token, base64 DER, and which TSA's (the registry's word, for the reader). */
@@ -274,7 +292,14 @@ const mergeTokens = (had: readonly TokenEntry[] = [], add: readonly TokenEntry[]
 const checkedTokens = async (list: unknown, stamped: Uint8Array, pins?: readonly TsaPin[]): Promise<TokenEntry[]> => {
   const out: TokenEntry[] = [];
   const max = pins ? MAX_CARRIED_TOKENS : MAX_TOKENS;
-  for (const t of Array.isArray(list) ? list.slice(0, max) : []) {
+  const all = Array.isArray(list) ? (list as unknown[]) : [];
+  // From a file, nothing is cut: more tokens than the limit, or one too big, refuses the file.
+  if (
+    pins &&
+    (all.length > max || all.some((t) => isObject(t) && isString(t.token) && t.token.length > CARRIED_FILE_CHARS))
+  )
+    throw new CapExceeded('limits');
+  for (const t of pins ? all : all.slice(0, max)) {
     if (!isObject(t)) continue;
     if (!(await (pins ? pinnedTokenChecks(t.token, stamped, pins) : tokenChecks(t.token, stamped)))) continue;
     out.push({ token: t.token as string, ...(isString(t.tsa) && t.tsa.length < 512 ? { tsa: t.tsa } : {}) });
@@ -284,14 +309,14 @@ const checkedTokens = async (list: unknown, stamped: Uint8Array, pins?: readonly
 
 /** JSON as kept: only strings, finite numbers, booleans, arrays and plain objects; no null, no unknown types. */
 const plain = (v: unknown, depth = 0): unknown => {
-  if (depth > 8) return undefined;
+  // Deeper or longer than any proof the registry gives: refused whole, never cut.
+  if (depth > 8) throw new CapExceeded('limits');
   if (isString(v) || typeof v === 'boolean') return v;
   if (typeof v === 'number') return Number.isFinite(v) ? v : undefined;
-  if (Array.isArray(v))
-    return v
-      .slice(0, 64)
-      .map((x) => plain(x, depth + 1))
-      .filter((x) => x !== undefined);
+  if (Array.isArray(v)) {
+    if (v.length > 64) throw new CapExceeded('limits');
+    return v.map((x) => plain(x, depth + 1)).filter((x) => x !== undefined);
+  }
   if (!isObject(v)) return undefined;
   const out: Record<string, unknown> = {};
   for (const [k, x] of Object.entries(v)) {
@@ -318,18 +343,16 @@ const keepable = (p: InclusionProof): InclusionProof => {
         ),
       )
     : undefined;
+  if (Array.isArray(r.anchors) && r.anchors.length > 16) throw new CapExceeded('limits');
   const anchors = Array.isArray(r.anchors)
-    ? (r.anchors as unknown[])
-        .filter(isObject)
-        .slice(0, 16)
-        .map((a) => {
-          const c = plain(a) as Record<string, unknown>;
-          if (c.kind === 'rfc3161') delete c.token;
-          return c;
-        })
+    ? (r.anchors as unknown[]).filter(isObject).map((a) => {
+        const c = plain(a) as Record<string, unknown>;
+        if (c.kind === 'rfc3161') delete c.token;
+        return c;
+      })
     : undefined;
   return {
-    ...(isNumber(r.formatVersion) ? { formatVersion: r.formatVersion } : {}),
+    ...(isString(r.formatVersion) && r.formatVersion.length < 32 ? { formatVersion: r.formatVersion } : {}),
     commitment: p.commitment,
     root: p.root,
     batchId: p.batchId,
@@ -462,25 +485,30 @@ export const stampsForBackup = async (
 /** OWN refreshed from the registry's answers (stampsForBackup). */
 const refreshFromRegistry = async (own: Own, wanted: ReadonlySet<string>, proofs: Record<string, unknown>) => {
   for (const fp of wanted) {
-    const fresh = proofs[fp];
-    const first = own.proofs[fp];
-    if (fresh !== undefined) {
-      const st = await checkProof(fp, fresh).catch(() => ({ status: 'none' as const }));
-      if (st.status === 'none') {
-        delete proofs[fp];
-      } else if (!first) {
-        own.proofs[fp] = keepable(st.proof);
-      } else if (!sameBatch(first, st.proof)) {
-        // An honest registry never changes a sealed batch: the first answer stays (rootChanges).
-        const aside = own.changed[fp] ?? [];
-        if (!aside.some((p) => sameBatch(p, st.proof))) own.changed[fp] = [...aside, keepable(st.proof)];
-        proofs[fp] = first;
+    // One record's answer that can't be kept never stops the others.
+    try {
+      const fresh = proofs[fp];
+      const first = own.proofs[fp];
+      if (fresh !== undefined) {
+        const st = await checkProof(fp, fresh).catch(() => ({ status: 'none' as const }));
+        if (st.status === 'none') {
+          delete proofs[fp];
+        } else if (!first) {
+          own.proofs[fp] = keepable(st.proof);
+        } else if (!sameBatch(first, st.proof)) {
+          // An honest registry never changes a sealed batch: the first answer stays (rootChanges).
+          proofs[fp] = first;
+          const aside = own.changed[fp] ?? [];
+          if (!aside.some((p) => sameBatch(p, st.proof))) own.changed[fp] = [...aside, keepable(st.proof)];
+        }
+        continue;
       }
-      continue;
+      if (!first) continue;
+      const st = await checkProof(fp, first);
+      if (st.status !== 'none') proofs[fp] = st.proof;
+    } catch {
+      /* this record's answer is left as it was */
     }
-    if (!first) continue;
-    const st = await checkProof(fp, first);
-    if (st.status !== 'none') proofs[fp] = st.proof;
   }
   // Each batch (id and root) these records sit in, once, with the registry's answer just now.
   const batchOf = new Map<string, { p: InclusionProof; fresh?: InclusionProof }>();
@@ -628,8 +656,10 @@ const checkedBatches = async (
   pins: readonly TsaPin[],
 ): Promise<CarriedBatch[]> => {
   const incoming: Incoming[] = [];
-  for (const it of raw.slice(0, MAX_SECTION_ITEMS)) {
+  if (raw.length > MAX_SECTION_ITEMS) throw new CapExceeded('limits');
+  for (const it of raw) {
     if (!isString(it.batchId) || it.batchId.length > 128 || !isString(it.root) || !HEX64.test(it.root)) continue;
+    if (isString(it.ots) && it.ots.length > CARRIED_FILE_CHARS) throw new CapExceeded('limits');
     const proofs: Record<string, InclusionProof> = {};
     for (const [fp, p] of Object.entries(isObject(it.proofs) ? it.proofs : {})) {
       if (!here.has(fp)) continue;
@@ -637,22 +667,27 @@ const checkedBatches = async (
         const st = await checkProof(fp, p);
         if (st.status === 'none' || st.proof.batchId !== it.batchId || st.proof.root !== it.root) continue;
         proofs[fp] = keepable(st.proof);
-      } catch {
-        /* this proof is left out; the rest stand */
+      } catch (e) {
+        if (isCap(e)) throw e;
+        /* a proof that can't be read is junk, left out; the rest stand */
       }
     }
     if (Object.keys(proofs).length)
       incoming.push({ batchId: it.batchId, root: it.root, proofs, ots: it.ots, tsts: it.tsts });
   }
-  // One batch per record in a section: a record a section names under two batches is in neither.
-  const seen = new Map<string, number>();
-  for (const e of incoming) for (const fp of Object.keys(e.proofs)) seen.set(fp, (seen.get(fp) ?? 0) + 1);
+  // One batch per record in a part: a part that names a record under two batches contradicts
+  // itself, and the file is refused (nothing is quietly left out).
+  const seen = new Set<string>();
+  for (const e of incoming)
+    for (const fp of Object.keys(e.proofs)) {
+      if (seen.has(fp)) throw new CapExceeded('contradicts');
+      seen.add(fp);
+    }
   const out: CarriedBatch[] = [];
   for (const e of incoming) {
-    const proofs = Object.fromEntries(Object.entries(e.proofs).filter(([fp]) => seen.get(fp) === 1));
-    if (Object.keys(proofs).length === 0) continue;
+    const proofs = e.proofs;
     const read = await readOts(e.ots, e.root, CARRIED_FILE_CHARS).catch(() => null);
-    const tsts = await checkedTokens(e.tsts, hexBytes(e.root), pins).catch(() => []);
+    const tsts = await checkedTokens(e.tsts, hexBytes(e.root), pins);
     out.push({
       kind: 'batch',
       batchId: e.batchId,
@@ -672,9 +707,11 @@ const checkedRecords = async (
   pins: readonly TsaPin[],
 ): Promise<CarriedRecord[]> => {
   const out = new Map<string, CarriedRecord>();
-  for (const [fp, list] of raw.slice(0, MAX_SECTION_ITEMS)) {
-    if (!isString(fp) || !here.has(fp) || out.has(fp)) continue;
-    const instant = await checkedTokens(list, hexBytes(fp), pins).catch(() => []);
+  if (raw.length > MAX_SECTION_ITEMS) throw new CapExceeded('limits');
+  for (const [fp, list] of raw) {
+    if (!isString(fp) || !here.has(fp)) continue;
+    if (out.has(fp)) throw new CapExceeded('contradicts');
+    const instant = await checkedTokens(list, hexBytes(fp), pins);
     if (instant.length) out.set(fp, { kind: 'record', fp, instant });
   }
   return [...out.values()];
@@ -687,10 +724,7 @@ const checkedPart = async (
   here: ReadonlySet<string>,
   pins: readonly TsaPin[],
 ): Promise<CarriedPart> => ({
-  items: [
-    ...(await checkedBatches(rawBatches, here, pins).catch(() => [])),
-    ...(await checkedRecords(rawRecords, here, pins).catch(() => [])),
-  ],
+  items: [...(await checkedBatches(rawBatches, here, pins)), ...(await checkedRecords(rawRecords, here, pins))],
 });
 
 /**
@@ -724,13 +758,19 @@ const partsOf = async (
   );
   out.push(await checkedPart(ownBatches, ownRecords, here, pins));
   // Each part of each section it carried (a section as an earlier version wrote it, `items`, is one part).
+  // Every section it carried, every part of each: none is left out. Past the limits, the whole
+  // file is refused (review 6).
+  const carried = Array.isArray(file?.carried) ? (file.carried as unknown[]) : [];
+  if (carried.length > MAX_FILE_SECTIONS) throw new CapExceeded('limits');
   const rawParts: unknown[] = [];
-  for (const sec of (Array.isArray(file?.carried) ? (file.carried as unknown[]) : []).slice(0, MAX_PARTS)) {
+  for (const sec of carried) {
     if (!isObject(sec)) continue;
-    if (Array.isArray(sec.parts)) rawParts.push(...(sec.parts as unknown[]));
-    else if (Array.isArray(sec.items)) rawParts.push({ items: sec.items });
+    if (Array.isArray(sec.parts)) {
+      if (sec.parts.length > MAX_PARTS_PER_SECTION) throw new CapExceeded('limits');
+      rawParts.push(...(sec.parts as unknown[]));
+    } else if (Array.isArray(sec.items)) rawParts.push({ items: sec.items });
   }
-  for (const part of rawParts.slice(0, MAX_PARTS - 1)) {
+  for (const part of rawParts) {
     const items = isObject(part) && Array.isArray(part.items) ? (part.items as unknown[]) : [];
     const rawBatches = items.filter(
       (i): i is Record<string, unknown> & { batchId: unknown; root: unknown; proofs: unknown } =>
@@ -776,6 +816,10 @@ export type StampsRestored = {
   readonly refused: number;
   /** 1 when it was refused because this one file's section alone is bigger than the limit. */
   readonly tooBig: number;
+  /** 1 when it was refused because it goes past a limit on what one file may bring (nothing is cut). */
+  readonly limits: number;
+  /** 1 when it was refused because it names a record under two batches in one place. */
+  readonly contradicts: number;
   /** Records here that kept sources give more than one batch or root for. */
   readonly disagree: number;
 };
@@ -803,7 +847,7 @@ export const restoreStamps = async (
     here.add(fp);
     store.own.ids[fp] ??= r.id;
   }
-  const result = { kept: 0, already: 0, refused: 0, tooBig: 0, disagree: 0 };
+  const result = { kept: 0, already: 0, refused: 0, tooBig: 0, limits: 0, contradicts: 0, disagree: 0 };
   if (here.size === 0) return result;
   const file = isObject(fromFile) && fromFile.format === STAMPS_FORMAT ? fromFile : undefined;
   try {
@@ -824,8 +868,9 @@ export const restoreStamps = async (
         save(store);
       }
     }
-  } catch {
-    /* nothing of this file is kept; nothing kept is changed */
+  } catch (e) {
+    // Nothing of this file is kept; nothing kept is changed. A limit or a contradiction is said.
+    if (isCap(e)) result[e.why] = 1;
   }
   result.disagree = [...here].filter((fp) => rootsFor(store, fp).size > 1).length;
   return result;
@@ -873,15 +918,20 @@ const batchFacts = async (proof: InclusionProof, b: { ots?: string; tsts?: reado
 
 /** One carried section's batch for a record, for the bundle: everything that section has for it. */
 export type CarriedEvidence = {
-  /** The section's id (the SHA-256 of its canonical bytes). */
-  readonly section: string;
+  /** The ids of the sections that give this batch and root (each the SHA-256 of its canonical bytes). */
+  readonly sections: readonly string[];
+  /** How many copies kept from backup files give this batch and root. */
+  readonly copies: number;
   readonly batchId: string;
   readonly root: string;
   readonly proof: InclusionProof;
-  readonly ots?: Uint8Array;
-  readonly otsStatus?: 'bitcoin' | 'pending';
-  readonly bitcoinBlockHeight?: number;
-  /** Each token, DER. */
+  /** Every distinct Bitcoin stamp file those copies carry that starts from this root, each once. */
+  readonly ots: readonly {
+    readonly bytes: Uint8Array;
+    readonly status: 'bitcoin' | 'pending';
+    readonly height?: number;
+  }[];
+  /** Each distinct token, DER. */
   readonly tsts: readonly Uint8Array[];
 };
 
@@ -917,6 +967,18 @@ export const keptEvidence = async (
       };
   }
   const sections: CarriedEvidence[] = [];
+  const groups = new Map<
+    string,
+    {
+      sections: string[];
+      copies: number;
+      batchId: string;
+      root: string;
+      proof: InclusionProof;
+      ots: { bytes: Uint8Array; status: 'bitcoin' | 'pending'; height?: number; b64: string }[];
+      tsts: Map<string, Uint8Array>;
+    }
+  >();
   for (const sec of store.sections)
     for (const it of itemsOf(sec)) {
       if (it.kind !== 'batch' || !it.proofs[fp]) continue;
@@ -938,21 +1000,50 @@ export const keptEvidence = async (
         continue;
       }
       const read = it.ots ? await readOts(it.ots, it.root).catch(() => null) : null;
-      sections.push({
-        section: sec.id,
+      // Copies giving the same batch and root are shown once, with how many there are, and
+      // every distinct stamp file and token among them (review 6).
+      const k = batchKey(it.batchId, it.root);
+      const g = groups.get(k) ?? {
+        sections: [] as string[],
+        copies: 0,
         batchId: it.batchId,
         root: it.root,
         proof: st.proof,
-        ...(read && it.ots
-          ? {
-              ots: b64Bytes(it.ots),
-              otsStatus: read.status,
-              ...(read.height !== undefined ? { bitcoinBlockHeight: read.height } : {}),
-            }
-          : {}),
-        tsts: (it.tsts ?? []).map((t) => b64Bytes(t.token)).filter((b): b is Uint8Array => !!b),
-      });
+        ots: [] as { bytes: Uint8Array; status: 'bitcoin' | 'pending'; height?: number; b64: string }[],
+        tsts: new Map<string, Uint8Array>(),
+      };
+      g.copies++;
+      if (!g.sections.includes(sec.id)) g.sections.push(sec.id);
+      const bytes = read && it.ots ? b64Bytes(it.ots) : undefined;
+      if (bytes && read && !g.ots.some((o) => o.b64 === it.ots))
+        g.ots.push({
+          bytes,
+          status: read.status,
+          ...(read.height !== undefined ? { height: read.height } : {}),
+          b64: it.ots!,
+        });
+      for (const t of it.tsts ?? []) {
+        const b = b64Bytes(t.token);
+        if (b) g.tsts.set(t.token, b);
+      }
+      groups.set(k, g);
     }
+  for (const g of groups.values())
+    sections.push({
+      sections: g.sections,
+      copies: g.copies,
+      batchId: g.batchId,
+      root: g.root,
+      proof: g.proof,
+      // A finished stamp first, then pending ones, each once.
+      ots: [...g.ots]
+        .sort((a, b) => (a.status === b.status ? 0 : a.status === 'bitcoin' ? -1 : 1))
+        .map(({ b64: _b, ...o }) => {
+          void _b;
+          return o;
+        }),
+      tsts: [...g.tsts.values()],
+    });
   if (sections.length === 0) return null;
   const ids = new Set(sections.map((s) => s.batchId));
   const roots = new Set(sections.map((s) => s.root));

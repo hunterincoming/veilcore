@@ -189,7 +189,14 @@ export const backup = {
   'app.carried.confirmText':
     'Cela retire seulement les copies de preuves de date que ce navigateur a gardées des fichiers de sauvegarde restaurés. Ce que le serveur de VeilCore a donné à ce navigateur reste. Vos fichiers de sauvegarde sur votre appareil sont inchangés, et vous pouvez restaurer à nouveau le bon.',
   'app.carried.confirm': 'Les effacer',
-  'app.carried.cleared': 'Effacées. Vos fichiers de sauvegarde sur votre appareil sont inchangés.',
+  'app.carried.cleared':
+    'Effacées. Vos fichiers de sauvegarde sur votre appareil sont inchangés. Restaurez maintenant à nouveau votre fichier de sauvegarde pour garder ici ses preuves de date ; les sauvegardes faites avant ne les contiendront pas.',
+  'app.carried.what':
+    'Des copies de preuves de date venues de fichiers de sauvegarde que vous avez restaurés. Elles ne servent que lorsque VeilCore est injoignable, et ne comptent jamais comme vérifiées par VeilCore.',
+  'app.backup.stampsLimits':
+    'Ce fichier de sauvegarde contient plus de preuves de date que ce navigateur n’en garde d’un seul fichier, donc aucune n’a été gardée : en garder certaines voudrait dire en laisser d’autres de côté. Rien de ce qui était déjà gardé n’a changé. Le fichier lui-même les contient toutes : gardez-le en lieu sûr.',
+  'app.backup.stampsContradicts':
+    'Ce fichier de sauvegarde nomme un de vos enregistrements à deux endroits différents à la fois, donc aucune de ses preuves de date n’a été gardée. Rien de ce qui était déjà gardé n’a changé. Gardez le fichier, et restaurez-en un auquel vous vous fiez.',
   'app.backup.fileIsLasting':
     'La restauration ne modifie jamais votre fichier de sauvegarde sur votre propre appareil ; gardez-le : c’est la copie durable.',
   'app.backup.rootChanged':

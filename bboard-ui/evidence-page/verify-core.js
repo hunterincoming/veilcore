@@ -746,6 +746,9 @@ var VeilcoreVerify = (function () {
         batchId: typeof x.batchId === 'string' ? x.batchId : '',
         root: x.root,
         files: Array.isArray(x.files) ? x.files.filter(function (f) { return typeof f === 'string'; }) : [],
+        // Copies giving the same root are shown once, with their number (review 6).
+        copies: typeof x.copies === 'number' && x.copies > 0 ? x.copies : 1,
+        otsFiles: typeof x.otsFiles === 'number' ? x.otsFiles : 0,
         midnight: anchorLookup(x.anchor, x.root, true, contracts, true),
       });
     }

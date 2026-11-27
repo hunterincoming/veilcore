@@ -179,7 +179,14 @@ export const backup = {
   'app.carried.confirmText':
     'Esto quita solo las copias de pruebas de fecha que este navegador guardó de archivos de copia de seguridad que restauró. Lo que el servidor de VeilCore le dio a este navegador se queda. Sus archivos de copia de seguridad en su dispositivo siguen igual, y puede volver a restaurar el correcto.',
   'app.carried.confirm': 'Borrarlas',
-  'app.carried.cleared': 'Borradas. Sus archivos de copia de seguridad en su dispositivo siguen igual.',
+  'app.carried.cleared':
+    'Borradas. Sus archivos de copia de seguridad en su dispositivo siguen igual. Ahora vuelva a restaurar su archivo de copia de seguridad para guardar aquí sus pruebas de fecha; las copias de seguridad hechas antes no las tendrán.',
+  'app.carried.what':
+    'Copias de pruebas de fecha de archivos de copia de seguridad que restauró. Solo se usan cuando no se puede contactar con VeilCore, y nunca cuentan como comprobadas por VeilCore.',
+  'app.backup.stampsLimits':
+    'Este archivo de copia de seguridad tiene más pruebas de fecha de las que este navegador guarda de un solo archivo, así que no se guardó ninguna: guardar algunas significaría dejar fuera otras. No se cambió nada de lo ya guardado. El archivo mismo las sigue teniendo todas: guárdelo bien.',
+  'app.backup.stampsContradicts':
+    'Este archivo de copia de seguridad nombra uno de sus registros en dos lugares distintos a la vez, así que no se guardó ninguna de sus pruebas de fecha. No se cambió nada de lo ya guardado. Conserve el archivo y restaure uno en el que confíe.',
   'app.backup.fileIsLasting':
     'Restaurar nunca cambia su archivo de copia de seguridad en su propio dispositivo; consérvelo: es la copia duradera.',
   'app.backup.rootChanged':

@@ -708,6 +708,10 @@ export type RestoreResult = {
     readonly refused: number;
     /** This one file's date proofs are bigger than this browser keeps a copy of. */
     readonly tooBig: number;
+    /** The file goes past a limit on what one file may bring: refused whole, nothing cut. */
+    readonly limits: number;
+    /** The file names a record under two batches in one place: refused whole. */
+    readonly contradicts: number;
   };
   /** Records whose kept sources give more than one batch or root (the page says so). */
   readonly stampsDisagree?: number;
@@ -875,8 +879,15 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
   try {
     if (v.stamps !== undefined || v.proofs !== undefined) {
       const got = await (await import('./stamps')).restoreStamps(v.stamps, v.proofs, allRecords());
-      if (got.kept || got.already || got.refused || got.tooBig)
-        stampSections = { kept: got.kept, already: got.already, refused: got.refused, tooBig: got.tooBig };
+      if (got.kept || got.already || got.refused || got.tooBig || got.limits || got.contradicts)
+        stampSections = {
+          kept: got.kept,
+          already: got.already,
+          refused: got.refused,
+          tooBig: got.tooBig,
+          limits: got.limits,
+          contradicts: got.contradicts,
+        };
       stampsDisagree = got.disagree;
     }
   } catch {

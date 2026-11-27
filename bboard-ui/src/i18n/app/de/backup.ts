@@ -184,7 +184,14 @@ export const backup = {
   'app.carried.confirmText':
     'Das entfernt nur die Kopien der Datumsnachweise, die dieser Browser aus wiederhergestellten Sicherungsdateien aufbewahrt hat. Was der Server von VeilCore diesem Browser gegeben hat, bleibt. Ihre Sicherungsdateien auf Ihrem Gerät sind unverändert, und Sie können die richtige erneut wiederherstellen.',
   'app.carried.confirm': 'Löschen',
-  'app.carried.cleared': 'Gelöscht. Ihre Sicherungsdateien auf Ihrem Gerät sind unverändert.',
+  'app.carried.cleared':
+    'Gelöscht. Ihre Sicherungsdateien auf Ihrem Gerät sind unverändert. Stellen Sie Ihre Sicherungsdatei jetzt erneut wieder her, damit ihre Datumsnachweise hier aufbewahrt werden; Sicherungen von vorher enthalten sie nicht.',
+  'app.carried.what':
+    'Kopien der Datumsnachweise aus Sicherungsdateien, die Sie wiederhergestellt haben. Sie werden nur genutzt, wenn VeilCore nicht erreichbar ist, und gelten nie als von VeilCore geprüft.',
+  'app.backup.stampsLimits':
+    'Diese Sicherungsdatei enthält mehr Datumsnachweise, als dieser Browser aus einer Datei aufbewahrt, daher wurde keiner davon aufbewahrt: einige aufzubewahren hieße, andere wegzulassen. Nichts bereits Aufbewahrte wurde geändert. Die Datei selbst enthält sie alle: Bewahren Sie sie sicher auf.',
+  'app.backup.stampsContradicts':
+    'Diese Sicherungsdatei nennt einen Ihrer Datensätze an zwei verschiedenen Stellen zugleich, daher wurde keiner ihrer Datumsnachweise aufbewahrt. Nichts bereits Aufbewahrte wurde geändert. Bewahren Sie die Datei auf und stellen Sie eine wieder her, der Sie vertrauen.',
   'app.backup.fileIsLasting':
     'Ihre Sicherungsdatei auf Ihrem eigenen Gerät wird durch das Wiederherstellen nie verändert; bewahren Sie sie auf – sie ist die dauerhafte Kopie.',
   'app.backup.rootChanged':
