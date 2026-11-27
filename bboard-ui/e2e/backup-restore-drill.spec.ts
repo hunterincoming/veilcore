@@ -535,7 +535,7 @@ test('the backup restore drill: everything comes back from the file alone, and s
   await expect(fromFile).toContainText(`names block ${STAMP_BLOCK}`);
   await expect(fromFile).toContainText('The holder’s backup file says it is');
   await expect(v.locator('body')).not.toContainText('VeilCore’s registry reported this transaction');
-  await expect(v.locator('body')).not.toContainText('VeilCore’s registry reports it is');
+  await expect(v.locator('body')).not.toContainText('VeilCore’s registry reported it is');
   await offline.close();
 
   // ---- the file without the website ---------------------------------------------------------

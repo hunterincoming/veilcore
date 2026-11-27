@@ -146,10 +146,12 @@ export type Gathered = {
   /** Roots the registry gave this browser for the same batch that the file doesn't give. */
   readonly registryRoots?: readonly string[];
   /**
-   * The main-network anchor this browser kept for the record when the registry now names another
-   * transaction for the same root (stamps.ts keptAnchorBeside; review 10, polish 5).
+   * Rule A (stamps.ts keptFirst): the batch anchor is the first main-network one this browser
+   * kept for the root. `registryNow` is what the registry names today when that differs (null:
+   * none); `laterAnchors`, the other transactions it gave this browser for the root since.
    */
-  readonly keptAnchor?: Record<string, unknown>;
+  readonly registryNow?: Record<string, unknown> | null;
+  readonly laterAnchors?: readonly Record<string, unknown>[];
 };
 
 const base64ToBytes = (b64: string): Uint8Array | null => {
@@ -320,10 +322,12 @@ const fromPublicRoutes = async (fingerprint: string, fetcher: typeof fetch): Pro
  */
 const fromThisDevice = async (fingerprint: string): Promise<Gathered | null> => {
   try {
-    const kept = await (await import('../stamps')).keptEvidence(fingerprint);
+    const stamps = await import('../stamps');
+    const kept = await stamps.keptEvidence(fingerprint);
     if (!kept) return null;
     const g = await reconcile(fingerprint, { source: 'this-device', ...kept, attestations: [] });
-    return g.proof ? g : null;
+    const later = g.proof ? (stamps.keptFirst(fingerprint, g.proof)?.later ?? []) : [];
+    return g.proof ? { ...g, ...(later.length ? { laterAnchors: later } : {}) } : null;
   } catch {
     return null;
   }
@@ -364,8 +368,17 @@ export const gatherEvidence = async (
   if ('error' in got && got.error === unreachable && isHex64(record.recordFingerprint))
     return (await fromThisDevice(record.recordFingerprint)) ?? got;
   if (!('error' in got) && got.proof && got.batch && isHex64(record.recordFingerprint)) {
-    const kept = (await import('../stamps')).keptAnchorBeside(record.recordFingerprint, got.proof, got.batch.anchor);
-    if (kept) return { ...got, keptAnchor: kept };
+    // Rule A: built on the main-network anchor this browser kept first for this root, whatever
+    // the registry names now; every page adds what the registry says, when it differs.
+    const k = (await import('../stamps')).keptFirst(record.recordFingerprint, got.proof, got.batch);
+    if (k)
+      return {
+        ...got,
+        proof: k.proof,
+        batch: { ...got.batch, anchor: k.anchor },
+        ...(k.now !== undefined ? { registryNow: k.now } : {}),
+        ...(k.later.length ? { laterAnchors: k.later } : {}),
+      };
   }
   return got;
 };
@@ -567,11 +580,10 @@ export type Evidence = {
     readonly fileRoots?: readonly FileRootFacts[];
     /** Roots VeilCore's registry gave this browser for the same batch that the file doesn't give. */
     readonly registryRoots?: readonly string[];
-    /**
-     * Another main-network transaction for this batch root: the one this browser kept from the
-     * registry's earlier answer, when the registry now names `batch.anchor` instead.
-     */
-    readonly keptAnchor?: Record<string, unknown>;
+    /** Gathered.registryNow: what the registry names today, when it isn't `batch.anchor` (rule A). */
+    readonly registryNow?: Record<string, unknown> | null;
+    /** Gathered.laterAnchors: other transactions the registry gave the holder's browser for this root. */
+    readonly laterAnchors?: readonly Record<string, unknown>[];
   };
   readonly proof: InclusionProof | null;
   readonly batch: BatchFacts | null;
@@ -933,12 +945,30 @@ export const fileTxConflictLines = (ev: Evidence): string[] =>
     }),
   ]);
 
-/** A line naming the anchor this browser kept, for a bundle whose registry now names another (polish 5). */
+/** "transaction … on Midnight's main network", or "no Midnight transaction" for none. */
+const txWords = (a: Record<string, unknown> | null): string =>
+  a && isString(a.txHash) ? `transaction ${a.txHash} on ${networkWords(a.network)}` : 'no Midnight transaction';
+
+/**
+ * Rule A's one line: the bundle describes the main-network transaction the holder's browser kept
+ * first for this batch root, and VeilCore's registry has since named something else for it.
+ * Null when it hasn't.
+ */
 export const keptAnchorLine = (ev: Evidence): string | null => {
-  const k = ev.registry.keptAnchor;
-  const now = ev.batch?.anchor;
-  if (!k || !isString(k.txHash) || !now || !isString(now.txHash)) return null;
-  return `VeilCore's registry gave two different date records for this batch root, which should never happen: when the holder's browser first kept this record's proof it named Midnight transaction ${k.txHash} on ${networkWords(k.network)}, and now it names transaction ${now.txHash} on ${networkWords(now.network)}. This bundle does not say which is genuine: look up each one (the same steps, with that transaction; a check-on-midnight.mjs in this bundle reads only the one named now), and rely only on one that you check yourself wrote this batch root.`;
+  const other = registryOtherWords(ev, "the holder's browser");
+  const kept = ev.batch?.anchor;
+  if (!other || !kept) return null;
+  return `This bundle describes ${txWords(kept)}, the first main-network transaction VeilCore's registry gave the holder's browser for this batch root. The registry ${other} for it, which an honest registry never does. Rely only on a transaction that you check yourself wrote this batch root.`;
+};
+
+/** What VeilCore's registry named for the batch root besides the kept transaction (rule A), or null. */
+export const registryOtherWords = (ev: Evidence, whose: string): string | null => {
+  const r = ev.registry;
+  const other = [
+    ...(r.registryNow !== undefined ? [`now names ${txWords(r.registryNow)}`] : []),
+    ...(r.laterAnchors?.length ? [`later gave ${whose} ${r.laterAnchors.map(txWords).join(', and ')}`] : []),
+  ];
+  return other.length ? other.join(', and ') : null;
 };
 
 export const buildEvidence = async (
@@ -1093,7 +1123,8 @@ export const buildEvidence = async (
             : 'firstSeen is VeilCore’s registry’s own clock, its word only. The anchor is the transaction the registry operator reported; nobody has looked it up on the chain for you.',
       ...(gathered.fileRoots?.length ? { fileRoots: gathered.fileRoots.map(fileRootFacts) } : {}),
       ...(gathered.registryRoots?.length ? { registryRoots: gathered.registryRoots } : {}),
-      ...(gathered.keptAnchor ? { keptAnchor: gathered.keptAnchor } : {}),
+      ...(gathered.registryNow !== undefined ? { registryNow: gathered.registryNow } : {}),
+      ...(gathered.laterAnchors?.length ? { laterAnchors: gathered.laterAnchors } : {}),
     },
     proof: gathered.proof,
     batch: gathered.batch,
@@ -1551,7 +1582,7 @@ export const readmeText = (
   const kept = keptAnchorLine(ev);
   if (kept) {
     L.push('');
-    L.push(`TWO TRANSACTIONS: ${kept}`);
+    L.push(`WHAT THE REGISTRY NAMED SINCE: ${kept}`);
   }
   const fromFile = ev.registry.source === 'backup-file' && fileRoots.length > 0;
   const fileNote = fromFile ? fileDatingNote(ev) : null;

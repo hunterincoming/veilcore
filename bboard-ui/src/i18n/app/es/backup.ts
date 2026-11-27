@@ -186,7 +186,7 @@ export const backup = {
   'app.backup.fileIsLasting':
     'Restaurar nunca cambia su archivo de copia de seguridad en su propio dispositivo; consérvelo: es la copia duradera.',
   'app.backup.rootChanged':
-    'El servidor de VeilCore dio para {n} de sus registros una prueba de fecha distinta de la que dio antes. Eso no debería pasar nunca. Se conserva la primera, y todas están en esta copia de seguridad. Guarde este archivo y contacte con VeilCore.',
+    'El servidor de VeilCore dio para {n} de sus registros una prueba de fecha distinta de la que dio antes. Eso no debería pasar nunca. Se conserva la primera, y hasta cuatro posteriores por registro están en esta copia de seguridad. Guarde este archivo y contacte con VeilCore.',
   'app.backup.fromFileProblem':
     'No se pudieron recuperar los registros del archivo: {why} Sus claves están restauradas.',
   'app.backup.passkey.err.busy': 'Su otro dispositivo guardó en el mismo momento. Se vuelve a intentar solo.',

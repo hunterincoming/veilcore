@@ -191,7 +191,7 @@ export const backup = {
   'app.backup.fileIsLasting':
     'Ihre Sicherungsdatei auf Ihrem eigenen Gerät wird durch das Wiederherstellen nie verändert; bewahren Sie sie auf – sie ist die dauerhafte Kopie.',
   'app.backup.rootChanged':
-    'Der Server von VeilCore hat für {n} Ihrer Datensätze einen anderen Datumsnachweis geliefert als zuvor. Das darf nie vorkommen. Der erste bleibt erhalten, und alle sind in dieser Sicherung. Bewahren Sie diese Datei auf und wenden Sie sich an VeilCore.',
+    'Der Server von VeilCore hat für {n} Ihrer Datensätze einen anderen Datumsnachweis geliefert als zuvor. Das darf nie vorkommen. Der erste bleibt erhalten, und bis zu vier spätere je Datensatz sind in dieser Sicherung. Bewahren Sie diese Datei auf und wenden Sie sich an VeilCore.',
   'app.backup.fromFileProblem':
     'Die Datensätze in der Datei konnten nicht wiederhergestellt werden: {why} Ihre Schlüssel sind wiederhergestellt.',
   'app.backup.passkey.err.busy':

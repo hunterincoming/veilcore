@@ -16,12 +16,12 @@ import {
   fileRootAnchor,
   fileRootGiven,
   fileRootsDisagree,
-  fileTxConflictLines,
-  keptAnchorLine,
+  fileTxConflicts,
+  registryOtherWords,
   type Evidence,
   type SignatureLine,
 } from './bundle';
-import { DISAGREE_WORDS, networkWords, oneLine, sealedNameOf, subjectOf, utcWords, wrap } from './words';
+import { networkWords, oneLine, sealedNameOf, subjectOf, utcWords, wrap } from './words';
 import { CUSTODY_LABELS, SEAL_WORDS } from './examiner';
 
 export const DECLARATION_FILE = 'DECLARATION-TEMPLATE.txt';
@@ -207,11 +207,14 @@ export const declarationText = async (
         `   ${tx}`,
         '   [On [date] I / ___ looked that transaction up on [explorer or indexer] and saw that it succeeded, that it called contract [address], and that it was in block [number] at [time]. / I have not looked it up myself.]',
       );
-      const kept = keptAnchorLine(ev);
-      if (kept)
+      const other = registryOtherWords(ev, 'my browser');
+      if (other)
         add(
-          `   ${t(kept)}`,
-          '   [On [date] I / ___ looked up each of the two transactions on [explorer or indexer]. Result for each: ___. / I have not looked them up myself.]',
+          `   That is the first main-network transaction VeilCore's registry gave my browser for this batch root. The registry ${t(other)} for it, which an honest registry never does.`,
+        );
+      if (other && (isString(ev.registry.registryNow?.txHash) || ev.registry.laterAnchors?.length))
+        add(
+          '   [On [date] I / ___ looked up each other transaction named here on [explorer or indexer]. Result for each: ___. / I have not looked them up myself.]',
         );
     } else {
       add('   The batch had not been recorded on a network when this bundle was made.');
@@ -251,8 +254,14 @@ export const declarationText = async (
             )}). The website checked in my browser that ${c.tokens === 1 ? 'it' : 'each'} matches this batch root and is signed by a timestamp authority the website pins. [Result of checking it with OpenSSL, if done: ___]`,
         );
     }
-    if (fileRootsDisagree(ev)) add(`   ${t(DISAGREE_WORDS)}`);
-    for (const l of fileTxConflictLines(ev)) add(`   ${t(l)}`);
+    if (fileRootsDisagree(ev))
+      add(
+        "   My backup file gives more than one batch root for this record: VeilCore's registry gave another one later, which an honest registry never does. Each is in its own folder of the bundle, listed above.",
+      );
+    for (const l of fileTxConflicts(ev))
+      add(
+        `   My backup file names ${l.length} Midnight transactions for batch root ${t(l[0].root)} (${l.map((c) => `${t(c.folder)}: transaction ${t(String(fileRootAnchor(c)?.txHash))}`).join('; ')}). VeilCore's registry gave ${l.length === 2 ? 'both' : 'all of them'} for this one batch root, which an honest registry never does. Each is listed above with what I found when I looked it up.`,
+      );
     add('');
   } else {
     add(

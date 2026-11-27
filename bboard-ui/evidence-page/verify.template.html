@@ -448,12 +448,10 @@ return canonicalise;
         list(TT[ti].folders.map(function (x) { return x.folder + ': transaction ' + x.midnight.txHash + ' on ' + networkName(x.midnight.network) + (x.otherTransaction ? ', given later' : ', given first') + '.'; })),
       ], 'two-transactions'));
     }
-    if (LK.kept && LK.kept.txHash) {
-      var nowTx = LK.midnight.length && LK.midnight[0].current ? LK.midnight[0].txHash : null;
-      summary.appendChild(result('bad', 'Two different date records for this batch root', [
-        para(['VeilCore’s registry gave two different date records for this batch root, which should never happen: when the holder’s browser first kept this record’s proof it named transaction ' + LK.kept.txHash + ' on ' + networkName(LK.kept.network) + (nowTx ? ', and now it names transaction ' + nowTx : ', and now it names another') + '. This page does not say which is genuine: look up each one, and rely only on one that you check yourself wrote this batch root. The steps for the one the holder’s browser kept:']),
-        list(VeilcoreVerify.midnightSteps(LK.kept)),
-      ], 'two-transactions'));
+    if (LK.registryOther && LK.registryOther.length && LK.midnight.length) {
+      summary.appendChild(result('bad', 'VeilCore’s registry named something else since', [
+        para(['This bundle describes transaction ' + LK.midnight[0].txHash + ' on ' + networkName(LK.midnight[0].network) + ', the first main-network transaction VeilCore’s registry gave the holder’s browser for this batch root. The registry ' + LK.registryOther.join(', and ') + ' for it, which an honest registry never does. Rely only on a transaction that you check yourself wrote this batch root.']),
+      ], 'registry-since'));
     }
     // What this does not show: no date until one of the bundle's own dates checks (polish 1).
     var FRall = report.fileRoots || [];
@@ -809,7 +807,7 @@ return canonicalise;
             : st.reason ? 'It ' + (st.status === 'other-root' ? 'is not about this batch root: ' : 'couldn’t be read: ') + st.reason + '.' : 'It couldn’t be read.';
         out.appendChild(result(f.ok ? 'ok' : 'bad', f.ok ? f.name + ' is a stamp file for this batch root' : f.name + ' is not a stamp file for this batch root', [para([words])], 'file'));
       } else if (f.is === 'root.bin') {
-        out.appendChild(result(f.ok ? 'ok' : 'bad', f.ok ? 'root.bin is the batch root' : 'root.bin is not the batch root', [para(['SHA-256 of the file: ', hex(f.sha256)])], 'file'));
+        out.appendChild(result(f.ok ? 'ok' : 'bad', f.ok ? 'root.bin is the batch root' + (f.folders && f.folders.length ? ' in ' + f.folders.join(' and ') : '') : 'root.bin is not the batch root', [para(['SHA-256 of the file: ', hex(f.sha256)])], 'file'));
       } else if (f.is === 'sealed file') {
         out.appendChild(result(f.ok ? 'ok' : 'bad', f.ok ? f.name + ' is byte for byte ' + (f.sealedName ? '“' + plain(f.sealedName) + '”' : 'a file') + ', sealed in this record' : f.name + ' doesn’t match any file sealed in this record. A match needs every byte to be the same.', [para(['Its SHA-256: ', hex(f.sha256)])], 'file'));
       } else if (f.is === 'lab report?') {

@@ -422,7 +422,7 @@ describe('the bundle', () => {
     expect(readme).toContain(`Search for transaction ${TX}.`);
     expect(readme).toContain(s.batch.root);
     // The registry's date, in UTC and labelled as its report; the explorer named for the network.
-    expect(readme).toContain("VeilCore's registry reports it is in block 77, at 2026-10-15 11:00 UTC");
+    expect(readme).toContain("VeilCore's registry reported it is in block 77, at 2026-10-15 11:00 UTC");
     expect(readme).toContain(
       'Open the Midnight explorer for Midnight preprod (a test network): https://preprod.midnightexplorer.com/',
     );

@@ -1621,10 +1621,14 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     const { ev, file } = await bundleOf(A, made.plant);
     expect(ev.registry.source).toBe('this-device');
     expect(ev.batch?.anchor).toMatchObject({ network: 'mainnet', txHash: MAINNET.txHash });
-    for (const f of ['README.txt', 'proof/anchors.json', 'proof/inclusion-proof.json']) {
+    for (const f of ['README.txt', 'proof/anchors.json', 'proof/inclusion-proof.json'])
       expect(textOf(file(f)), f).toContain(MAINNET.txHash);
+    for (const f of ['proof/anchors.json', 'proof/inclusion-proof.json'])
       expect(textOf(file(f)), f).not.toContain(OTHER.txHash);
-    }
+    // The one set aside, in the same browser, is named in one line (R11 polish 5).
+    expect(textOf(file('README.txt'))).toContain(
+      `The registry later gave the holder's browser transaction ${OTHER.txHash} on Midnight's main network for it`,
+    );
     // The same one sent again changes nothing and adds no second warning.
     w.goUp();
     serveFolded(OTHER);
@@ -1899,22 +1903,21 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     await backUp(A);
     serveFolded(OTHER);
     const text = await backUp(A);
-    // Made while the registry serves the other one: that bundle names the one this browser kept too (R10 polish 5).
+    // Made while the registry serves the other one: the bundle is built on the one this browser
+    // kept, and every page says what the registry names now (rule A, R11 blocker 2).
     const online = await bundleOf(A, made.plant);
     dumpTo('aside-online', online.file);
+    expect(online.ev.batch?.anchor).toMatchObject({ txHash: MAINNET.txHash });
     for (const f of ['README.txt', 'EXAMINER-SUMMARY.html', 'DECLARATION-TEMPLATE.txt']) {
       const page = textOf(online.file(f));
-      expect(page, `online ${f}`).toContain(OTHER.txHash);
       expect(page, `online ${f}`).toContain(MAINNET.txHash);
-      expect(page, `online ${f}`).toContain('two different date records');
+      expect(page, `online ${f}`).toContain(`now names transaction ${OTHER.txHash}`);
     }
     const onlinePage = await renderVerifyPage(Buffer.from(online.file('verify.html')!).toString());
-    expect(onlinePage.text('summary')).toContain(`it named transaction ${MAINNET.txHash}`);
-    expect(onlinePage.text('summary')).toContain(`now it names transaction ${OTHER.txHash}`);
-    // The bundle's script reads only the registry's current transaction: not offered for the kept one.
-    expect(onlinePage.text('summary')).toContain(
-      'This bundle’s script reads only the other transaction, not this one.',
-    );
+    expect(onlinePage.text('summary')).toContain(`This bundle describes transaction ${MAINNET.txHash}`);
+    expect(onlinePage.text('summary')).toContain(`now names transaction ${OTHER.txHash}`);
+    // The bundle's script reads the kept one.
+    expect(textOf(online.file('proof/check-on-midnight.mjs'))).toContain(MAINNET.txHash);
 
     w.goDown();
     const { b: N } = await restoreInto('new-device', text);
@@ -1941,9 +1944,15 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     for (const [name, p] of Object.entries({ readme, examiner, declaration, verify })) {
       expect(p, name).toContain(MAINNET.txHash);
       expect(p, name).toContain(OTHER.txHash);
-      expect(p, name).toContain('two different date records for the same batch root');
-      expect(p, name).toMatch(/Look up each one/i);
       expect(p, name).toContain(`proof/backup-file-2: transaction ${OTHER.txHash}`);
+      if (name === 'declaration') {
+        // A statement the signer makes, in the first person, with no instructions (R11 polish 4).
+        expect(p).toContain('My backup file names 2 Midnight transactions for batch root');
+        expect(p).not.toMatch(/Look up each one|the holder.s backup file names more than one/i);
+      } else {
+        expect(p, name).toContain('two different date records for the same batch root');
+        expect(p, name).toMatch(/Look up each one/i);
+      }
       for (const bad of ONLY_MIDNIGHT) expect(p, `${name}: ${bad}`).not.toContain(bad);
       // Neither is said to be the genuine one.
       expect(p, name).not.toMatch(/(is|was) the genuine/);
@@ -2023,6 +2032,136 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     expect(aside).toEqual(txs.slice(0, 4));
     expect(anchorIn(inner, fp)?.txHash).toBe(MAINNET.txHash);
     expect(await A.run(() => A.m.stamps.rootChanges())).toBe(w.proofs.size);
+  });
+
+  /** Another root for the same batch, served to `fp` with this anchor (a broken registry). */
+  const serveOtherRoot = async (fp: string, seed: string, anchor: Record<string, unknown>) => {
+    const other = await buildBatch([seed.repeat(32), fp], BATCH_ID);
+    w.proofs.set(fp, {
+      ...(other.proofs[fp] as object),
+      anchor,
+      anchors: [{ kind: 'ledger', ...anchor, testNetwork: false }],
+    });
+    return other.root;
+  };
+  const plainHtml = (b?: Uint8Array) =>
+    textOf(b)
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&#39;/g, "'")
+      .replace(/&quot;/g, '"')
+      .replace(/&amp;/g, '&')
+      .replace(/\s+/g, ' ');
+
+  it('a second transaction for a root already set aside is kept too, within the cap, and reaches a bundle from the file (R11-1)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    const OTHER = { ...MAINNET, txHash: 'cd'.repeat(32), blockHeight: 12000, anchoredAt: '2027-03-01T12:00:00.000Z' };
+    const THIRD = { ...MAINNET, txHash: '3c'.repeat(32), blockHeight: 13000, anchoredAt: '2027-04-01T12:00:00.000Z' };
+    const FOURTH = { ...MAINNET, txHash: '4d'.repeat(32), blockHeight: 14000, anchoredAt: '2027-05-01T12:00:00.000Z' };
+    w.upgrade();
+    serveFolded(MAINNET); // root 1, transaction A: kept
+    await backUp(A);
+    serveFolded(OTHER); // root 1, transaction B: aside
+    await backUp(A);
+    const r2 = await serveOtherRoot(fp, '11', THIRD); // root 2, transaction C: aside
+    await backUp(A);
+    await serveOtherRoot(fp, '11', FOURTH); // root 2, transaction D: aside too
+    await backUp(A);
+    await serveOtherRoot(fp, '11', FOURTH); // D again: nothing new
+    const text = await backUp(A);
+    const inner = await opened(A, text);
+    const aside = (stampsOf(inner)?.changed ?? [])
+      .filter((c) => c.proofs[fp])
+      .map((c) => [c.root, (c.proofs[fp] as { anchor?: { txHash: string } }).anchor?.txHash]);
+    expect(aside.map(([, tx]) => tx)).toEqual([OTHER.txHash, THIRD.txHash, FOURTH.txHash]);
+    expect(aside[2][0]).toBe(r2);
+    w.goDown();
+    const { b: N } = await restoreInto('r11-1', text);
+    const before = await storageOf(N);
+    const got = (await bundleFromFile(N, made.plant, text))!;
+    expect(await storageOf(N)).toEqual(before);
+    dumpTo('multi-aside', got.file);
+    const roots = got.ev.registry.fileRoots!;
+    expect(roots.map((c) => [c.folder, (c.anchor as { txHash: string }).txHash, c.otherTransaction === true])).toEqual([
+      ['proof/backup-file-1', MAINNET.txHash, false],
+      ['proof/backup-file-2', OTHER.txHash, true],
+      ['proof/backup-file-3', THIRD.txHash, false],
+      ['proof/backup-file-4', FOURTH.txHash, true],
+    ]);
+    const pages = [
+      textOf(got.file('README.txt')),
+      plainHtml(got.file('EXAMINER-SUMMARY.html')),
+      textOf(got.file('DECLARATION-TEMPLATE.txt')),
+      (await renderVerifyPage(Buffer.from(got.file('verify.html')!).toString())).text('summary'),
+    ];
+    for (const p of pages) for (const tx of [MAINNET, OTHER, THIRD, FOURTH]) expect(p).toContain(tx.txHash);
+  });
+
+  it('the backup page’s warning says what the backup holds: the first answer, and up to four later ones per record (R11-1, R11-2a)', async () => {
+    const said = await Promise.all(
+      (['en', 'de', 'es', 'fr', 'ja'] as const).map(
+        async (l) =>
+          ((await import(`../i18n/app/${l}/backup.ts`)) as { backup: Record<string, string> }).backup[
+            'app.backup.rootChanged'
+          ],
+      ),
+    );
+    expect(said[0]).toContain('up to four later ones for each record are in this backup');
+    expect(said.join(' ')).not.toMatch(/every one it gave|alle sind in|todas están en|toutes sont dans|すべてを/);
+  });
+
+  it('an online bundle states the main-network transaction this browser kept, whatever the registry names now (rule A, R11-3)', async () => {
+    const OTHER = { ...MAINNET, txHash: 'cd'.repeat(32), blockHeight: 12000, anchoredAt: '2027-03-01T12:00:00.000Z' };
+    const PREV = { ...MAINNET, network: 'preview', contractAddress: '7a'.repeat(32), txHash: 'ab'.repeat(32) };
+    const cases: [string, () => void, string][] = [
+      ['none', () => anchorAll(null), 'now names no Midnight transaction for it'],
+      [
+        'preview',
+        () => serveFolded(PREV),
+        `now names transaction ${PREV.txHash} on Midnight Preview (a test network) for it`,
+      ],
+      ['B', () => serveFolded(OTHER), `now names transaction ${OTHER.txHash} on Midnight's main network`],
+    ];
+    for (const [name, serve, now] of cases) {
+      const A = await browser('breeder');
+      const B = await browser('licensee');
+      const L = await browser('lab');
+      const made = await makeTheSet(A, B, L);
+      w.upgrade();
+      serveFolded(MAINNET);
+      await backUp(A);
+      serve();
+      const got = await bundleOf(A, made.plant);
+      dumpTo(`kept-${name}`, got.file);
+      expect(got.ev.registry.source, name).not.toBe('this-device');
+      expect(got.ev.batch?.anchor, name).toMatchObject({ network: 'mainnet', txHash: MAINNET.txHash });
+      const verify = (await renderVerifyPage(Buffer.from(got.file('verify.html')!).toString()))
+        .text('summary')
+        .replace(/\s+/g, ' ');
+      const pages: Record<string, string> = {
+        readme: textOf(got.file('README.txt')),
+        examiner: plainHtml(got.file('EXAMINER-SUMMARY.html')),
+        declaration: textOf(got.file('DECLARATION-TEMPLATE.txt')),
+        verify,
+      };
+      for (const [f, p] of Object.entries(pages)) {
+        const at = `${name} ${f}`;
+        expect(p, at).toContain(MAINNET.txHash);
+        expect(p.replace(/’/g, "'"), at).toContain(now.replace(/’/g, "'"));
+        for (const bad of [
+          /practice data/i,
+          /isn.t recorded on Midnight yet/,
+          /not dated on any network/i,
+          /now it names another/,
+          /reads only the other transaction/,
+        ])
+          expect(p, `${at}: ${bad}`).not.toMatch(bad);
+      }
+      expect(textOf(got.file('proof/check-on-midnight.mjs')), name).toContain(MAINNET.txHash);
+    }
   });
 });
 

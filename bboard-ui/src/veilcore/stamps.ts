@@ -280,14 +280,14 @@ const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,9})?)?(Z|[+-]\
 
 /**
  * An anchor's fields in the form the registry stores them (veilcore-api recordAnchor: 64 lowercase
- * hex, a short lower-case name, a block number of 0 or more, a date and time with a time zone,
+ * hex, a short lower-case network name on chain "midnight" (every page calls it a Midnight
+ * transaction; review 11, polish 2), a block number of 0 or more, a date and time with a time zone,
  * and a test-network flag that agrees with the network's name), or false. These reach README.txt
  * and every page of a bundle, so one from a doctored backup file that isn't in that form is junk
  * (review 9, R9-5; review 10, polish 3).
  */
 export const anchorFormOk = (a: Record<string, unknown>): boolean =>
-  isString(a.chain) &&
-  NAME.test(a.chain) &&
+  a.chain === 'midnight' &&
   isString(a.network) &&
   NAME.test(a.network) &&
   isString(a.txHash) &&
@@ -427,14 +427,30 @@ const anchorsOf = (p: InclusionProof): unknown[] | undefined => {
   return Array.isArray(a) && a.length ? a : undefined;
 };
 
-/** The same transaction: chain, network, contract and transaction alike. */
+/**
+ * The same transaction: chain, network and transaction hash alike. The contract and block the
+ * registry reports for it are its word about that one transaction, so another contract for the
+ * same transaction is not another date record (review 11, polish 1): the first word kept stands.
+ */
 const sameAnchor = (a: Record<string, unknown> | undefined, b: Record<string, unknown> | undefined): boolean =>
-  !!a &&
-  !!b &&
-  a.chain === b.chain &&
-  a.network === b.network &&
-  a.contractAddress === b.contractAddress &&
-  a.txHash === b.txHash;
+  !!a && !!b && a.chain === b.chain && a.network === b.network && a.txHash === b.txHash;
+
+/**
+ * Rule B, one rule for every later answer kept (set aside here, or a folder of a bundle from a
+ * backup file): an answer is one batch, root and Midnight transaction. One with no transaction is
+ * the same as any other for its batch and root, and gives way to one that names a transaction.
+ * Returns the list with `item` added (up to `max`), put in place of the one it fills in, or as it was.
+ */
+const addAnswer = <T>(list: readonly T[], item: T, proofOf: (x: T) => InclusionProof, max: number): T[] => {
+  const p = proofOf(item);
+  const tx = anchorOf(p);
+  const i = list.findIndex((x) => {
+    const q = proofOf(x);
+    return sameBatch(q, p) && (!anchorOf(q) || !tx || sameAnchor(anchorOf(q), tx));
+  });
+  if (i < 0) return list.length < max ? [...list, item] : [...list];
+  return tx && !anchorOf(proofOf(list[i])) ? list.map((x, j) => (j === i ? item : x)) : [...list];
+};
 
 /**
  * Whose Midnight anchor stands when the registry answers again for a batch and root it gave
@@ -536,26 +552,17 @@ const refreshFromRegistry = async (own: Own, wanted: ReadonlySet<string>, proofs
         } else if (!first) {
           own.proofs[fp] = keepable(st.proof);
         } else if (!sameBatch(first, st.proof)) {
-          // An honest registry never changes a sealed batch: the first answer stays (rootChanges).
+          // Another batch or root (an honest registry never changes a sealed batch): the first
+          // answer stays, and this one is kept aside by rule B (addAnswer) and warned of (rootChanges).
           proofs[fp] = first;
-          const aside = own.changed[fp] ?? [];
-          if (aside.length < MAX_ASIDE && !aside.some((p) => sameBatch(p, st.proof)))
-            own.changed[fp] = [...aside, keepable(st.proof)];
+          own.changed[fp] = addAnswer(own.changed[fp] ?? [], keepable(st.proof), (x) => x, MAX_ASIDE);
         } else {
           // Same batch and root: the anchor anchorChoice picks is kept, and the file carries the
-          // same, so a backup made offline later names it too.
+          // same. Another main-network transaction for it is kept aside the same way.
           const choice = anchorChoice(first, st.proof);
           own.proofs[fp] = upgraded(first, st.proof, choice);
-          if (choice === 'aside') {
-            // Another main-network transaction for a batch already on it: kept aside and warned of.
-            const later = keepable(st.proof);
-            const aside = own.changed[fp] ?? [];
-            if (
-              aside.length < MAX_ASIDE &&
-              !aside.some((p) => sameBatch(p, later) && sameAnchor(anchorOf(p), anchorOf(later)))
-            )
-              own.changed[fp] = [...aside, later];
-          }
+          if (choice === 'aside')
+            own.changed[fp] = addAnswer(own.changed[fp] ?? [], keepable(st.proof), (x) => x, MAX_ASIDE);
           const fr = proofs[fp];
           if (choice !== 'fresh' && isObject(fr)) proofs[fp] = withAnchor(fr, anchorOf(own.proofs[fp]));
         }
@@ -693,21 +700,40 @@ export const keptEvidence = async (
 };
 
 /**
- * The main-network anchor this browser kept for a record, when the registry now names another
- * transaction for the same batch and root (review 10 of PR #233, polish 5): a bundle made from
- * the registry's answer names the kept one too. Null when they agree, or nothing is kept.
+ * Rule A: the first main-network anchor this browser kept for a record's batch and root is the
+ * one every bundle made here describes, whatever the registry names now (review 11, blocker 2).
+ * For a proof of that batch and root: null when no main-network anchor is kept for it; otherwise
+ * the proof with the kept anchor, and the other Midnight transactions the registry named for the
+ * root: `now`, its answer today when it isn't the kept one (null: none in the registry's form),
+ * only when `served` is given; `later`, the ones kept aside, each once.
  */
-export const keptAnchorBeside = (
+export const keptFirst = (
   fp: string,
-  served: { readonly batchId: string; readonly root: string },
-  servedAnchor: unknown,
-): Record<string, unknown> | null => {
+  proof: InclusionProof,
+  served?: { readonly anchor: unknown },
+): {
+  readonly proof: InclusionProof;
+  readonly anchor: Record<string, unknown>;
+  readonly now?: Record<string, unknown> | null;
+  readonly later: readonly Record<string, unknown>[];
+} | null => {
   if (!HEX64.test(fp)) return null;
-  const p = load().proofs[fp];
-  if (!p || !sameBatch(p, served)) return null;
+  const own = load();
+  const p = own.proofs[fp];
+  if (!p || !sameBatch(p, proof)) return null;
   const kept = anchorOf(p);
   if (!kept || kept.network !== 'mainnet' || !anchorFormOk(kept)) return null;
-  return sameAnchor(kept, isObject(servedAnchor) ? servedAnchor : undefined) ? null : kept;
+  const now = served && isObject(served.anchor) && anchorFormOk(served.anchor) ? served.anchor : null;
+  const later = (own.changed[fp] ?? [])
+    .filter((c) => sameBatch(c, p))
+    .map(anchorOf)
+    .filter((a): a is Record<string, unknown> => !!a && !sameAnchor(a, kept) && !sameAnchor(a, now ?? undefined));
+  return {
+    proof: withAnchor(proof, kept) as unknown as InclusionProof,
+    anchor: kept,
+    ...(served && !sameAnchor(kept, now ?? undefined) ? { now } : {}),
+    later,
+  };
 };
 
 // ---- an evidence bundle straight from a backup file (nothing stored) ------------------------
@@ -762,39 +788,48 @@ export const evidenceFromFile = async (
     if (isObject(c) && isObject(c.proofs) && c.proofs[fp] !== undefined)
       candidates.push({ proof: c.proofs[fp], files: c, later: true });
   }
-  const roots: FileEvidence[] = [];
+  let roots: FileEvidence[] = [];
+  let firstRoot: { batchId: string; root: string } | undefined;
   for (const c of candidates) {
     try {
       const st = await checkProof(fp, c.proof);
       if (st.status === 'none') continue;
       const { batchId, root } = st.proof;
-      // The same batch and root again: left out, unless it names another Midnight transaction
-      // (one in the registry's form, keepable): then it gets its own folder, so every page names
-      // both and no offline bundle loses the one the registry gave later.
-      const same = roots.filter((r) => sameBatch(r, { batchId, root }));
-      const tx = anchorOf(keepable(st.proof));
-      if (same.length && (!tx || same.some((r) => sameAnchor(anchorOf(r.proof), tx)))) continue;
+      if (!c.later) firstRoot = { batchId, root };
       const f = isObject(c.files) && c.files.root === root ? c.files : {};
       const read = await readOts(f.ots, root);
       const bytes = read && isString(f.ots) ? b64Bytes(f.ots) : undefined;
       const tsts = (await checkedTokens(f.tsts, hexBytes(root), pins))
         .map((t) => b64Bytes(t.token))
         .filter((b): b is Uint8Array => !!b);
-      roots.push({
-        batchId,
-        root,
-        proof: keepable(st.proof),
-        ...(read && bytes
-          ? { ots: { bytes, status: read.status, ...(read.height !== undefined ? { height: read.height } : {}) } }
-          : {}),
-        tsts,
-        later: c.later,
-        ...(same.length ? { otherTransaction: true } : {}),
-      });
+      // Rule B (addAnswer): one folder per batch, root and Midnight transaction, so every page
+      // names each transaction and no offline bundle loses one the registry gave later.
+      roots = addAnswer(
+        roots,
+        {
+          batchId,
+          root,
+          proof: keepable(st.proof),
+          ...(read && bytes
+            ? { ots: { bytes, status: read.status, ...(read.height !== undefined ? { height: read.height } : {}) } }
+            : {}),
+          tsts,
+          later: c.later,
+        },
+        (r) => r.proof,
+        MAX_FILE_ROOTS + 1,
+      );
     } catch {
       /* junk: left out; the rest stand */
     }
   }
+  // Given later: a root other than the file's first answer. A folder with the same batch and root
+  // as an earlier one names another transaction for it.
+  roots = roots.map((r, i) => ({
+    ...r,
+    later: r.later && !(firstRoot && sameBatch(r, firstRoot)),
+    ...(roots.slice(0, i).some((e) => sameBatch(e, r)) ? { otherTransaction: true } : {}),
+  }));
   const own = load();
   const ids = new Set(roots.map((r) => r.batchId));
   const given = new Set(roots.map((r) => r.root));

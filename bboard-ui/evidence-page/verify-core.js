@@ -716,14 +716,21 @@ var VeilcoreVerify = (function () {
     };
   }
 
-  // The transaction the holder's browser kept: the bundle's check-on-midnight.mjs is written for
-  // the registry's current one only.
-  function keptLookup(k) {
-    if (k) {
-      k.script = false;
-      k.otherThanScript = true;
-    }
-    return k;
+  /** "transaction … on Midnight's main network", or "no Midnight transaction" (bundle.ts txWords). */
+  function txWords(a) {
+    return isObject(a) && isHex64(a.txHash) ? 'transaction ' + a.txHash + ' on ' + networkWords(a.network) : 'no Midnight transaction';
+  }
+
+  /**
+   * Rule A (bundle.ts registryOtherWords): the bundle describes the main-network transaction the
+   * holder's browser kept first for this root; what VeilCore's registry named for it since.
+   */
+  function registryOther(registry) {
+    var out = [];
+    if (Object.prototype.hasOwnProperty.call(registry, 'registryNow')) out.push('now names ' + txWords(registry.registryNow));
+    var later = Array.isArray(registry.laterAnchors) ? registry.laterAnchors.filter(isObject) : [];
+    if (later.length) out.push('later gave the holder’s browser ' + later.map(txWords).join(', and '));
+    return out;
   }
 
   function lookups(ev, contracts) {
@@ -806,9 +813,8 @@ var VeilcoreVerify = (function () {
       disagree: Object.keys(distinct).length > 1,
       // More than one Midnight transaction for one root from the backup file.
       twoTx: twoTx,
-      // The main-network transaction the holder's browser kept for this root from an earlier
-      // registry answer, when the registry now names another (bundle.ts keptAnchorLine).
-      kept: keptLookup(!fromFile && isObject(registry.keptAnchor) && isHex64(registry.keptAnchor.txHash) ? anchorLookup(registry.keptAnchor, root, false, contracts, false) : null),
+      // What VeilCore's registry named for this root since the transaction described here (rule A).
+      registryOther: fromFile ? [] : registryOther(registry),
       midnight: midnight,
       // The registry's report of the stamp, named as such; what the file itself shows is readStamp's.
       bitcoin: ots && ots.available ? { status: ots.status === 'bitcoin' ? 'bitcoin' : 'pending', file: ots.file || 'proof/root.bin.ots', bitcoinBlockHeight: typeof ots.bitcoinBlockHeight === 'number' ? ots.bitcoinBlockHeight : null } : null,
@@ -853,7 +859,7 @@ var VeilcoreVerify = (function () {
       ? 'Open the Midnight explorer for ' + networkWords(a.network) + ': ' + a.explorer + ' (type the address in yourself).'
       : 'Open a Midnight explorer for ' + networkWords(a.network) + '.');
     out.push('Search for transaction ' + a.txHash + '.' + (a.blockHeight !== null || when
-      ? ' ' + (a.fromBackupFile ? 'The holder’s backup file says' : 'VeilCore’s registry reports') + ' it is' + (a.blockHeight !== null ? ' in block ' + a.blockHeight : '') + (when ? (a.blockHeight !== null ? ',' : '') + ' at ' + when : '') + '; the explorer’s own block and time are the ones to rely on.'
+      ? ' ' + (a.fromBackupFile ? 'The holder’s backup file says' : 'VeilCore’s registry reported') + ' it is' + (a.blockHeight !== null ? ' in block ' + a.blockHeight : '') + (when ? (a.blockHeight !== null ? ',' : '') + ' at ' + when : '') + '; the explorer’s own block and time are the ones to rely on.'
       : ''));
     var listed = a.pinned.length ? ' (VeilCore’s contracts on ' + networkWords(a.network) + ': ' + pinnedWords(a) + ')' : '';
     if (a.onList)
@@ -870,7 +876,7 @@ var VeilcoreVerify = (function () {
     // a.script: a root from a backup file names its own folder's script, or false where none is
     // written for its network (bundle.ts inFolder); otherwise the bundle's proof/ script.
     var script = a.script === false
-      ? (a.otherThanScript ? 'This bundle’s script reads only the other transaction, not this one.' : 'This bundle has no script that reads it for this network.')
+      ? 'This bundle has no script that reads it for this network.'
       : 'A technical person can run ' + (typeof a.script === 'string' ? a.script : 'proof/check-on-midnight.mjs') + ' (README.txt, “For technical readers”, says how): it asks a Midnight indexer directly, with no VeilCore server involved, though the code it runs is VeilCore’s published code.';
     out.push('We haven’t confirmed that any Midnight explorer shows the batch root: it sits inside the contract’s state after the call, not in plain text. If yours doesn’t show it, we know of no way to see it without running a command. ' + script + ' This record’s check page on VeilCore’s site does the same look-up in your browser, but that page is VeilCore’s too.');
     out.push('If the transaction succeeded, called that contract and wrote that root, this record existed, unchanged, by that transaction’s time: whoever had it sealed held this record by then. If any of it doesn’t match, nothing here dates the record.');
@@ -968,6 +974,8 @@ var VeilcoreVerify = (function () {
       if (/(^|\/)root\.bin$/.test(f.name)) {
         entry.is = 'root.bin';
         entry.ok = f.bytes.length === 32 && knownRoots.indexOf(toHex(f.bytes)) >= 0;
+        // Which folders' batch root it is, for a bundle made from a backup file (review 11, polish 3).
+        entry.folders = entry.ok ? cs.filter(function (x) { return x.root === toHex(f.bytes); }).map(function (x) { return x.folder; }) : [];
       } else if (/(^|\/)root\.bin\.ots$/.test(f.name)) {
         entry.is = 'root.bin.ots';
         // The bundle's root, or (a bundle made from a backup file) any folder's root.

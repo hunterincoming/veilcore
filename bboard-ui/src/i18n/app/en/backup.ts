@@ -180,7 +180,7 @@ export const backup = {
   'app.backup.fileIsLasting':
     'Your backup file on your own device is never changed by restoring; keep it — it’s the lasting copy.',
   'app.backup.rootChanged':
-    'VeilCore’s server gave a different date record for {n} of your records than it gave before. That should never happen. The first one is kept, and every one it gave is in this backup. Keep this file, and contact VeilCore.',
+    'VeilCore’s server gave a different date record for {n} of your records than it gave before. That should never happen. The first one is kept, and up to four later ones for each record are in this backup. Keep this file, and contact VeilCore.',
   'app.backup.fromFileProblem': "The records inside the file couldn't be put back: {why} Your keys are restored.",
   'app.backup.passkey.err.busy': 'Your other device kept saving at the same moment. It tries again by itself.',
   // Summit 5b item 15: on the backup screen (BackupStep.tsx).

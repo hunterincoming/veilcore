@@ -196,7 +196,7 @@ export const backup = {
   'app.backup.fileIsLasting':
     'La restauration ne modifie jamais votre fichier de sauvegarde sur votre propre appareil ; gardez-le : c’est la copie durable.',
   'app.backup.rootChanged':
-    'Le serveur de VeilCore a donné pour {n} de vos enregistrements une preuve de date différente de celle donnée avant. Cela ne devrait jamais arriver. La première est gardée, et toutes sont dans cette sauvegarde. Gardez ce fichier et contactez VeilCore.',
+    'Le serveur de VeilCore a donné pour {n} de vos enregistrements une preuve de date différente de celle donnée avant. Cela ne devrait jamais arriver. La première est gardée, et jusqu’à quatre suivantes par enregistrement sont dans cette sauvegarde. Gardez ce fichier et contactez VeilCore.',
   'app.backup.fromFileProblem':
     'Les enregistrements du fichier n’ont pas pu être récupérés : {why} Vos clés sont restaurées.',
   'app.backup.passkey.err.busy': 'Votre autre appareil a sauvegardé au même moment. Cela sera réessayé tout seul.',

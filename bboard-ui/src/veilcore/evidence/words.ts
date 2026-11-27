@@ -122,7 +122,7 @@ export const midnightSteps = (a: AnchorLookup): string[] => {
       : `Open a Midnight explorer for ${networkWords(a.network)}.`,
     `Search for transaction ${a.txHash}.` +
       (block || when
-        ? ` ${a.fromBackupFile ? "The holder's backup file says" : "VeilCore's registry reports"} it is${block ? ` in block ${a.blockHeight}` : ''}${when ? `${block ? ',' : ''} at ${when}` : ''}; the explorer's own block and time are the ones to rely on.`
+        ? ` ${a.fromBackupFile ? "The holder's backup file says" : "VeilCore's registry reported"} it is${block ? ` in block ${a.blockHeight}` : ''}${when ? `${block ? ',' : ''} at ${when}` : ''}; the explorer's own block and time are the ones to rely on.`
         : ''),
     a.onList
       ? `Check that the transaction succeeded and that it called VeilCore contract version ${a.contractVersion}, ${normAddress(a.contractAddress)}, and no other VeilCore contract${listed}. Note its block and time: that time is the date.`
