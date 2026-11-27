@@ -346,13 +346,51 @@ describe('the mainnet strings', () => {
     const o = mainnetStrings({ claimsOnMainnet: true, policyApproved: true, chainSends: true });
     expect(o['m.hero.status']).toMatch(/batches that are anchored there automatically/);
     expect(o['m.live.stamp.main']).toMatch(/^Yes\. Batches are dated automatically/);
-    // Before the switch, neither cadence; after it, "automatically" stays and "by hand" goes.
+    // Before the switch, no cadence; after it, "automatically" stays.
     const auto = { 'm.hero.status': 'they go into batches that are anchored there automatically.' };
-    const hand = { 'm.hero.status': 'they go into batches that we anchor there by hand for now.' };
     expect(withoutCadence(auto, true)).toEqual(auto);
     expect(withoutCadence(auto, false)['m.hero.status']).toBe('they go into batches that are dated there.');
-    expect(withoutCadence(hand, true)['m.hero.status']).toBe('they go into batches that are dated there.');
-    expect(withoutCadence(hand, false)['m.hero.status']).toBe('they go into batches that are dated there.');
+  });
+
+  // Batches have been anchored by the sponsor's scheduled job since 8 Nov 2026 (hourly). "By hand"
+  // anchoring wording must not come back anywhere: not in the mainnet overlays as written (before
+  // any swap), and not in the record app's own strings, in any of the five languages. The app's
+  // home screen said "(by hand for now)" until 27 Nov. Only the dated history post (the first
+  // batches were anchored by hand, 11 Oct) and "checking by hand" may say it.
+  it('no "by hand" anchoring wording comes back, in the overlays as written or the app, in any language', async () => {
+    const NOT_SO = /by hand|von Hand|a mano|à la main|手作業|手動/i;
+    const ABOUT_BATCHES = /batch|anchor|Stapel|verank|lote|ancl|\blots?\b|ancr|バッチ|アンカー/i;
+    const sentences = (v: string) => v.split(/(?<=[.;。])\s*|\n/);
+    // The overlays and their swaps, read as source: a sentence a build never shows still counts.
+    const overlays = ['en-mainnet.ts', 'de-mainnet.ts', 'es-mainnet.ts', 'fr-mainnet.ts', 'mainnet-overlay.ts'];
+    const hits: string[] = [];
+    for (const f of overlays) {
+      const text = fs.readFileSync(path.join(HERE, 'i18n', f), 'utf8').replace(/^\s*(\/\/|\*|\/\*\*).*$/gm, '');
+      for (const sen of sentences(text))
+        if (NOT_SO.test(sen) && ABOUT_BATCHES.test(sen)) hits.push(`${f}: ${sen.trim()}`);
+    }
+    // Japanese keeps its overlay in ja.ts; the history post and "checking by hand" are allowed.
+    const ja = fs.readFileSync(path.join(HERE, 'i18n', 'ja.ts'), 'utf8');
+    const jaOverlay = ja.slice(ja.indexOf('jaMainnet'));
+    for (const sen of sentences(jaOverlay))
+      if (NOT_SO.test(sen) && ABOUT_BATCHES.test(sen)) hits.push(`ja.ts: ${sen.trim()}`);
+    // The record app, every string, every language.
+    const apps: [string, Record<string, string>][] = [
+      ['en', (await import('./i18n/app/en')).appEn],
+      ['de', (await import('./i18n/app/de')).appDe],
+      ['es', (await import('./i18n/app/es')).appEs],
+      ['fr', (await import('./i18n/app/fr')).appFr],
+      ['ja', (await import('./i18n/app/ja')).appJa],
+    ];
+    for (const [l, strings] of apps)
+      for (const [k, v] of Object.entries(strings))
+        for (const sen of sentences(v))
+          if (NOT_SO.test(sen) && ABOUT_BATCHES.test(sen)) hits.push(`app ${l} ${k}: ${sen}`);
+    expect(hits).toEqual([]);
+    // And the app's home line says when the public date comes, in each language.
+    const home = Object.fromEntries(apps.map(([l, a]) => [l, a['app.home.aboutThreeMinutesBatch']]));
+    expect(home.en).toMatch(/its batch is dated on Midnight, automatically/);
+    for (const [l, v] of Object.entries(home)) expect(v, l).toMatch(/Midnight/);
   });
   it('every language veilcore.org offers sets every mainnet sentence the English does, for every build', async () => {
     const { LANGUAGES } = await import('./i18n/catalogs');

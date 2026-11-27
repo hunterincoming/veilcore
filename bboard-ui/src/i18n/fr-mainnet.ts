@@ -30,16 +30,16 @@ const sendsCommon: Strings = {
 export const frMainnet = buildMainnet({
   common: {
     'm.hero.status':
-      'Le smart contract de VeilCore est sur le réseau principal de Midnight. Les enregistrements scellés sur ce site sont de vrais enregistrements : ils vont dans des lots que nous y ancrons à la main pour l’instant. Les licences et les accords avec les laboratoires sont encore simulés ici.',
+      'Le smart contract de VeilCore est sur le réseau principal de Midnight. Les enregistrements scellés sur ce site sont de vrais enregistrements : ils vont dans des lots qui y sont datés. Les licences et les accords avec les laboratoires sont encore simulés ici.',
     'm.faq.3a':
-      'Il est conçu pour servir de preuve, et notre note pour les juristes dit ce qu’un enregistrement prouve et ce qu’il ne prouve pas. Les enregistrements scellés ici vont dans des lots que nous ancrons à la main sur le réseau principal de Midnight. Une fois le lot d’un enregistrement ancré, la date montre que l’enregistrement existait déjà à ce moment-là ; ce que cela vaut dans un litige, c’est au tribunal d’en juger.',
+      'Il est conçu pour servir de preuve, et notre note pour les juristes dit ce qu’un enregistrement prouve et ce qu’il ne prouve pas. Les enregistrements scellés ici vont dans des lots datés sur le réseau principal de Midnight. Une fois le lot d’un enregistrement ancré, la date montre que l’enregistrement existait déjà à ce moment-là ; ce que cela vaut dans un litige, c’est au tribunal d’en juger.',
     'm.stat2.b': 'Réseau principal',
     'm.foot.about':
       'Un format d’enregistrement ouvert pour la génétique végétale, animale et microbienne. Les enregistrements sont datés par ancrage sur le réseau principal de Midnight.',
     'm.get.2b':
       'Ils sont attachés à l’enregistrement. Un licencié peut prouver qu’il détient une licence en vigueur sans montrer laquelle. Une redevance ou autre obligation sur un parent apparaît sur chaque descendant confirmé par les deux détenteurs ; VeilCore l’enregistre et ne la perçoit pas. Intégré au smart contract sur le réseau principal de Midnight ; simulé sur ce site.',
     'm.demo.lede':
-      'Pas d’inscription, pas de portefeuille. Les enregistrements que vous scellez ici sont de vrais enregistrements : chacun va dans un lot que nous ancrons à la main pour l’instant sur le réseau principal de Midnight, donc un nouvel enregistrement peut attendre un moment ; sa page de vérification indique quand son lot est ancré. La vérification est gratuite. Les licences et les accords avec les laboratoires sont simulés, et les associations de rapports ADN ne sont pas datées. Le nom d’un enregistrement est verrouillé comme le reste ; un lien de vérification ne le contient que si vous l’activez.',
+      'Pas d’inscription, pas de portefeuille. Les enregistrements que vous scellez ici sont de vrais enregistrements : chacun va dans un lot daté sur le réseau principal de Midnight ; sa page de vérification indique quand son lot est ancré. La vérification est gratuite. Les licences et les accords avec les laboratoires sont simulés, et les associations de rapports ADN ne sont pas datées. Le nom d’un enregistrement est verrouillé comme le reste ; un lien de vérification ne le contient que si vous l’activez.',
     'm.post0.text':
       'Les deux smart contracts ont passé les 37 vérifications de bout en bout sur le réseau de test preprod de Midnight, y compris les nouvelles preuves d’un fait : une valeur, une plage, une différence, une correction qui laisse le reste inchangé et une signature d’une clé de laboratoire de test. Données de marqueurs fictives.',
     'm.post2.title': 'Une exécution complète sur le réseau de test preprod de Midnight',
@@ -86,7 +86,7 @@ export const frMainnet = buildMainnet({
     'm.claims.status':
       'Un second smart contract Midnight, sur le réseau principal de Midnight. Avant le lancement, il a réussi toutes les vérifications de bout en bout, avec des données de marqueurs inventées. Il n’est pas encore sur ce site.',
     'm.stat2.s':
-      'Les deux smart contracts sont sur le réseau principal de Midnight. Les enregistrements scellés sur ce site vont dans des lots que nous y ancrons à la main pour l’instant.',
+      'Les deux smart contracts sont sur le réseau principal de Midnight. Les enregistrements scellés sur ce site vont dans des lots qui y sont datés.',
   },
   claimsOnSite: {
     'm.claims.status':
@@ -96,7 +96,7 @@ export const frMainnet = buildMainnet({
     'm.claims.status':
       'Un second smart contract Midnight. Lors des tests avant le lancement, il a réussi toutes les vérifications de bout en bout, avec des données de marqueurs inventées. Il n’est pas encore sur le réseau principal de Midnight, ni sur ce site.',
     'm.stat2.s':
-      'Le smart contract principal est sur le réseau principal de Midnight. Les enregistrements scellés sur ce site vont dans des lots que nous y ancrons à la main pour l’instant. Le contrat des preuves suivra.',
+      'Le smart contract principal est sur le réseau principal de Midnight. Les enregistrements scellés sur ce site vont dans des lots qui y sont datés. Le contrat des preuves suivra.',
   },
   keyHolders:
     'Une clé de maintenance peut modifier le fonctionnement du contrat principal de VeilCore sur Midnight. Son détenteur peut ajouter ou remplacer des opérations du contrat, ce qui pourrait lui permettre de prendre le contrôle de l’identité de n’importe quel enregistrement, d’ajouter des licences au nom de n’importe quel émetteur, d’ajouter ou de retirer des obligations et des liens de parenté, ou de désactiver des opérations. Elle ne peut pas antidater les heures de bloc du réseau, et chaque modification est visible sur la chaîne. Elle ne peut ni modifier ni retirer un lot déjà ancré, ni la date qu’il donne à un enregistrement : elle se trouve dans la transaction qui l’a ancré, que personne ne peut modifier. Aujourd’hui, la clé est sur papier, une copie chez chaque fondateur, et une seule copie suffit pour l’utiliser. Le passage à trois clés, dont deux doivent s’accorder, était prévu avant la mise à niveau Ledger 9 de Midnight du 6 novembre 2026 et n’a pas été fait. Le réseau accepte toujours la clé : considérez-la donc comme active. Tout le monde peut vérifier le compteur de modifications du contrat sur un explorateur Midnight, et toute modification l’augmente.',

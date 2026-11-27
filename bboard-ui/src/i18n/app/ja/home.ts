@@ -11,8 +11,8 @@ export const home = {
   'app.home.continueDraft': '下書きの続き',
   'app.home.draftKept': '入力した内容はこのブラウザに保存されています。続きから始められます。',
   'app.home.aboutThreeMinutes': '約3分です。終わると公開の日付スタンプが付き、鍵を持つのはあなただけです。',
-  'app.home.aboutThreeMinutesByHand':
-    '約3分です。終わると封印されます。公開の日付は、私たちがそのバッチをアンカーしたときに付きます（当面は手作業）。鍵を持つのはあなただけです。',
+  'app.home.aboutThreeMinutesBatch':
+    '約3分です。終わると封印されます。公開の日付は、そのバッチがMidnightで自動的に日付付けされたときに付きます。鍵を持つのはあなただけです。',
   'app.home.continue': '続ける',
   'app.home.start': '記録を作る',
   'app.home.spreadsheet': 'スプレッドシートがありますか？コレクション全体に日付を付ける',

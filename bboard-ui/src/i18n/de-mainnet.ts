@@ -30,16 +30,16 @@ const sendsCommon: Strings = {
 export const deMainnet = buildMainnet({
   common: {
     'm.hero.status':
-      'Der Smart Contract von VeilCore läuft im Hauptnetz von Midnight. Datensätze, die auf dieser Website versiegelt werden, sind echte Datensätze: Sie kommen in Stapel, die wir dort vorerst von Hand verankern. Lizenzen und Laborvereinbarungen sind hier noch simuliert.',
+      'Der Smart Contract von VeilCore läuft im Hauptnetz von Midnight. Datensätze, die auf dieser Website versiegelt werden, sind echte Datensätze: Sie kommen in Stapel, die dort datiert werden. Lizenzen und Laborvereinbarungen sind hier noch simuliert.',
     'm.faq.3a':
-      'Es ist als Beweismittel gebaut, und unser Hinweis für Juristen sagt, was ein Datensatz beweist und was nicht. Datensätze, die hier versiegelt werden, kommen in Stapel, die wir von Hand im Hauptnetz von Midnight verankern. Sobald der Stapel eines Datensatzes verankert ist, zeigt das Datum, dass der Datensatz spätestens zu diesem Zeitpunkt existierte; was das in einem Streit wert ist, entscheidet das Gericht.',
+      'Es ist als Beweismittel gebaut, und unser Hinweis für Juristen sagt, was ein Datensatz beweist und was nicht. Datensätze, die hier versiegelt werden, kommen in Stapel, die im Hauptnetz von Midnight datiert werden. Sobald der Stapel eines Datensatzes verankert ist, zeigt das Datum, dass der Datensatz spätestens zu diesem Zeitpunkt existierte; was das in einem Streit wert ist, entscheidet das Gericht.',
     'm.stat2.b': 'Hauptnetz',
     'm.foot.about':
       'Ein offenes Datensatzformat für pflanzliche, tierische und mikrobielle Genetik. Datensätze werden durch Verankerung im Hauptnetz von Midnight datiert.',
     'm.get.2b':
       'Sie hängen am Datensatz. Ein Lizenznehmer kann beweisen, dass er eine gültige Lizenz hält, ohne zu zeigen, welche. Eine Lizenzgebühr oder andere Verpflichtung auf einem Elternteil erscheint bei jedem Nachkommen, den beide Datensatzinhaber bestätigt haben; VeilCore erfasst sie und zieht sie nicht ein. Im Smart Contract im Hauptnetz von Midnight eingebaut; auf dieser Website simuliert.',
     'm.demo.lede':
-      'Keine Anmeldung, keine Wallet. Datensätze, die Sie hier versiegeln, sind echte Datensätze: Jeder kommt in einen Stapel, den wir vorerst von Hand im Hauptnetz von Midnight verankern, ein neuer Datensatz kann also eine Weile warten; seine Prüfseite zeigt, wann sein Stapel verankert ist. Prüfen ist kostenlos. Lizenzen und Laborvereinbarungen sind simuliert, und Kopplungen von DNA-Berichten werden nicht datiert. Der Name eines Datensatzes ist wie alles andere verschlossen; ein Prüflink enthält ihn nur, wenn Sie das einschalten.',
+      'Keine Anmeldung, keine Wallet. Datensätze, die Sie hier versiegeln, sind echte Datensätze: Jeder kommt in einen Stapel, der im Hauptnetz von Midnight datiert wird; seine Prüfseite zeigt, wann sein Stapel verankert ist. Prüfen ist kostenlos. Lizenzen und Laborvereinbarungen sind simuliert, und Kopplungen von DNA-Berichten werden nicht datiert. Der Name eines Datensatzes ist wie alles andere verschlossen; ein Prüflink enthält ihn nur, wenn Sie das einschalten.',
     'm.post0.text':
       'Beide Smart Contracts haben alle 37 End-to-End-Prüfungen im Preprod-Testnetz von Midnight bestanden, einschließlich der neuen Belege: ein Wert, ein Bereich, ein Unterschied, eine unveränderte Korrektur und eine Signatur von einem Test-Laborschlüssel. Erfundene Markerdaten.',
     'm.post2.title': 'Ein vollständiger Durchlauf im Preprod-Testnetz von Midnight',
@@ -86,7 +86,7 @@ export const deMainnet = buildMainnet({
     'm.claims.status':
       'Ein zweiter Midnight-Smart-Contract, im Hauptnetz von Midnight. Vor dem Start hat er jede End-to-End-Prüfung bestanden, mit erfundenen Markerdaten. Auf dieser Website ist er noch nicht.',
     'm.stat2.s':
-      'Beide Smart Contracts laufen im Hauptnetz von Midnight. Datensätze, die auf dieser Website versiegelt werden, kommen in Stapel, die wir dort vorerst von Hand verankern.',
+      'Beide Smart Contracts laufen im Hauptnetz von Midnight. Datensätze, die auf dieser Website versiegelt werden, kommen in Stapel, die dort datiert werden.',
   },
   claimsOnSite: {
     'm.claims.status':
@@ -96,7 +96,7 @@ export const deMainnet = buildMainnet({
     'm.claims.status':
       'Ein zweiter Midnight-Smart-Contract. In den Tests vor dem Start hat er jede End-to-End-Prüfung bestanden, mit erfundenen Markerdaten. Im Hauptnetz von Midnight ist er noch nicht, und auf dieser Website auch nicht.',
     'm.stat2.s':
-      'Der Haupt-Smart-Contract läuft im Hauptnetz von Midnight. Datensätze, die auf dieser Website versiegelt werden, kommen in Stapel, die wir dort vorerst von Hand verankern. Der Beleg-Smart-Contract folgt.',
+      'Der Haupt-Smart-Contract läuft im Hauptnetz von Midnight. Datensätze, die auf dieser Website versiegelt werden, kommen in Stapel, die dort datiert werden. Der Beleg-Smart-Contract folgt.',
   },
   keyHolders:
     'Ein Wartungsschlüssel kann ändern, wie der Haupt-Smart-Contract von VeilCore auf Midnight funktioniert. Wer ihn hält, kann Operationen des Smart Contracts hinzufügen oder ersetzen und damit die Identität jedes Datensatzes übernehmen, Lizenzen für jeden Aussteller anlegen, Verpflichtungen und Elternverknüpfungen hinzufügen oder entfernen oder Operationen abschalten. Die Blockzeiten des Netzwerks kann er nicht zurückdatieren, und jede Änderung ist on-chain sichtbar. Einen bereits verankerten Stapel und das Datum, das er einem Datensatz gibt, kann er weder ändern noch entfernen: Das steht in der Transaktion, die ihn verankert hat, und die kann niemand ändern. Heute liegt der Schlüssel auf Papier vor, je eine Kopie bei jedem Gründer, und jede Kopie allein genügt, um ihn zu verwenden. Ihn auf drei Schlüssel zu verlagern, von denen zwei zustimmen müssen, war vor dem Ledger-9-Upgrade von Midnight am 6. November 2026 geplant und ist nicht umgesetzt. Das Netzwerk akzeptiert den Schlüssel weiterhin; betrachten Sie ihn also als aktiv. Jeder kann den Änderungszähler des Smart Contracts in einem Midnight-Explorer prüfen, und jede Änderung erhöht ihn.',
