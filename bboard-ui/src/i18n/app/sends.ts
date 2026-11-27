@@ -10,6 +10,7 @@ export const SEND_SCREEN_KEYS = [
   'app.prove.whatSends',
   'app.animal.v.app.prove.whatSends',
   'app.strain.v.app.prove.whatSends',
+  'app.prove.any.whatSends',
   'app.prove.fewMinutes',
   'app.prove.ask.intro',
   'app.prove.watch.checkedAt',
@@ -30,6 +31,8 @@ export const APP_SENDS: Record<Lang, SendWords> = {
       "<b>What this sends:</b> only proof that you hold this plant's record, put on Midnight's main network. No name, no genetics, nothing about your other plants. VeilCore pays the fee.",
     'app.animal.v.app.prove.whatSends':
       "<b>What this sends:</b> only proof that you hold this animal's record, put on Midnight's main network. No name, no genetics, nothing about your other records. VeilCore pays the fee.",
+    'app.prove.any.whatSends':
+      "<b>What this sends:</b> only proof that you hold this record, put on Midnight's main network. No name, no genetics, nothing about your other records. VeilCore pays the fee.",
     'app.prove.fewMinutes': 'It can take a few minutes.',
     'app.prove.ask.intro':
       "You send them a link. They open it and tap Prove it. The answer shows up here. This page checks the answer on Midnight's main network itself, through a Midnight indexer reached through VeilCore's relay. For a decision that matters, check the transaction on a second indexer.",
@@ -50,6 +53,8 @@ export const APP_SENDS: Record<Lang, SendWords> = {
       '<b>Was gesendet wird:</b> nur der Beweis, dass Sie den Datensatz dieser Pflanze halten, im Hauptnetz von Midnight. Kein Name, keine Genetik, nichts über Ihre anderen Pflanzen. VeilCore zahlt die Gebühr.',
     'app.animal.v.app.prove.whatSends':
       '<b>Was gesendet wird:</b> nur der Beweis, dass Sie den Datensatz dieses Tieres halten, im Hauptnetz von Midnight. Kein Name, keine Genetik, nichts über Ihre anderen Datensätze. VeilCore zahlt die Gebühr.',
+    'app.prove.any.whatSends':
+      '<b>Was gesendet wird:</b> nur der Beweis, dass Sie diesen Datensatz halten, im Hauptnetz von Midnight. Kein Name, keine Genetik, nichts über Ihre anderen Datensätze. VeilCore zahlt die Gebühr.',
     'app.prove.fewMinutes': 'Das kann einige Minuten dauern.',
     'app.prove.ask.intro':
       'Sie senden einen Link. Die Person öffnet ihn und tippt auf „Beweisen“. Die Antwort erscheint hier. Diese Seite prüft die Antwort selbst im Hauptnetz von Midnight, über einen Midnight-Indexer, den sie über das Relais von VeilCore erreicht. Prüfen Sie die Transaktion für eine wichtige Entscheidung bei einem zweiten Indexer.',
@@ -70,6 +75,8 @@ export const APP_SENDS: Record<Lang, SendWords> = {
       '<b>Qué se envía:</b> solo la prueba de que usted tiene el registro de esta planta, puesta en la red principal de Midnight. Ni nombre, ni genética, ni nada sobre sus otras plantas. VeilCore paga la tarifa.',
     'app.animal.v.app.prove.whatSends':
       '<b>Qué se envía:</b> solo la prueba de que usted tiene el registro de este animal, puesta en la red principal de Midnight. Ni nombre, ni genética, ni nada sobre sus otros registros. VeilCore paga la tarifa.',
+    'app.prove.any.whatSends':
+      '<b>Qué se envía:</b> solo la prueba de que usted tiene este registro, puesta en la red principal de Midnight. Ni nombre, ni genética, ni nada sobre sus otros registros. VeilCore paga la tarifa.',
     'app.prove.fewMinutes': 'Puede tardar unos minutos.',
     'app.prove.ask.intro':
       'Le envía un enlace. Lo abre y toca Demostrarlo. La respuesta aparece aquí. Esta página comprueba la respuesta en la propia red principal de Midnight, a través de un indexador de Midnight al que llega por medio del relé de VeilCore. Para una decisión importante, compruebe la transacción en un segundo indexador.',
@@ -90,6 +97,8 @@ export const APP_SENDS: Record<Lang, SendWords> = {
       '<b>Ce qui est envoyé :</b> seulement la preuve que vous détenez l’enregistrement de cette plante, placée sur le réseau principal de Midnight. Pas de nom, pas de génétique, rien sur vos autres plantes. VeilCore paie les frais.',
     'app.animal.v.app.prove.whatSends':
       '<b>Ce qui est envoyé :</b> seulement la preuve que vous détenez l’enregistrement de cet animal, placée sur le réseau principal de Midnight. Pas de nom, pas de génétique, rien sur vos autres enregistrements. VeilCore paie les frais.',
+    'app.prove.any.whatSends':
+      '<b>Ce qui est envoyé :</b> seulement la preuve que vous détenez cet enregistrement, placée sur le réseau principal de Midnight. Pas de nom, pas de génétique, rien sur vos autres enregistrements. VeilCore paie les frais.',
     'app.prove.fewMinutes': 'Cela peut prendre quelques minutes.',
     'app.prove.ask.intro':
       'Vous envoyez un lien. La personne l’ouvre et touche « Le prouver ». La réponse s’affiche ici. Cette page vérifie la réponse sur le réseau principal de Midnight lui-même, via un indexeur Midnight joint par le relais de VeilCore. Pour une décision importante, vérifiez la transaction sur un second indexeur.',
@@ -110,6 +119,8 @@ export const APP_SENDS: Record<Lang, SendWords> = {
       '<b>送信される内容：</b>この植物の記録を保有していることの証明だけで、Midnightのメインネットワークに載せます。名前も、遺伝情報も、ほかの植物についても送りません。手数料はVeilCoreが支払います。',
     'app.animal.v.app.prove.whatSends':
       '<b>送信される内容：</b>この動物の記録を保有していることの証明だけで、Midnightのメインネットワークに載せます。名前も、遺伝情報も、ほかの記録についても送りません。手数料はVeilCoreが支払います。',
+    'app.prove.any.whatSends':
+      '<b>送信される内容：</b>この記録を保有していることの証明だけで、Midnightのメインネットワークに載せます。名前も、遺伝情報も、ほかの記録についても送りません。手数料はVeilCoreが支払います。',
     'app.prove.fewMinutes': '数分かかることがあります。',
     'app.prove.ask.intro':
       '相手にリンクを送ります。相手がそれを開いて「証明する」をタップすると、ここに答えが表示されます。このページは、VeilCoreの中継を通じてMidnightのインデクサーに問い合わせ、Midnightのメインネットワーク上で直接答えを確認します。重要な判断には、別のインデクサーでもトランザクションを確認してください。',

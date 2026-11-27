@@ -51,7 +51,11 @@ export const verify = {
     'Checked on Midnight: this batch root was written by transaction {tx} in block {block} at {at}.{contract}{two}{test}',
   'app.verify.anchor.failed': 'Not confirmed on Midnight: {reason}. Don’t rely on the date the registry reports.',
   'app.verify.anchor.dateNotChecked': 'The date is {date}; not checked here.',
-  'app.verify.anchor.oneIndexer': 'Only one of the two Midnight indexers answered, and both must. {date}',
+  'app.verify.anchor.oneIndexer': 'Only one of the two Midnight indexers could confirm it, and both must. {date}',
+  'app.verify.anchor.unreadable':
+    'Couldn’t read the date from Midnight right now. Don’t rely on this date until it’s confirmed. {date}',
+  'app.verify.anchor.notYet':
+    'Midnight’s indexer doesn’t show that transaction yet. It may still be catching up: try again in a few minutes, and don’t rely on this date until it’s confirmed. {date}',
   'app.verify.anchor.noIndexer': 'Couldn’t reach a Midnight indexer. {date}',
   'app.verify.anchor.headingTest': 'Date stamp checked on a test network: practice data, not a real date',
   'app.verify.anchor.headingChecked': 'Date stamp checked on Midnight',
@@ -62,6 +66,7 @@ export const verify = {
   'app.verify.anchor.eventFailed': 'Batch {batch}: {reason}. Don’t rely on the date the registry reports.',
   'app.verify.anchor.whyChecking': 'This page is looking it up on Midnight.',
   'app.verify.anchor.whyUnreachable': 'This page couldn’t reach Midnight to check it.',
+  'app.verify.anchor.whyUnread': 'This page couldn’t read it from Midnight just now.',
   'app.verify.anchor.whyNotLooked': 'This page has not looked it up on Midnight.',
   'app.verify.anchor.eventReportedTitle': 'Date stamp reported by the registry',
   'app.verify.anchor.inTx': ' in transaction {tx}',

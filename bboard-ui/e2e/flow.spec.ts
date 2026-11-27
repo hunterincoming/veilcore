@@ -141,9 +141,11 @@ test('log, share, ask by link, open as the holder, answer arrives', async ({ bro
   // The holder opens it, the whole link.
   await holder.goto(`/prove/${id}#t=${token}`);
   // Opened fresh, a prove page doesn't load the holder's records (round 6, CONTRACT.md #36: no
-  // request there carries the holder key), so it can't say the plant's name. It matched the
-  // plant by its key in this browser, so it proves the right one.
-  await expect(holder.getByRole('heading', { name: 'Prove you hold this plant' })).toBeVisible();
+  // request there carries the holder key), so it can't say the plant's name, or even that it is
+  // a plant rather than an animal (first mainnet run, 26 Nov): it says "record". It matched the
+  // record by its key in this browser, so it proves the right one.
+  await expect(holder.getByRole('heading', { name: 'Prove you hold this record' })).toBeVisible();
+  await expect(holder.locator('main').getByText(/plant/i)).toHaveCount(0);
   await expect(holder.getByText(/E2E Lab/)).toBeVisible();
 
   // An answer arrives at the registry (the real one would come from Prove it).

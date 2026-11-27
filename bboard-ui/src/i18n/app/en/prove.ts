@@ -43,6 +43,15 @@ export const prove = {
   'app.prove.copy': 'Copy',
   'app.prove.title': 'Prove you hold {name}',
   'app.prove.thisPlant': 'this plant',
+  // ProvePage.tsx: a prove link opened fresh doesn't load the holder's records, so it can't
+  // tell a plant from an animal or a strain: it says "record" (first mainnet run, 26 Nov).
+  'app.prove.thisRecord': 'this record',
+  'app.prove.theRecord': 'the record',
+  'app.prove.any.whatSends':
+    '<b>What this sends:</b> only proof that you hold this record, put on the test network. No name, no genetics, nothing about your other records.',
+  'app.prove.any.answering': 'Answering tells whoever sent you this link that you hold this record.',
+  'app.prove.any.doneText':
+    "They'll see the answer on their page. Nothing about the record was sent: only proof that you hold it.",
   'app.prove.askedBy':
     "Asked by someone who says they're <b>“{asker}”</b>. <muted>VeilCore hasn't checked that.</muted>",
   'app.prove.askedAnon': "Someone asked you to prove it. They didn't give a name.",

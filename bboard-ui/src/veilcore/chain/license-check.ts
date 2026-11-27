@@ -17,7 +17,8 @@
 import { acceptPresentationAt } from '../../../../contract/src/verify';
 import type { ledger } from '../../../../contract/src/managed/veilcore/contract/index.js';
 import { CHAIN_CONTRACT, INDEXER_HTTP } from './config';
-import { lookupChallenge, useChallenge } from './challenge-book';
+import { lookupChallenge, usedByAnother, useChallenge } from './challenge-book';
+import { lookupWords } from './read-failure';
 
 const hexToBytes = (hex: string): Uint8Array => Uint8Array.from(hex.match(/../g) ?? [], (b) => parseInt(b, 16));
 
@@ -47,20 +48,18 @@ export const checkLicense = async (
   if (!/^[0-9a-f]{64}$/.test(identity)) return { accepted: false, reason: 'No record key to check against.' };
   const issued = lookupChallenge(challenge);
   if (!issued) return { accepted: false, reason: 'This page did not make that challenge. Make a new request.' };
-  if (issued.used) return { accepted: false, reason: 'That challenge was already answered once. Make a new request.' };
   if (!/^[0-9a-f]{64}$/.test(txId)) return { accepted: false, reason: 'That is not a transaction id.' };
+  // The answer that used it may be checked again (a reload mid-check); any other is refused.
+  if (usedByAnother(issued, txId))
+    return { accepted: false, reason: 'That challenge was already answered once. Make a new request.' };
 
   let found;
   try {
     found = await (deps.presentation ?? defaultPresentation)(txId);
   } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    return {
-      accepted: false,
-      reason: /Failed to fetch|NetworkError|Load failed|timed? ?out|aborted/i.test(msg)
-        ? 'could not reach the Midnight network’s indexer; try again in a few minutes'
-        : msg,
-    };
+    // Couldn't reach or read Midnight is worth trying again (prove-relay.ts worthRetrying);
+    // only the look-up's own verdicts are a refusal (read-failure.ts).
+    return { accepted: false, reason: lookupWords(e) };
   }
   const v = acceptPresentationAt(found.ledger, hexToBytes(identity), hexToBytes(challenge), {
     landedAt: found.blockTime,
@@ -68,6 +67,9 @@ export const checkLicense = async (
     issuedAt: issued.issuedAt,
     now: (deps.now ?? Date.now)(),
   });
-  if (v.accepted) useChallenge(challenge);
+  // Not marked used here: the caller marks it (markUsed) once it has saved the result.
   return { ...v, ...(found.blockTime === undefined ? {} : { landedAt: found.blockTime }) };
 };
+
+/** Mark a challenge used by this answer: call only after the result is saved (challenge-book.ts). */
+export const markUsed = (challenge: string, txId: string): void => useChallenge(challenge.trim().toLowerCase(), txId);

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ledger, type Ledger } from '../../../../contract/src/managed/veilcore/contract/index.js';
-import { checkAnchor, checkOwnership, newChallenge } from './ownership-check';
+import { checkAnchor, checkOwnership, markUsed, newChallenge } from './ownership-check';
 import { identityOf, recoveryCommitmentOf } from './actions';
 import { contractStateAfter } from './test-chain';
 import { KEY_NOT_THIS_RECORDS, bindingForSecret, keyBoundFingerprint } from '../key-binding';
@@ -41,9 +41,29 @@ describe('verifier: checking a holder’s answer', () => {
     const deps = { stateAfter: () => Promise.resolve(after), latest: () => Promise.resolve(after) };
     const input = { txId: 'aa'.repeat(32), identity: identityOf(RECORD), challenge };
     expect(await checkOwnership(input, deps)).toMatchObject({ accepted: true });
-    const again = await checkOwnership(input, deps);
-    expect(again.accepted).toBe(false);
-    expect(again.reason).toMatch(/already answered/);
+    // Checking doesn't use it up: a reload before the result is saved checks it again.
+    expect(await checkOwnership(input, deps)).toMatchObject({ accepted: true });
+    markUsed(challenge, input.txId);
+    // Once saved and marked: the same answer still checks, any other is refused.
+    expect(await checkOwnership(input, deps)).toMatchObject({ accepted: true });
+    const other = await checkOwnership({ ...input, txId: 'bb'.repeat(32) }, deps);
+    expect(other.accepted).toBe(false);
+    expect(other.reason).toMatch(/already answered/);
+  });
+
+  it('a challenge marked by an older build, which kept no answer, is still refused', async () => {
+    const challenge = newChallenge();
+    const after = afterProof(RECORD, challenge);
+    const deps = { stateAfter: () => Promise.resolve(after), latest: () => Promise.resolve(after) };
+    const book = JSON.parse(store.get('veilcore.verifier-challenges.v1') ?? '{}') as Record<string, object>;
+    store.set(
+      'veilcore.verifier-challenges.v1',
+      JSON.stringify({ ...book, [challenge]: { ...book[challenge], used: true } }),
+    );
+    vi.resetModules();
+    const fresh = await import('./ownership-check');
+    const v = await fresh.checkOwnership({ txId: 'aa'.repeat(32), identity: identityOf(RECORD), challenge }, deps);
+    expect(v.reason).toMatch(/already answered/);
   });
 
   it('a challenge sent as a link still works in a new tab of this browser, once', async () => {
@@ -55,8 +75,9 @@ describe('verifier: checking a holder’s answer', () => {
     const deps = { stateAfter: () => Promise.resolve(after), latest: () => Promise.resolve(after) };
     const input = { txId: 'aa'.repeat(32), identity: identityOf(RECORD), challenge };
     expect(await fresh.checkOwnership(input, deps)).toMatchObject({ accepted: true });
+    fresh.markUsed(challenge, input.txId);
     vi.resetModules();
-    const again = await (await import('./ownership-check')).checkOwnership(input, deps);
+    const again = await (await import('./ownership-check')).checkOwnership({ ...input, txId: 'bb'.repeat(32) }, deps);
     expect(again.reason).toMatch(/already answered/);
   });
 

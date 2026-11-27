@@ -33,6 +33,7 @@ export const errors = {
   'app.err.chain.filesMissing': 'Les fichiers de preuve pour {circuit} ne sont pas encore sur ce site.',
   'app.err.chain.paramsMissing': 'Les paramètres publics (k={k}) ne sont pas encore sur ce site.',
   'app.err.chain.callFailed': 'Le réseau a inclus l’appel, mais il n’a pas abouti ({status}).',
+  'app.err.chain.hashUnreadable': 'Le réseau l’a incluse, mais son hachage de transaction n’a pas pu être lu',
   'app.err.chain.claimFailed': 'Le réseau a inclus la preuve, mais elle n’a pas abouti ({status}).',
   'app.err.chain.noSlot': 'Aucune place de licence libre n’a été trouvée. Rien n’a été envoyé.',
   'app.err.chain.notSendersRecord':
@@ -54,6 +55,9 @@ export const errors = {
   'app.err.chain.notOurRequest': 'Cette page n’a pas créé ce défi. Faites une nouvelle demande.',
   'app.err.chain.requestUsed': 'Ce défi a déjà reçu une réponse. Faites une nouvelle demande.',
   'app.err.chain.noRecordKey': 'Aucune clé d’enregistrement à laquelle comparer.',
+  'app.err.chain.callUnreadable':
+    'impossible de lire cette transaction sur Midnight pour le moment ; réessayez dans quelques minutes',
+  'app.err.chain.noSuchTx': 'Midnight n’a pas cette transaction.',
   'app.err.chain.indexerUnreachable':
     'impossible de joindre l’indexeur du réseau Midnight ; réessayez dans quelques minutes',
   'app.err.chain.stateUnreadable':

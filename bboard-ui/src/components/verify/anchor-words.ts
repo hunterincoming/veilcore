@@ -3,7 +3,8 @@
 // stands behind them: "Checked on Midnight" only for what this browser read from an indexer.
 // SPDX-License-Identifier: Apache-2.0
 
-import type { AnchorCheck } from '../../veilcore/chain/anchor-check';
+import type { AnchorCheck, UnreachableWhy } from '../../veilcore/chain/anchor-check';
+import type { AppKey } from '../../i18n/app/en';
 import type { FactStatus } from '../../veilcore/saved-report';
 import { isTestNetwork } from '../../config/network';
 import { utcStamp } from '../../veilcore/time';
@@ -41,6 +42,17 @@ export const keyStateWords = (
     committee: String(ks.committee),
   });
 };
+
+/** Why an `unreachable` check couldn't confirm the anchor; a value from before `why` existed reads by its reason. */
+export const unreachableWhy = (check: Extract<AnchorCheck, { status: 'unreachable' }>): UnreachableWhy =>
+  check.why ?? (/^only one of the two/.test(check.reason) ? 'one-of-two' : 'no-answer');
+
+const UNREACHABLE_LINE = {
+  'no-answer': 'app.verify.anchor.noIndexer',
+  'one-of-two': 'app.verify.anchor.oneIndexer',
+  unreadable: 'app.verify.anchor.unreadable',
+  'not-yet': 'app.verify.anchor.notYet',
+} as const satisfies Record<UnreachableWhy, AppKey>;
 
 /** The line under the registry's report of the anchor: its mark and its words, or none. */
 export const anchorLine = (
@@ -81,13 +93,10 @@ export const anchorLine = (
     case 'failed':
       return { status: 'failed', text: tr.t('app.verify.anchor.failed', { reason: check.reason }) };
     case 'unreachable': {
+      // Couldn't confirm it: never a cross. Each reason in its own plain words, then the date
+      // the registry gives, as its report (anchor-check.ts, UnreachableWhy).
       const date = tr.t('app.verify.anchor.dateNotChecked', { date: registryDateWords(ctx.reportedAt, tr) });
-      return {
-        status: 'reported',
-        text: /^only one of the two/.test(check.reason)
-          ? tr.t('app.verify.anchor.oneIndexer', { date })
-          : tr.t('app.verify.anchor.noIndexer', { date }),
-      };
+      return { status: 'reported', text: tr.t(UNREACHABLE_LINE[unreachableWhy(check)], { date }) };
     }
     case 'not-checked':
       // No line of its own: the registry's report above already says this page has not
@@ -246,7 +255,9 @@ export const anchorHistoryEvent = (
     check === 'checking'
       ? tr.t('app.verify.anchor.whyChecking')
       : check?.status === 'unreachable'
-        ? tr.t('app.verify.anchor.whyUnreachable')
+        ? ['unreadable', 'not-yet'].includes(unreachableWhy(check))
+          ? tr.t('app.verify.anchor.whyUnread')
+          : tr.t('app.verify.anchor.whyUnreachable')
         : tr.t('app.verify.anchor.whyNotLooked');
   return {
     at: reportedAt,

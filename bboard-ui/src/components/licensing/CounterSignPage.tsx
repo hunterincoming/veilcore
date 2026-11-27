@@ -55,7 +55,7 @@ export const CounterSignPage: React.FC = () => {
 
   return (
     <Box sx={{ bgcolor: 'background.default' }}>
-      <Container maxWidth="sm" sx={{ py: { xs: 5, md: 8 } }}>
+      <Container component="main" id="main" maxWidth="sm" sx={{ py: { xs: 5, md: 8 } }}>
         {!license ? (
           <Paper sx={{ p: 4, textAlign: 'center' }}>
             <Typography sx={{ mb: 1 }}>{tr.t('app.lic.sign.notHere')}</Typography>

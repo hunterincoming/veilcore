@@ -31,11 +31,18 @@ import { setProverProgress } from './prover';
 import { browserCallDeps, type CallDeps } from './prover-choice';
 import { assertNotPaused } from './paused';
 import { e2eChain } from './e2e-chain';
+import { landedHash } from './tx-hash';
 
 export type ChainReceipt = {
   readonly circuit: BrowserCircuit;
+  /**
+   * The transaction's HASH (64 hex): the one name to pass on, to the registry, a checker or a
+   * link (tx-hash.ts). Always the same as `txHash`.
+   */
   readonly txId: string;
   readonly txHash: string;
+  /** What the sponsor answered when it sent it (Midnight's identifier, 66 hex): support only. */
+  readonly identifier?: string;
   readonly blockHeight: number;
   /** Block time (ms), the chain's own clock. */
   readonly blockTime?: number;
@@ -172,7 +179,17 @@ const call = async (
     if (fin.status !== SucceedEntirely) {
       throw new Error(`The network included the call but it did not succeed (${String(fin.status)}).`);
     }
-    return { circuit, txId, txHash: fin.txHash, blockHeight: fin.blockHeight, blockTime: fin.blockTimestamp };
+    // Passed on as the hash, never the identifier the sponsor answered with: the registry
+    // takes only the hash (tx-hash.ts).
+    const hash = landedHash(fin.txHash);
+    return {
+      circuit,
+      txId: hash,
+      txHash: hash,
+      identifier: txId,
+      blockHeight: fin.blockHeight,
+      blockTime: fin.blockTimestamp,
+    };
   } catch (e) {
     throw plainError(providers.sponsorFailure() ?? e, sentAs);
   } finally {

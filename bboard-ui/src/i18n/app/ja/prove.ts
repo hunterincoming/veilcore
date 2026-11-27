@@ -43,6 +43,13 @@ export const prove = {
   'app.prove.copy': 'コピー',
   'app.prove.title': '{name}を保有していることを証明する',
   'app.prove.thisPlant': 'この植物',
+  'app.prove.thisRecord': 'この記録',
+  'app.prove.theRecord': 'その記録',
+  'app.prove.any.whatSends':
+    '<b>送信される内容：</b>この記録を保有していることの証明だけで、テストネットワークに載せます。名前も、遺伝情報も、ほかの記録についても送りません。',
+  'app.prove.any.answering': '答えると、このリンクを送った人に、あなたがこの記録を保有していることが伝わります。',
+  'app.prove.any.doneText':
+    '相手のページに答えが表示されます。記録については何も送信されていません。送ったのは、あなたがその記録を保有していることの証明だけです。',
   'app.prove.askedBy': '依頼者は<b>「{asker}」</b>と名乗っています。<muted>VeilCoreは確認していません。</muted>',
   'app.prove.askedAnon': '誰かが証明を求めています。名前は示されていません。',
   'app.prove.whatSends':

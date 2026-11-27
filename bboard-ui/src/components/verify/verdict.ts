@@ -159,13 +159,22 @@ export const claimVerdict = (c: {
   if (c.off) return undefined;
   const v = c.verdict;
   if (!v || c.more.some((m) => !m)) return { tone: 'wait', key: 'app.claim.verdict.checking' };
-  if (!v.ok) return { tone: 'fail', key: 'app.claim.verdict.failed' };
+  // Couldn't read it from Midnight (chain/read-failure.ts): never the failure's cross, never green.
+  if (!v.ok)
+    return v.unreadable
+      ? { tone: 'warn', key: 'app.claim.verdict.unreadable' }
+      : { tone: 'fail', key: 'app.claim.verdict.failed' };
   if (v.lab && !v.lab.ok) return { tone: 'warn', key: 'app.claim.verdict.labFailed' };
   if (v.lab?.signer?.kind === 'retracted') return { tone: 'warn', key: 'app.claim.verdict.labWithdrawn' };
   if (v.lab?.signer?.kind === 'conflict') return { tone: 'warn', key: 'app.claim.verdict.labConflict' };
-  if (c.more.some((m) => m?.ok === false)) return { tone: 'warn', key: 'app.claim.verdict.someFailed' };
+  // A further claim Midnight contradicts fails; one that couldn't be read is said as that, never
+  // as a failure (chain/read-failure.ts). A date that didn't check still leads: it is the stronger
+  // warning, and "couldn't read" must never hide it.
+  if (c.more.some((m) => m?.ok === false && !m.unreadable))
+    return { tone: 'warn', key: 'app.claim.verdict.someFailed' };
   const dates = c.dates ?? [];
   if (dates.includes('failed')) return { tone: 'warn', key: 'app.claim.verdict.dateFailed' };
+  if (c.more.some((m) => m?.ok === false)) return { tone: 'warn', key: 'app.claim.verdict.unreadable' };
   if (dates.includes('checking')) return { tone: 'wait', key: 'app.claim.verdict.checking' };
   if (dates.includes('unconfirmed')) return { tone: 'warn', key: 'app.claim.verdict.notDated' };
   const tone = c.stillTesting ? 'warn' : 'ok';

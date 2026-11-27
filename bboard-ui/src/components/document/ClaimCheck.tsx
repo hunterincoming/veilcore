@@ -20,7 +20,13 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Alert, Box, CircularProgress, Container, Paper, Stack, Typography } from '@mui/material';
-import { anchoredFingerprintOf, claimsOf, readClaimLink, type ClaimVerdict } from '../../veilcore/claim-link';
+import {
+  anchoredFingerprintOf,
+  claimsOf,
+  isOldClaimLink,
+  readClaimLink,
+  type ClaimVerdict,
+} from '../../veilcore/claim-link';
 import { isMarkerSchema, joinedPlacement, markerSourceKey, offerOf } from '../../veilcore/marker-claims';
 import { DatedNotOrigin } from '../verify/DatedNotOrigin';
 import { CheckVerdict, CheckYourself, MakeYourOwn } from '../verify/CheckParts';
@@ -174,8 +180,10 @@ const OneClaimCheck: React.FC = () => {
         {/* A number in a document: no plant or animal to be older than the date. */}
         <DatedNotOrigin kind="document" />
         {!link ? (
-          <Alert severity="error" variant="outlined" data-claim-link="bad">
-            {t('app.claim.check.bad')}
+          // Refused before anything is asked: a link that names its transaction by anything but its
+          // hash (tx-hash-rule.ts) is invalid, never "couldn't read"; an older one says so.
+          <Alert severity="error" variant="outlined" data-claim-link={isOldClaimLink(hash) ? 'old' : 'bad'}>
+            {t(isOldClaimLink(hash) ? 'app.claim.check.oldLink' : 'app.claim.check.bad')}
           </Alert>
         ) : viabilityOff ? (
           <ViabilityNotRead />
@@ -200,7 +208,7 @@ const OneClaimCheck: React.FC = () => {
                 variant="h6"
                 component="p"
                 color={verdict?.ok ? 'text.primary' : 'text.secondary'}
-                sx={{ mb: 1, textDecoration: verdict && !verdict.ok ? 'line-through' : 'none' }}
+                sx={{ mb: 1, textDecoration: verdict && !verdict.ok && !verdict.unreadable ? 'line-through' : 'none' }}
                 data-claim-statement=""
                 data-marker-joined={joined?.where === 'headline' ? '' : undefined}
               >
@@ -229,7 +237,13 @@ const OneClaimCheck: React.FC = () => {
                   })}
                 </Alert>
               )}
-              {verdict && !verdict.ok && (
+              {/* Couldn't read it from Midnight: a warning, never the failure's cross (chain/read-failure.ts). */}
+              {verdict && !verdict.ok && verdict.unreadable && (
+                <Alert severity="warning" variant="outlined" data-claim-verdict="unreadable">
+                  {t('app.claim.verdict.unreadable')}
+                </Alert>
+              )}
+              {verdict && !verdict.ok && !verdict.unreadable && (
                 <Alert severity="error" variant="outlined" data-claim-verdict="failed">
                   {t('app.claim.check.failed', { reason: errorReason(verdict.reason, tr) })}
                 </Alert>
@@ -255,16 +269,20 @@ const OneClaimCheck: React.FC = () => {
                   )}
                   {more.map((m, i) => {
                     const v = moreVerdicts[i];
+                    const failed = !!v && !v.ok && !v.unreadable;
                     return (
-                      <Box key={m.txId} data-marker-more-claim={v ? (v.ok ? 'ok' : 'failed') : 'checking'}>
+                      <Box
+                        key={m.txId}
+                        data-marker-more-claim={v ? (v.ok ? 'ok' : v.unreadable ? 'unreadable' : 'failed') : 'checking'}
+                      >
                         <Typography
                           variant="body1"
                           color={v?.ok ? 'text.primary' : 'text.secondary'}
-                          sx={{ textDecoration: v && !v.ok ? 'line-through' : 'none' }}
+                          sx={{ textDecoration: failed ? 'line-through' : 'none' }}
                         >
                           {claimWords(m, tr, stands && !!v?.ok)}
                         </Typography>
-                        <Typography variant="body2" color={v && !v.ok ? 'error' : 'text.secondary'}>
+                        <Typography variant="body2" color={failed ? 'error' : 'text.secondary'}>
                           {!v
                             ? t('app.claim.check.checking')
                             : v.ok
@@ -272,7 +290,9 @@ const OneClaimCheck: React.FC = () => {
                                   block: String(v.blockHeight ?? '?'),
                                   date: v.blockTime ? ` (${tr.date(v.blockTime)})` : '',
                                 })
-                              : t('app.claim.check.failed', { reason: errorReason(v.reason, tr) })}
+                              : v.unreadable
+                                ? t('app.claim.verdict.unreadable')
+                                : t('app.claim.check.failed', { reason: errorReason(v.reason, tr) })}
                         </Typography>
                       </Box>
                     );

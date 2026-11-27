@@ -61,7 +61,9 @@ describe('anchorLine', () => {
         { status: 'unreachable', reason: 'only one of the two indexers answered, and both must' },
         { network: 'mainnet', bound: true, reportedAt: '2026-10-11T14:03:07.000Z' },
       )?.text,
-    ).toMatch(/^Only one of the two Midnight indexers answered, and both must\. The date is 2026-10-11 14:03 UTC/);
+    ).toMatch(
+      /^Only one of the two Midnight indexers could confirm it, and both must\. The date is 2026-10-11 14:03 UTC/,
+    );
   });
 
   it('never says “the date shown” when there is no date: it says the registry gives none', () => {

@@ -10,7 +10,9 @@ const LIFETIME_MS = 24 * 60 * 60_000;
 const LASTING_BOOK = 'veilcore.verifier-challenges.lasting.v1';
 const LASTING_MS = 7 * 24 * 60 * 60_000;
 
-type Book = Record<string, { issuedAt: number; used?: boolean }>;
+// `usedBy`: the answer (transaction hash) that used it. The same answer checked again (a reload
+// mid-check, a second tab) is checked again; any other answer is refused.
+type Book = Record<string, { issuedAt: number; used?: boolean; usedBy?: string }>;
 
 const storeOf = (lasting: boolean): Storage | undefined => {
   try {
@@ -51,16 +53,35 @@ export const newChallenge = (now = Date.now(), { lasting = false }: { lasting?: 
 };
 
 export const lookupChallenge = (c: string) => {
-  const used = read()[c]?.used || read(true)[c]?.used || memory[c]?.used;
+  const entries = [read()[c], read(true)[c], memory[c]];
+  const marked = entries.find((e) => e?.used);
   const found = read()[c] ?? read(true)[c] ?? memory[c];
-  return found && { ...found, used };
+  return found && { ...found, used: Boolean(marked), ...(marked?.usedBy ? { usedBy: marked.usedBy } : {}) };
 };
-export const useChallenge = (c: string): void => {
-  memory[c] = { ...(memory[c] ?? { issuedAt: Date.now() }), used: true };
+
+const normTx = (tx: string): string => tx.trim().toLowerCase().replace(/^0x/, '');
+
+/**
+ * Whether a challenge was used by an answer other than `txId`. The one answer that used it may
+ * be checked again; a challenge marked by an older build, which kept no answer, is refused.
+ */
+export const usedByAnother = (issued: { used?: boolean; usedBy?: string }, txId: string): boolean =>
+  Boolean(issued.used) && (issued.usedBy === undefined || issued.usedBy !== normTx(txId));
+
+/**
+ * Mark a challenge used by one answer. Called only once the result of checking it is saved
+ * (prove-relay.ts checkAnswers, LicenseProof.tsx), so a tab closed or reloaded mid-check never
+ * turns a valid answer into a refusal. A challenge already used by another answer keeps it.
+ */
+export const useChallenge = (c: string, txId?: string): void => {
+  const by = txId === undefined ? undefined : normTx(txId);
+  const mark = (e: { issuedAt: number; used?: boolean; usedBy?: string }) =>
+    e.used ? e : { ...e, used: true, ...(by ? { usedBy: by } : {}) };
+  memory[c] = mark(memory[c] ?? { issuedAt: Date.now() });
   for (const lasting of [false, true]) {
     const b = read(lasting);
     if (b[c]) {
-      b[c] = { ...b[c], used: true };
+      b[c] = mark(b[c]);
       write(b, lasting);
     }
   }

@@ -43,6 +43,13 @@ export const prove = {
   'app.prove.copy': 'Copiar',
   'app.prove.title': 'Demuestre que tiene {name}',
   'app.prove.thisPlant': 'esta planta',
+  'app.prove.thisRecord': 'este registro',
+  'app.prove.theRecord': 'su registro',
+  'app.prove.any.whatSends':
+    '<b>Qué se envía:</b> solo la prueba de que usted tiene este registro, puesta en la red de pruebas. Ni nombre, ni genética, ni nada sobre sus otros registros.',
+  'app.prove.any.answering': 'Responder le dice a quien le envió este enlace que usted tiene este registro.',
+  'app.prove.any.doneText':
+    'Verán la respuesta en su página. No se envió nada sobre el registro: solo la prueba de que usted lo tiene.',
   'app.prove.askedBy': 'Lo pide alguien que dice ser <b>“{asker}”</b>. <muted>VeilCore no lo ha comprobado.</muted>',
   'app.prove.askedAnon': 'Alguien le pidió que lo demuestre. No dio un nombre.',
   'app.prove.whatSends':

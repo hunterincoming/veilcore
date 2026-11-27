@@ -34,6 +34,7 @@ import { numberFrom } from '../../../contract/src/fields';
 import { SCHEMAS } from './field-set';
 import { keyBoundFingerprint } from './key-binding';
 import { isMarkerSchema } from './marker-claims';
+import { isTxHash, namesIdentifier } from './tx-hash-rule';
 
 export const CLAIM_CHECK_PATH = '/check-claim';
 
@@ -99,6 +100,20 @@ const hex = (b: Uint8Array): string => Array.from(b, (x) => x.toString(16).padSt
 export const claimLink = (c: MadeClaim, origin: string): string =>
   `${origin}${CLAIM_CHECK_PATH}#c=${base64urlnopad.encode(new TextEncoder().encode(JSON.stringify({ v: 1, ...c })))}`;
 
+/**
+ * Whether a link that can't be read is an older one naming its transaction by the 66-hex
+ * identifier, not the hash (tx-hash-rule.ts): its page says so, so the holder asks for a new link.
+ */
+export const isOldClaimLink = (hash: string, param: 'c' | 'p' = 'c'): boolean => {
+  const c = new URLSearchParams(hash.replace(/^#/, '')).get(param);
+  if (!c) return false;
+  try {
+    return namesIdentifier(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(base64urlnopad.decode(c))));
+  } catch {
+    return false;
+  }
+};
+
 /** The claim a link describes, checked for form only; undefined when it can't be read. */
 export const readClaimLink = (hash: string): MadeClaim | undefined => {
   const c = new URLSearchParams(hash.replace(/^#/, '')).get('c');
@@ -121,7 +136,8 @@ export const readClaimLink = (hash: string): MadeClaim | undefined => {
   const schema = str('schema');
   const slot =
     typeof o.slot === 'number' && Number.isInteger(o.slot) && o.slot >= 0 && o.slot < 16 ? o.slot : undefined;
-  if (!kind || !contract || !HEX64.test(contract) || !txId || !/^[0-9a-f]{2,256}$/.test(txId)) return undefined;
+  // The transaction by its hash only (tx-hash-rule.ts): anything else is refused here, never asked about.
+  if (!kind || !contract || !HEX64.test(contract) || !isTxHash(txId)) return undefined;
   if (!record || !HEX64.test(record) || !schema || !SCHEMAS[schema] || slot === undefined) return undefined;
   // Only a number the schema names: a slot it doesn't describe has no meaning to show a checker.
   if (!SCHEMAS[schema].slots.some((s) => s.slot === slot && s.type === 'uint')) return undefined;
@@ -133,8 +149,7 @@ export const readClaimLink = (hash: string): MadeClaim | undefined => {
     if (
       typeof a !== 'object' ||
       a === null ||
-      typeof a.txId !== 'string' ||
-      !/^[0-9a-f]{2,256}$/.test(a.txId) ||
+      !isTxHash(a.txId) ||
       typeof a.attester !== 'string' ||
       !/^[0-9a-f]{128}$/.test(a.attester) ||
       (a.about !== undefined && (typeof a.about !== 'string' || !HEX64.test(a.about))) ||
@@ -192,7 +207,7 @@ const readMore = (m: unknown, schema: string): MoreClaim | undefined => {
   if (typeof m !== 'object' || m === null || Array.isArray(m)) return undefined;
   const o = m as Record<string, unknown>;
   const kind = o.kind === 'range' || o.kind === 'value' ? o.kind : undefined;
-  const txId = typeof o.txId === 'string' && /^[0-9a-f]{2,256}$/.test(o.txId) ? o.txId : undefined;
+  const txId = isTxHash(o.txId) ? o.txId : undefined;
   const slot =
     typeof o.slot === 'number' && Number.isInteger(o.slot) && o.slot >= 0 && o.slot < 16 ? o.slot : undefined;
   if (!kind || !txId || slot === undefined) return undefined;
@@ -296,7 +311,12 @@ export type LabVerdict =
 
 export type ClaimVerdict =
   | { readonly ok: true; readonly blockHeight?: number; readonly blockTime?: number; readonly lab?: LabVerdict }
-  | { readonly ok: false; readonly reason: string };
+  /**
+   * `unreadable`: nothing was found wrong; the claim just couldn't be read from Midnight right now
+   * (no answer, a state this build can't decode, or a transaction the indexer hasn't reached yet;
+   * chain/read-failure.ts). Never shown as a failure.
+   */
+  | { readonly ok: false; readonly reason: string; readonly unreadable?: true };
 
 const h64 = (n: bigint): string => n.toString(16).padStart(64, '0');
 

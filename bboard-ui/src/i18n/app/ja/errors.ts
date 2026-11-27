@@ -34,6 +34,7 @@ export const errors = {
   'app.err.chain.filesMissing': '{circuit}用の証明用ファイルは、まだこのサイトにありません。',
   'app.err.chain.paramsMissing': '公開パラメーター（k={k}）は、まだこのサイトにありません。',
   'app.err.chain.callFailed': 'ネットワークは呼び出しを取り込みましたが、成功しませんでした（{status}）。',
+  'app.err.chain.hashUnreadable': 'ネットワークは取り込みましたが、そのトランザクションハッシュを読み取れませんでした',
   'app.err.chain.claimFailed': 'ネットワークはクレームを取り込みましたが、成功しませんでした（{status}）。',
   'app.err.chain.noSlot': 'ライセンスの空き枠が見つかりませんでした。何も送信していません。',
   'app.err.chain.notSendersRecord':
@@ -54,6 +55,9 @@ export const errors = {
   'app.err.chain.notOurRequest': 'このページはそのチャレンジを作っていません。新しく依頼してください。',
   'app.err.chain.requestUsed': 'そのチャレンジにはすでに一度答えがあります。新しく依頼してください。',
   'app.err.chain.noRecordKey': '照合する記録の鍵がありません。',
+  'app.err.chain.callUnreadable':
+    '今はMidnightからそのトランザクションを読み取れませんでした。数分後にもう一度お試しください',
+  'app.err.chain.noSuchTx': 'Midnightにそのトランザクションはありません。',
   'app.err.chain.indexerUnreachable':
     'Midnightネットワークのインデクサーに接続できませんでした。数分後にもう一度お試しください',
   'app.err.chain.stateUnreadable': 'コントラクトの現在の状態を読み取れませんでした。数分後にもう一度お試しください',

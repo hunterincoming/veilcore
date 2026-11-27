@@ -164,6 +164,8 @@ export const document = {
   'app.claim.going': 'Preuve en cours…',
   'app.claim.done': 'Prouvé sur Midnight :',
   'app.claim.copy': 'Copier le lien qui le prouve',
+  'app.claim.linkLater':
+    'Ce lien ne peut pas être créé pour le moment : une transaction qu’il contient n’a pas pu être consultée sur Midnight. Réessayez dans quelques minutes.',
   'app.claim.copied': 'Copié.',
   'app.claim.made': 'Ce que vous avez prouvé',
   'app.claim.line.atMost': '{label} est au plus {bound} {unit}',
@@ -174,6 +176,8 @@ export const document = {
   'app.claim.verdict.bad': 'Ce lien est illisible : rien n’a été vérifié.',
   'app.claim.verdict.checking': 'Vérification de cette preuve dans votre navigateur…',
   'app.claim.verdict.failed': 'Cette preuve n’a pas passé la vérification. Ne vous y fiez pas.',
+  'app.claim.verdict.unreadable':
+    'Impossible de lire cette preuve sur Midnight pour le moment. Ne vous y fiez pas tant qu’elle n’est pas confirmée : réessayez dans quelques minutes.',
   'app.claim.verdict.labFailed':
     'Cette preuve a passé la vérification, mais pas la signature du laboratoire. Voir ci-dessous.',
   'app.claim.verdict.someFailed':
@@ -199,6 +203,8 @@ export const document = {
   'app.doc.verdict.datedOtherFile': 'Daté du {date}, mais le fichier choisi n’est pas celui qui a été scellé.',
   'app.claim.check.intro':
     'Quelqu’un vous a envoyé ce lien pour montrer un fait tiré d’un document scellé, sans montrer ses chiffres ni le document. Cette page lit la preuve sur Midnight et la vérifie.',
+  'app.claim.check.oldLink':
+    'Ce lien de preuve désigne sa transaction comme le faisait une ancienne version du site : il ne peut donc pas être vérifié. Demandez un nouveau lien à l’expéditeur.',
   'app.claim.check.bad': 'Ce lien est illisible. Redemandez-le.',
   'app.claim.check.checking': 'Lecture de la preuve sur Midnight…',
   'app.claim.check.okWhen': 'Prouvé sur Midnight dans le bloc {block}{date}.',

@@ -35,6 +35,8 @@ export const errors = {
   'app.err.chain.filesMissing': 'Die Beweisdateien für {circuit} sind noch nicht auf dieser Website.',
   'app.err.chain.paramsMissing': 'Die öffentlichen Parameter (k={k}) sind noch nicht auf dieser Website.',
   'app.err.chain.callFailed': 'Das Netzwerk hat den Aufruf aufgenommen, aber er war nicht erfolgreich ({status}).',
+  'app.err.chain.hashUnreadable':
+    'Das Netzwerk hat sie aufgenommen, aber ihr Transaktions-Hash konnte nicht gelesen werden',
   'app.err.chain.claimFailed': 'Das Netzwerk hat den Beleg aufgenommen, aber er war nicht erfolgreich ({status}).',
   'app.err.chain.noSlot': 'Es wurde kein freier Lizenzplatz gefunden. Es wurde nichts gesendet.',
   'app.err.chain.notSendersRecord':
@@ -57,6 +59,9 @@ export const errors = {
   'app.err.chain.notOurRequest': 'Diese Seite hat diesen Abfragecode nicht erstellt. Stellen Sie eine neue Anfrage.',
   'app.err.chain.requestUsed': 'Dieser Abfragecode wurde schon einmal beantwortet. Stellen Sie eine neue Anfrage.',
   'app.err.chain.noRecordKey': 'Kein Datensatzschlüssel zum Abgleichen.',
+  'app.err.chain.callUnreadable':
+    'diese Transaktion ließ sich gerade nicht von Midnight lesen; versuchen Sie es in ein paar Minuten erneut',
+  'app.err.chain.noSuchTx': 'Auf Midnight gibt es keine solche Transaktion.',
   'app.err.chain.indexerUnreachable':
     'der Indexer des Midnight-Netzwerks war nicht erreichbar; versuchen Sie es in ein paar Minuten erneut',
   'app.err.chain.stateUnreadable':

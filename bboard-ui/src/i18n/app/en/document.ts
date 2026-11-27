@@ -165,6 +165,8 @@ export const document = {
   'app.claim.going': 'Proving…',
   'app.claim.done': 'Proved on Midnight:',
   'app.claim.copy': 'Copy the link that proves this',
+  'app.claim.linkLater':
+    'This link can’t be made right now: a transaction in it couldn’t be looked up on Midnight. Try again in a few minutes.',
   'app.claim.copied': 'Copied.',
   'app.claim.made': 'What you’ve proved',
   'app.claim.line.atMost': '{label} is at most {bound} {unit}',
@@ -176,6 +178,8 @@ export const document = {
   'app.claim.verdict.bad': 'This link can’t be read, so nothing was checked.',
   'app.claim.verdict.checking': 'Checking this claim in your browser…',
   'app.claim.verdict.failed': 'This claim didn’t check out. Don’t rely on it.',
+  'app.claim.verdict.unreadable':
+    'Couldn’t read this claim from Midnight right now. Don’t rely on it until it’s confirmed: try again in a few minutes.',
   'app.claim.verdict.labFailed': 'This claim checked out, but the lab’s signature on it didn’t. See below.',
   'app.claim.verdict.someFailed': 'This claim checked out, but another one in this link didn’t. See below.',
   'app.claim.verdict.okWhen': 'Proved on {date}. Checked in your browser.',
@@ -198,6 +202,8 @@ export const document = {
   'app.doc.verdict.datedOtherFile': 'Dated {date}, but the file you chose isn’t the one sealed.',
   'app.claim.check.intro':
     'Someone sent you this link to show one fact from a sealed document, without showing its numbers or the document. This page reads the claim from Midnight and checks it.',
+  'app.claim.check.oldLink':
+    'This claim link names its transaction the way an older version of the site did, so it can’t be checked. Ask the sender for a new link.',
   'app.claim.check.bad': 'This link can’t be read. Ask for it again.',
   'app.claim.check.checking': 'Reading the claim from Midnight…',
   'app.claim.check.okWhen': 'Proved on Midnight in block {block}{date}.',

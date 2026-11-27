@@ -161,6 +161,8 @@ export const document = {
   'app.claim.going': '証明中…',
   'app.claim.done': 'Midnight上で証明しました：',
   'app.claim.copy': 'これを証明するリンクをコピー',
+  'app.claim.linkLater':
+    '今はこのリンクを作成できません。含まれるトランザクションをMidnightで調べられませんでした。数分後にもう一度お試しください。',
   'app.claim.copied': 'コピーしました。',
   'app.claim.made': '証明した内容',
   'app.claim.line.atMost': '{label}は{bound} {unit}以下',
@@ -171,6 +173,8 @@ export const document = {
   'app.claim.verdict.bad': 'このリンクは読み取れないため、何も確認していません。',
   'app.claim.verdict.checking': 'このクレームをこのブラウザで確認しています…',
   'app.claim.verdict.failed': 'このクレームは確認で通りませんでした。当てにしないでください。',
+  'app.claim.verdict.unreadable':
+    '今はMidnightからこのクレームを読み取れませんでした。確認されるまで当てにしないでください。数分後にもう一度お試しください。',
   'app.claim.verdict.labFailed':
     'このクレームは確認できましたが、ラボの署名は確認で通りませんでした。下を見てください。',
   'app.claim.verdict.someFailed':
@@ -196,6 +200,8 @@ export const document = {
   'app.doc.verdict.datedOtherFile': '{date}に日付が付いていますが、選んだファイルは封印されたものではありません。',
   'app.claim.check.intro':
     '封印された文書についての事実を1つ、数値や文書を見せずに示すため、このリンクが送られてきました。このページはMidnight上のクレームを読み取り、確認します。',
+  'app.claim.check.oldLink':
+    'このクレームのリンクは、古いバージョンのサイトの方式でトランザクションを示しているため、確認できません。送信者に新しいリンクを依頼してください。',
   'app.claim.check.bad': 'このリンクは読み取れません。もう一度送ってもらってください。',
   'app.claim.check.checking': 'Midnight上のクレームを読み取っています…',
   'app.claim.check.okWhen': 'Midnight上のブロック{block}{date}で証明されました。',

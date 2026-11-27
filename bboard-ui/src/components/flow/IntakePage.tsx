@@ -23,9 +23,9 @@ import {
 import { useRecords } from '../../veilcore/records';
 import { verifyPath } from '../../veilcore/verify-link';
 import { emptyDraft, loadDraft, saveDraft } from './log-flow-state';
-import { loadLogKind } from './animal-draft';
+import { emptyAnimalDraft, loadLogKind } from './animal-draft';
 import { emptyStrainDraft } from './strain-draft';
-import { canonicalUrl, STRAIN_RECORDS_ENABLED } from '../../config/network';
+import { ANIMAL_RECORDS_ENABLED, canonicalUrl, STRAIN_RECORDS_ENABLED } from '../../config/network';
 import { CODE_FONT } from '../../config/theme';
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -85,10 +85,15 @@ export const IntakePage: React.FC = () => {
     // Their reference and suggested name go into the form; a draft already started here keeps
     // what was typed, and only gains the reference if it has none.
     const had = loadDraft();
-    // A strain (the last kind chosen here) gets the suggested name in its own form; the
-    // partner's reference is a plant's "your reference" and has no strain field, so it stays
-    // with the partner. The kind can still be changed on the form.
-    const strain = !had && STRAIN_RECORDS_ENABLED && loadLogKind() === 'strain';
+    // A fresh draft takes the last kind chosen here (as the form would), with the suggested
+    // name in that kind's own form: a strain's or an animal's name, else the plant's. The
+    // partner's reference is a plant's "your reference"; a strain or an animal has no such field,
+    // so it stays with the partner. The kind is set on the draft, so the form opens on the one
+    // the name went into (first mainnet run, 26 Nov: an animal form opened empty while the name
+    // sat in a plant draft). The kind can still be changed on the form.
+    const last = had ? undefined : loadLogKind();
+    const strain = last === 'strain' && STRAIN_RECORDS_ENABLED;
+    const animal = last === 'animal' && ANIMAL_RECORDS_ENABLED;
     saveDraft(
       had
         ? { ...had, refId: had.refId || (r.ref ?? '') }
@@ -99,7 +104,14 @@ export const IntakePage: React.FC = () => {
               strain: { ...emptyStrainDraft(), name: r.name ?? '' },
               refId: r.ref ?? '',
             }
-          : { ...emptyDraft(), strainName: r.name ?? '', refId: r.ref ?? '' },
+          : animal
+            ? {
+                ...emptyDraft(),
+                kind: 'animal',
+                animal: { ...emptyAnimalDraft(), name: r.name ?? '' },
+                refId: r.ref ?? '',
+              }
+            : { ...emptyDraft(), kind: 'plant', strainName: r.name ?? '', refId: r.ref ?? '' },
     );
     void navigate('/new');
   };
