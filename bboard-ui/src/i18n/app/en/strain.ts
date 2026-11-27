@@ -118,6 +118,8 @@ export const strain = {
   'app.strain.v.app.verify.ownReceiptTail':
     ' You see this because the strain is in this browser; someone you send the link to sees only the signature line above.',
   'app.strain.v.app.prove.openCheckPage': "Open the strain's check page",
+  'app.strain.v.app.prove.youAsked':
+    "You asked the holder of this strain to prove they hold its record. Send them this link if you haven't yet.",
   'app.strain.v.app.prove.doneText':
     "They'll see the answer on their page. Nothing about the strain was sent: only proof that you hold its record.",
   'app.strain.v.app.prove.thePlant': 'the strain',
@@ -132,6 +134,12 @@ export const strain = {
     'Your strain’s key was date stamped on {when}. That dates the key, not the record.',
   'app.strain.v.app.prove.watch.stampedThisEarlier':
     'This strain’s key was date stamped on the network earlier. That dates the key, not the record.',
+  'app.strain.v.app.prove.watch.shareAsker':
+    '{asker} is asking you to prove you hold this strain on VeilCore. Open this link: {link}',
+  'app.strain.v.app.prove.watch.share':
+    'I’m asking you to prove you hold this strain on VeilCore. Open this link: {link}',
+  'app.strain.v.app.lic.proof.panelText':
+    'Someone says they’re licensed to use or supply this strain. Send them a link; they answer from the device that holds their license, and this page checks it on Midnight. You learn only that they held a live license from this record when they answered.',
   'app.strain.v.app.prove.own.title': 'Prove you hold this strain’s key (test network)',
   'app.strain.v.app.prove.own.stampFirst':
     'Add the key date stamp first: press “Add the key date stamp” on the strain’s page. The proof is about the record’s on-chain identity, which that step creates.',

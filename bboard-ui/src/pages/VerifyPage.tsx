@@ -135,7 +135,7 @@ import { AGREEMENTS_ON_CHAIN } from '../config/copy';
 import { publicCustodyLines, publicCustodyOf, unnamedCustodyOf } from '../veilcore/custody';
 import { NameCheckText } from '../components/NameCheckText';
 import { rich, useT } from '../i18n/app';
-import { enT, forKind, type Translator } from '../i18n/translate';
+import { enT, forKind, type RecordKind, type Translator } from '../i18n/translate';
 import { networkWords } from '../i18n/network-words';
 
 const API = import.meta.env.VITE_API_BASE ?? '';
@@ -562,6 +562,8 @@ export const VerifyPage: React.FC = () => {
     result?.subjectKind === 'animal' || result?.subjectKind === 'strain' || result?.subjectKind === 'document'
       ? result.subjectKind
       : 'plant';
+  // The words for the prove and license panels: a strain's too, not only an animal's.
+  const recordKind: RecordKind = checkKind === 'animal' || checkKind === 'strain' ? checkKind : 'plant';
   const { t, tp } = tr;
 
   useEffect(() => {
@@ -1491,6 +1493,7 @@ export const VerifyPage: React.FC = () => {
               keyBound: result.keyBound === true,
             }}
             recordId={id}
+            kind={recordKind}
           />
         )}
         {/* What the record's holder says about royalties on licenses from it: overdue, or revoked
@@ -1498,7 +1501,7 @@ export const VerifyPage: React.FC = () => {
         {AGREEMENTS_ON_CHAIN && result?.found && <LicenseNotices verify={result} />}
         {/* Someone says they're licensed from this record: ask them to prove it (rule 5). */}
         {REAL_CHAIN && AGREEMENTS_ON_CHAIN && result?.found && linked('chain') && (
-          <LicenseProofPanel identity={linked('chain') ?? ''} recordId={id} />
+          <LicenseProofPanel identity={linked('chain') ?? ''} recordId={id} kind={recordKind} />
         )}
         {/* Lending against this record: record a claim on it, from the key this link carries. */}
         {REAL_CHAIN && AGREEMENTS_ON_CHAIN && result?.found && linked('chain') && (

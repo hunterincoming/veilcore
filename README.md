@@ -28,8 +28,8 @@ and a Rust implementation in [veilcore-rs](https://github.com/hunterincoming/vei
 
 | Status | |
 |---|---|
-| **Live on veilcore.org** | Sealing records, dated in batches on Midnight mainnet; check pages; dating a DNA report pairing; lab codes and signed receipts; licenses and royalty reports; documents kept on the device only; proving a fact from a sealed document; production chains of linked document records; numbers and results a lab signs, since a run on 18 November 2026 ([docs/lab-signing.md](docs/lab-signing.md), [docs/lab-mainnet-test.md](docs/lab-mainnet-test.md)); a lab signing a spreadsheet of results, adding a lab's result file to another breeder's records, and five of ICAR 2023's parentage checks proved from a lab's result, since a run on 21 November 2026 with a DEMO lab key and invented data ([docs/lab-mainnet-test.md](docs/lab-mainnet-test.md), [docs/parentage.md](docs/parentage.md)). No wallet needed: VeilCore's fee service pays the network fee. |
-| **Built, not yet run on mainnet** | Proving a record by link, and proving you hold a live license from a record: both on veilcore.org; the chain read on 23 November 2026 found no call to either on mainnet ([docs/contract-v2.md](docs/contract-v2.md), section 0.1). Handing a license on to another grower, with the breeder's approval. Microbe and cell-line records: offered on veilcore.org, none sealed on mainnet yet ([docs/strain-profile.md](docs/strain-profile.md)). |
+| **Live on veilcore.org** | Sealing records, dated in batches on Midnight mainnet; check pages; dating a DNA report pairing; lab codes and signed receipts; licenses and royalty reports; documents kept on the device only; proving a fact from a sealed document; production chains of linked document records; numbers and results a lab signs, since a run on 18 November 2026 ([docs/lab-signing.md](docs/lab-signing.md), [docs/lab-mainnet-test.md](docs/lab-mainnet-test.md)); a lab signing a spreadsheet of results, adding a lab's result file to another breeder's records, and five of ICAR 2023's parentage checks proved from a lab's result, since a run on 21 November 2026 with a DEMO lab key and invented data ([docs/lab-mainnet-test.md](docs/lab-mainnet-test.md), [docs/parentage.md](docs/parentage.md)); proving a record by link, since a run on 27 November 2026 (transaction `531b3126…8d05`, block 3638190). No wallet needed: VeilCore's fee service pays the network fee. |
+| **Built, not yet run on mainnet** | Proving you hold a live license from a record: on veilcore.org; the chain read on 23 November 2026 found no call to it on mainnet ([docs/contract-v2.md](docs/contract-v2.md), section 0.1). Handing a license on to another grower, with the breeder's approval. Microbe and cell-line records: offered on veilcore.org, none sealed on mainnet yet ([docs/strain-profile.md](docs/strain-profile.md)). |
 | **Test network only** | A lab's viability result for a sample before or after a kill step. |
 | **Built, switched off** | Paid plans for labs: built in the registry, switched off; not on veilcore.org (`veilcore-api` README, "Paid plans"). A plan that hides which records are a lab's is a design only ([docs/lab-plan.md](docs/lab-plan.md)). |
 
@@ -115,9 +115,15 @@ indexer of your own choosing instead of ours, see [docs/reproduce-build.md](docs
   after which its old check link says its holder deleted it (both since 17 November 2026).
   No wallet needed: VeilCore's fee service
   pays the network fee for what the browser sends.
-- **On veilcore.org, not yet run on mainnet:** proving a record by link, and proving you hold a
-  live license from a record. Both are built and offered there; the chain read on 23 November
-  2026 found no call to either on mainnet ([docs/contract-v2.md](docs/contract-v2.md), section 0.1).
+- **Proving a record by link: live on veilcore.org.** On 27 November 2026 a checker's link was
+  answered from the holder's browser and checked on Midnight's main network, and the checker's
+  page said "Confirmed" (transaction
+  `531b3126668d736b7c5ac30ad04be7d26e5d29712c30f9cd32a675bbfe248d05`, block 3638190,
+  `proveOwnership` on contract version 1; `PROVE_BY_LINK_RUN_ON_MAINNET` in
+  `bboard-ui/src/config/copy.ts`).
+- **On veilcore.org, not yet run on mainnet:** proving you hold a live license from a record. It
+  is built and offered there; the chain read on 23 November 2026 found no call to it on mainnet
+  ([docs/contract-v2.md](docs/contract-v2.md), section 0.1).
 - **Licenses and royalties: live on veilcore.org.** On 8 November 2026 a license was accepted
   and a royalty report sent, answered, marked paid and confirmed received, end to end on
   mainnet. Handing a license on has not been tried on mainnet yet. A breeder licenses a record to a grower

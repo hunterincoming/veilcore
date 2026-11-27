@@ -4,7 +4,9 @@
 
 import type { Strings } from './en';
 import { buildMainnet } from './mainnet-overlay';
+import { PROVE_BY_LINK_RUN_ON_MAINNET } from '../config/copy';
 
+// m.for.6p: proving a record by link has worked on veilcore.org since 27 Nov 2026 (config/copy.ts).
 const sendsCommon: Strings = {
   'm.hero.status':
     'El contrato de VeilCore está en la red principal de Midnight. Los registros sellados en este sitio son registros reales: van a lotes que se anclan allí automáticamente. Fechar un informe de ADN también funciona aquí, y VeilCore paga la tarifa de la red. Las licencias y los acuerdos con laboratorios aquí siguen siendo simulados.',
@@ -21,7 +23,10 @@ const sendsCommon: Strings = {
   'm.for.1p':
     'Selle un registro y vincule su informe de ADN. Si la planta aparece con otro nombre, un laboratorio puede comparar un análisis nuevo con su informe. En este sitio web puede fechar el vínculo desde su navegador, y nadie puede copiarlo a su propio registro. VeilCore no hace análisis de ADN.',
   'm.for.6p':
-    'Le envían un enlace. Usted toca una vez, y la página de la otra persona comprueba en la red que usted controla la clave propia de su registro. Su registro nombró esa clave al sellarse, así que no se puede cambiar por otra. No dice nada sobre quién es usted ni sobre quién obtuvo la planta. Aún no se ha probado en la red principal.',
+    'Le envían un enlace. Usted toca una vez, y la página de la otra persona comprueba en la red que usted controla la clave propia de su registro. Su registro nombró esa clave al sellarse, así que no se puede cambiar por otra. No dice nada sobre quién es usted ni sobre quién obtuvo la planta.' +
+    (PROVE_BY_LINK_RUN_ON_MAINNET
+      ? ' Esto funciona en veilcore.org, en la red principal de Midnight.'
+      : ' Aún no se ha probado en la red principal.'),
   'm.live.stamp.main':
     'Sí. Los lotes se fechan automáticamente, y eso fecha su registro. Su navegador además pone un sello de fecha a la clave propia de su registro, que solo fecha la clave.',
   'm.live.dna.main': 'Sí, enviado desde su navegador. VeilCore paga la tarifa.',

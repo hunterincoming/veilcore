@@ -204,6 +204,8 @@ export const animal = {
   'app.animal.v.app.verify.ownReceiptTail':
     ' You see this because the animal is in this browser; someone you send the link to sees only the signature line above.',
   'app.animal.v.app.prove.openCheckPage': "Open the animal's check page",
+  'app.animal.v.app.prove.youAsked':
+    "You asked the holder of this animal to prove they hold its record. Send them this link if you haven't yet.",
   'app.animal.v.app.prove.doneText':
     "They'll see the answer on their page. Nothing about the animal was sent: only proof that you hold its record.",
   'app.animal.v.app.prove.thePlant': 'the animal',
@@ -218,6 +220,12 @@ export const animal = {
     'Your animal’s key was date stamped on {when}. That dates the key, not the record.',
   'app.animal.v.app.prove.watch.stampedThisEarlier':
     'This animal’s key was date stamped on the network earlier. That dates the key, not the record.',
+  'app.animal.v.app.prove.watch.shareAsker':
+    '{asker} is asking you to prove you hold this animal on VeilCore. Open this link: {link}',
+  'app.animal.v.app.prove.watch.share':
+    'I’m asking you to prove you hold this animal on VeilCore. Open this link: {link}',
+  'app.animal.v.app.lic.proof.panelText':
+    'Someone says they’re licensed to breed from or sell this animal. Send them a link; they answer from the device that holds their license, and this page checks it on Midnight. You learn only that they held a live license from this record when they answered.',
   'app.animal.v.app.prove.own.title': 'Prove you hold this animal’s key (test network)',
   'app.animal.v.app.prove.own.stampFirst':
     'Add the key date stamp first: press “Add the key date stamp” on the animal’s page. The proof is about the record’s on-chain identity, which that step creates.',

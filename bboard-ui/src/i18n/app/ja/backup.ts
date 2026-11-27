@@ -156,6 +156,24 @@ export const backup = {
   'app.intake.err.hasHash': '戻り先にすでに # の部分があります。',
   'app.intake.err.badState': 'セキュリティ値（state）がないか、形式が正しくありません。',
   'app.backup.fromFileAdded': 'ファイル自体から戻した記録：{n}件。',
+  'app.filebundle.open': 'バックアップファイルから証拠バンドルを作る',
+  'app.filebundle.what':
+    'バックアップファイルの中にある日付の証明を使うので、VeilCoreにつながらないときでも作れます。ファイルの中身はここには保管されず、バンドルには、VeilCoreで確認されたものではなくバックアップファイルから作ったと書かれます。',
+  'app.filebundle.offline': '今はVeilCoreにつながりません。代わりにバックアップファイルからバンドルを作れます。',
+  'app.filebundle.keptCopy':
+    '今はVeilCoreにつながらないため、このバンドルはこのブラウザに保存されたコピーから作りました。バックアップファイルから作ることもできます。',
+  'app.filebundle.pick': 'バックアップファイルを選ぶ',
+  'app.filebundle.which': '記録',
+  'app.filebundle.make': 'バンドルを作る',
+  'app.filebundle.makeFor': '{name}のバンドルを作る',
+  'app.filebundle.noneForRecord':
+    'そのバックアップファイルには、この記録の日付の証明がありません。もっと新しいバックアップファイルを試してください。',
+  'app.filebundle.noneHere':
+    'そのファイルの記録は、まだこの端末にありません。先にファイルを復元してから、ここでバンドルを作ってください。',
+  'app.backup.fileIsLasting':
+    '自分の端末にあるバックアップファイルは、復元しても変わりません。残しておいてください。それが長く残る控えです。',
+  'app.backup.rootChanged':
+    'VeilCoreのサーバーが、{n}件の記録について以前とは違う日付の証明を返しました。本来あってはならないことです。最初のものを保管し、記録ごとに後のものを最大4件までこのバックアップに入れました。このファイルを保管し、VeilCoreに連絡してください。',
   'app.backup.fromFileProblem': 'ファイル内の記録は戻せませんでした：{why} 鍵は復元されています。',
   'app.backup.passkey.err.busy': 'もう一台の端末が同時に保存していました。自動でもう一度試します。',
   'app.backup.neverAsks': 'VeilCoreがバックアップファイルやコードを求めることはありません。',

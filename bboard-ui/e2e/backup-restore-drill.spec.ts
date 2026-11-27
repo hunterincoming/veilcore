@@ -17,6 +17,12 @@
 //   - the licensee's file brings back the license and its deal;
 //   - with the registry gone, the file alone brings back every record, key, lab signature and
 //     claim; the license itself is the one gap, as the runbook says;
+//   - and the two dates that don't depend on Midnight: restoring stores none of the file's date
+//     proofs; the record page's evidence bundle, made straight from the backup file when the
+//     registry can't be reached, carries the batch's Bitcoin stamp file and RFC 3161 token, marked
+//     as from the backup file and not confirmed with the registry; openssl checks the token and
+//     verify.html, opened from disk offline, reads the Bitcoin file; the restore page offers the
+//     same under Technical details;
 //   - the file opens with veilcore-records, without the website.
 // The stand-in registry is in this file. All names, keys and figures are practice data.
 // SPDX-License-Identifier: Apache-2.0
@@ -27,13 +33,17 @@ import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { expect, test, type Browser, type Page, type Route } from '@playwright/test';
+import { unzipSync } from 'fflate';
 import { buildBatch } from 'veilcore-records';
 import { API, REAL_REGISTRY, expectNoErrors, json, plainRowRefusal, startPlant, watch } from './helpers';
+import { otsFile, testTsa } from '../src/veilcore/fixtures/test-stamps';
 
 test.skip(REAL_REGISTRY, 'this uses the stand-in registry');
 test.setTimeout(600_000);
 
 const PASSWORD = 'practice drill password';
+const BATCH_ID = 'B-20261126-E2E-DRILL';
+const STAMP_BLOCK = 870321;
 const SITE = `http://127.0.0.1:${process.env.E2E_PORT ?? 4317}`;
 const run = promisify(execFile);
 
@@ -46,8 +56,18 @@ const registry = () => {
   const deals = new Map<string, { seq: number; iv: string; ct: string; receivedAt: number }[]>();
   const proofs = new Map<string, unknown>();
   const asks = new Map<string, Record<string, unknown>>();
+  // The batch's Bitcoin stamp file and TSA token, and each proof code's own token (a local TSA).
+  const tsa = testTsa('E2E drill TSA');
+  const ots = new Map<string, Buffer>();
+  const instant = new Map<string, string>();
   const rowsOf = (table: Map<string, Row>, holder: string) =>
-    [...table.values()].filter((r) => r.holder === holder).map(({ holder: _h, ...r }) => r);
+    [...table.values()]
+      .filter((r) => r.holder === holder)
+      .map((r) => {
+        const out: Record<string, unknown> = { ...r };
+        delete out.holder;
+        return out;
+      });
 
   const handle = async (route: Route) => {
     const req = route.request();
@@ -82,6 +102,17 @@ const registry = () => {
     const proof = /^\/proof\/([0-9a-f]{64})$/.exec(p);
     if (proof && method === 'GET')
       return proofs.has(proof[1]) ? json(route, 200, proofs.get(proof[1])) : json(route, 404, { error: 'none' });
+    const own = /^\/proof\/([0-9a-f]{64})\/instant$/.exec(p);
+    if (own && method === 'GET')
+      return instant.has(own[1])
+        ? json(route, 200, {
+            status: 'stamped',
+            tokens: [{ kind: 'rfc3161', token: instant.get(own[1]), tsa: 'https://tsa.e2e.invalid/' }],
+          })
+        : json(route, 404, { status: 'none' });
+    const stamp = /^\/batches\/([^/]+)\/root\.bin\.ots$/.exec(p);
+    if (stamp && method === 'GET' && ots.has(stamp[1]))
+      return route.fulfill({ status: 200, contentType: 'application/vnd.opentimestamps.v1', body: ots.get(stamp[1]) });
     if (p === '/deals' && method === 'POST') {
       const id = String((body as Record<string, unknown>).dealId);
       if (!deals.has(id)) deals.set(id, []);
@@ -138,13 +169,30 @@ const registry = () => {
         if (url.origin === new URL(API).origin && !down) return handle(route);
         return route.abort();
       }),
-    /** The anchoring job: every proof code the registry holds, in one batch, each with its proof. */
+    tsa,
+    /**
+     * The anchoring job: every proof code the registry holds, in one batch, each with its proof;
+     * the root stamped on Bitcoin (a file naming a block) and by the TSA, each proof code by the TSA.
+     */
     batch: async () => {
       const fps = [...records.values()].map((r) => r.recordFingerprint as string);
-      const b = await buildBatch(fps, 'B-20261126-E2E-DRILL');
+      const b = await buildBatch(fps, BATCH_ID);
+      ots.set(BATCH_ID, otsFile(b.root, { bitcoin: STAMP_BLOCK }));
+      const token = tsa.tokenFor(b.root);
+      for (const fp of fps) instant.set(fp, tsa.tokenFor(fp));
       for (const [fp, pr] of Object.entries(b.proofs))
         proofs.set(fp, {
           ...(pr as object),
+          anchors: [
+            {
+              kind: 'opentimestamps',
+              status: 'bitcoin',
+              bitcoinBlockHeight: STAMP_BLOCK,
+              root: `/batches/${BATCH_ID}/root.bin`,
+              ots: `/batches/${BATCH_ID}/root.bin.ots`,
+            },
+            { kind: 'rfc3161', token, tsa: 'https://tsa.e2e.invalid/', tst: `/batches/${BATCH_ID}/root.tst` },
+          ],
           anchor: {
             chain: 'midnight',
             network: 'preview',
@@ -165,13 +213,20 @@ const fresh = async (browser: Browser, reg: Reg, down = false) => {
   const ctx = await browser.newContext({ acceptDownloads: true });
   const page = await ctx.newPage();
   const errors = watch(page);
-  await page.addInitScript(() => localStorage.setItem('veilcore.role.v1', 'breeder'));
+  // The drill's TSA, pinned as the site pins the real ones (only the end-to-end build reads this).
+  await page.addInitScript((pin) => {
+    localStorage.setItem('veilcore.role.v1', 'breeder');
+    localStorage.setItem('veilcore.e2e.tsa-pins', JSON.stringify({ format: 'veilcore-tsa-pins/v1', pins: [pin] }));
+  }, reg.tsa.pin);
   await reg.attach(page, down);
   return { ctx, page, errors };
 };
 
 /** What this browser keeps, by storage name (the role aside). */
-const stored = (page: Page) => page.evaluate(() => Object.keys(localStorage).filter((k) => k !== 'veilcore.role.v1'));
+const stored = (page: Page) =>
+  page.evaluate(() =>
+    Object.keys(localStorage).filter((k) => k !== 'veilcore.role.v1' && k !== 'veilcore.e2e.tsa-pins'),
+  );
 
 /** On a page showing the backup step: save the file locked with the password, open it again, see it pass. */
 const saveLocked = async (page: Page): Promise<string> => {
@@ -216,6 +271,26 @@ const writeTemp = (dir: string, name: string, text: string) => {
   const f = path.join(dir, name);
   fs.writeFileSync(f, text);
   return f;
+};
+
+/** A locked backup's contents (backup.ts lockBackup: PBKDF2-SHA256, then AES-256-GCM). */
+const unlock = async (text: string): Promise<Record<string, unknown>> => {
+  const { locked } = JSON.parse(text) as { locked: { iterations: number; salt: string; iv: string; ct: string } };
+  const b = (x: string) => new Uint8Array(Buffer.from(x, 'base64url'));
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(PASSWORD), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey(
+    { name: 'PBKDF2', hash: 'SHA-256', salt: b(locked.salt), iterations: locked.iterations },
+    base,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['decrypt'],
+  );
+  const plain = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv: b(locked.iv), additionalData: new TextEncoder().encode('veilcore:backup:v4') },
+    key,
+    b(locked.ct),
+  );
+  return JSON.parse(new TextDecoder().decode(plain)) as Record<string, unknown>;
 };
 
 /** Open a backup file on the restore page, with its password when asked. */
@@ -368,6 +443,18 @@ test('the backup restore drill: everything comes back from the file alone, and s
   await A3.page.locator('[data-restore-preview-bring]').click();
   await expect(A3.page.getByRole('heading', { name: /Your records are back/ })).toBeVisible();
   await expect(A3.page.getByText('Records put back from the file itself: 5.')).toBeVisible();
+  await expect(A3.page.locator('[data-restore-file-lasting]')).toHaveText(
+    'Your backup file on your own device is never changed by restoring; keep it — it’s the lasting copy.',
+  );
+  // Restoring brought no date proofs into the browser; the restore page offers a bundle from the file.
+  expect(await A3.page.evaluate(() => localStorage.getItem('veilcore.stamps.v1'))).toBeNull();
+  await A3.page.locator('[data-restore-tech]').click();
+  await expect(A3.page.getByText('Make an evidence bundle from a backup file')).toBeVisible();
+  await A3.page.locator('[data-from-file-input]').setInputFiles(fileA);
+  await A3.page.getByLabel("The backup's password").fill(PASSWORD);
+  await A3.page.getByRole('button', { name: 'Open it' }).click();
+  await expect(A3.page.locator('[data-from-file-make]')).toBeVisible();
+  await expect(A3.page.locator('[data-from-file-which]')).toHaveCount(1);
   const gotA3 = await step<Snapshot>(A3.page, 'step=snapshot');
   // The one gap, as the runbook says: the license itself lives on the registry only.
   expect(differ(wantA.snapshot, gotA3.snapshot), 'came back different (beyond the known gap)').toEqual([
@@ -375,6 +462,81 @@ test('the backup restore drill: everything comes back from the file alone, and s
   ]);
   await A3.page.goto(`/record/${made.doc}?lang=en`);
   await expect(A3.page.getByText('a document with numbers, signed by a lab').first()).toBeVisible();
+  // The file carried the Bitcoin and RFC 3161 files, one each for the batch and one per record.
+  const inner = (await unlock(fs.readFileSync(fileA, 'utf8'))) as {
+    stamps: { batches: Record<string, unknown>; records: Record<string, unknown> };
+  };
+  expect(Object.keys(inner.stamps.batches)).toEqual([BATCH_ID]);
+  expect(Object.keys(inner.stamps.records)).toHaveLength(5);
+  // The evidence bundle, from the real record page, with the registry gone: VeilCore can't be
+  // reached, so the dialog offers the backup file, and the bundle is made straight from it.
+  await A3.page.goto(`/record/${plant}?lang=en`);
+  await A3.page.getByRole('button', { name: 'Technical details' }).click();
+  await A3.page.getByRole('button', { name: 'Download evidence bundle' }).first().click();
+  const dialog = A3.page.getByRole('dialog', { name: 'Download evidence bundle' });
+  await dialog.getByRole('button', { name: /^Download$/ }).click();
+  await expect(dialog.locator('[data-bundle-offline]')).toContainText(
+    'VeilCore can’t be reached right now. You can make the bundle from your backup file instead.',
+  );
+  await dialog.locator('[data-from-file-input]').setInputFiles(fileA);
+  await dialog.getByLabel("The backup's password").fill(PASSWORD);
+  await dialog.getByRole('button', { name: 'Open it' }).click();
+  const zipped = A3.page.waitForEvent('download');
+  await dialog.locator('[data-from-file-make]').click();
+  await expect(dialog.locator('[data-from-file-done]')).toContainText(/^Downloaded .+\.zip\./, { timeout: 60_000 });
+  expect(await A3.page.evaluate(() => localStorage.getItem('veilcore.stamps.v1')), 'nothing stored').toBeNull();
+  const bundleDir = path.join(dir, 'bundle');
+  for (const [name, bytes] of Object.entries(unzipSync(new Uint8Array(fs.readFileSync(await (await zipped).path()))))) {
+    const out = path.join(bundleDir, name);
+    expect(path.resolve(out).startsWith(path.resolve(bundleDir))).toBe(true);
+    fs.mkdirSync(path.dirname(out), { recursive: true });
+    fs.writeFileSync(out, bytes);
+  }
+  const top = path.join(bundleDir, fs.readdirSync(bundleDir)[0]);
+  const ev = JSON.parse(fs.readFileSync(path.join(top, 'evidence.json'), 'utf8')) as {
+    registry: {
+      source: string;
+      fileRoots?: { folder: string; opentimestamps: { available: boolean }; tokens: number }[];
+    };
+  };
+  // A new device with the registry gone can't confirm anything, and the bundle says so: the
+  // file's root is in its own folder with all its files.
+  expect(ev.registry.source).toBe('backup-file');
+  expect(fs.readFileSync(path.join(top, 'README.txt'), 'utf8')).toContain('NOT CONFIRMED:');
+  expect(ev.registry.fileRoots?.map((c) => c.folder)).toEqual(['proof/backup-file-1']);
+  expect(ev.registry.fileRoots?.[0].opentimestamps.available).toBe(true);
+  expect(ev.registry.fileRoots?.[0].tokens).toBe(1);
+  const folder = path.join(top, 'proof/backup-file-1');
+  // The README's own step for the token, with no network.
+  const ssl = await run('openssl', [
+    'ts',
+    '-verify',
+    '-data',
+    path.join(folder, 'root.bin'),
+    '-in',
+    path.join(folder, 'root.tst'),
+    '-token_in',
+    '-CAfile',
+    reg.tsa.caFile,
+  ]);
+  expect(ssl.stdout).toContain('Verification: OK');
+  // verify.html from disk, offline: it reads where the data came from, says so first, and lists
+  // the file's root with its own checks; it never says our registry reported it.
+  const offline = await browser.newContext({ offline: true });
+  const v = await offline.newPage();
+  await v.goto(`file://${path.join(top, 'verify.html')}`);
+  await expect(v.locator('body')).toHaveAttribute('data-checked', 'yes');
+  await expect(v.locator('[data-check="unconfirmed"]')).toContainText(
+    'come from the holder’s backup file, not confirmed with VeilCore’s registry',
+  );
+  const fromFile = v.locator('[data-check="from-file"]');
+  await expect(fromFile).toContainText('proof/backup-file-1');
+  await expect(fromFile).toContainText('Its proof leads from this record’s proof code to that root.');
+  await expect(fromFile).toContainText(`names block ${STAMP_BLOCK}`);
+  await expect(fromFile).toContainText('The holder’s backup file says it is');
+  await expect(v.locator('body')).not.toContainText('VeilCore’s registry reported this transaction');
+  await expect(v.locator('body')).not.toContainText('VeilCore’s registry reported it is');
+  await offline.close();
 
   // ---- the file without the website ---------------------------------------------------------
   const cli = new URL('../../node_modules/veilcore-records/bin/veilcore.mjs', import.meta.url).pathname;
@@ -391,4 +553,5 @@ test('the backup restore drill: everything comes back from the file alone, and s
   for (const b of [A, B, A2, B2, A3]) expectNoErrors(b.errors);
   for (const b of [A, B, A2, B2, A3]) await b.ctx.close();
   fs.rmSync(dir, { recursive: true, force: true });
+  reg.tsa.done();
 });

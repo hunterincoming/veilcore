@@ -187,6 +187,8 @@ export const animal = {
   'app.animal.v.app.verify.ownReceiptTail':
     'これが見えるのは、動物がこのブラウザにあるからです。リンクを送った相手には、上の署名の行だけが見えます。',
   'app.animal.v.app.prove.openCheckPage': '動物の確認ページを開く',
+  'app.animal.v.app.prove.youAsked':
+    'この動物の保有者に、その記録を保有していることの証明を求めました。まだなら、このリンクを送ってください。',
   'app.animal.v.app.prove.doneText':
     '相手のページに答えが表示されます。動物については何も送信されていません。送ったのは、あなたがその記録を保有していることの証明だけです。',
   'app.animal.v.app.prove.thePlant': 'その動物',
@@ -202,6 +204,12 @@ export const animal = {
     'あなたの動物の鍵には{when}に日付スタンプが押されました。日付が付くのは鍵で、記録ではありません。',
   'app.animal.v.app.prove.watch.stampedThisEarlier':
     'この動物の鍵には、以前ネットワーク上で日付スタンプが押されました。日付が付くのは鍵で、記録ではありません。',
+  'app.animal.v.app.prove.watch.shareAsker':
+    '{asker}が、VeilCoreでこの動物を保有していることの証明を求めています。このリンクを開いてください：{link}',
+  'app.animal.v.app.prove.watch.share':
+    'VeilCoreでこの動物を保有していることを証明するため、このリンクを開いてください：{link}',
+  'app.animal.v.app.lic.proof.panelText':
+    '誰かがこの動物を繁殖に使う、または販売するライセンスを持っていると言っていますか？リンクを送ってください。相手はライセンスを保有する端末から答え、このページがMidnightで確認します。わかるのは、相手が答えた時点でこの記録からの有効なライセンスを保有していたことだけです。',
   'app.animal.v.app.prove.own.title': 'この動物の鍵を保有していることを証明する（テストネットワーク）',
   'app.animal.v.app.prove.own.stampFirst':
     '先に鍵の日付スタンプを付けてください。動物のページで「鍵の日付スタンプを付ける」を押します。証明はその手順で作られる、記録のチェーン上のIDについてのものです。',

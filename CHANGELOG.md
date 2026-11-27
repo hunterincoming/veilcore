@@ -18,6 +18,24 @@ section.
   (`docs/proof-files.md`). Each deploy is about 70 MB instead of about 206 MB plus the parameters.
 - `deploy:mainnet` and `deploy:test` refuse unless every pinned file is on that host, byte for byte.
 
+### Proving a record by link: live on veilcore.org (27 Nov 2026, not deployed yet)
+
+- 27 November 2026: a checker's link on veilcore.org answered from the holder's browser and
+  checked on Midnight's main network; the checker's page said "Confirmed". Transaction
+  `531b3126668d736b7c5ac30ad04be7d26e5d29712c30f9cd32a675bbfe248d05`, block 3638190,
+  `proveOwnership` on contract version 1. `PROVE_BY_LINK_RUN_ON_MAINNET` is on, so "what's live
+  where" says "Yes" for it on veilcore.org, and the home page says it works there, in all five
+  languages. Proving a live license is still "built, not yet run on mainnet".
+- An animal record's proof answer says "animal", not "plant": the checker's "Confirmed" box, the
+  link's share text, and the license check panel ("breed from or sell this animal"). A strain
+  record (microbe, cell line or insect line) now says "strain" in the same places, in all five
+  languages: before this, its share text said "this plant" and its license check panel said
+  "licensed to grow", and now they say "this strain" and "licensed to use or supply this
+  strain". A test fails if a sentence has an animal version but no strain version.
+- The license check link's share text now asks the person to prove they hold a live license
+  from this record, for every kind of record, in all five languages. Before, it said "prove you
+  hold this plant", even for an animal or a strain.
+
 ### Contract version 2 pinned on mainnet, for team testing (25 Nov 2026, not deployed yet)
 
 - Contract version 2 (main `2f3392b6…`, claims `f5bc670d…`) is deployed on mainnet for testing by

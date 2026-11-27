@@ -73,6 +73,11 @@ export type MyAsk = {
   readonly kind?: 'license';
   /** The record named this key when it was sealed: what ties the two (key-binding.ts). */
   readonly record?: KeyedRecord;
+  /**
+   * What the record is about, from its check page, so the answer says "animal" or "strain"
+   * where a plant's says "plant". Absent: a plant (and every request made before this).
+   */
+  readonly subject?: 'animal' | 'strain';
   readonly createdAt: number;
   /** Set once an answer checks out on chain. */
   readonly confirmed?: {
@@ -123,6 +128,10 @@ const writeAsks = (all: MyAsk[], now = Date.now()): void => {
   }
 };
 
+/** What a request's record is about, for its words: an animal's, a strain's or (absent, or anything else) a plant's. */
+export const askSubject = (ask: Pick<MyAsk, 'subject'> | undefined): 'plant' | 'animal' | 'strain' =>
+  ask?.subject === 'animal' || ask?.subject === 'strain' ? ask.subject : 'plant';
+
 /** Requests this browser made, newest first. */
 export const myAsks = (): MyAsk[] => readAsks().sort((a, b) => b.createdAt - a.createdAt);
 export const myAsk = (id: string): MyAsk | undefined => readAsks().find((a) => a.id === id);
@@ -169,6 +178,8 @@ export const askToProve = async (input: {
   /** For a record that names its key: checked here, before anything is asked. */
   record?: KeyedRecord;
   kind?: 'license';
+  /** What the record is about (its check page's subjectKind); a plant when absent. */
+  subject?: 'animal' | 'strain';
 }): Promise<{ ask: MyAsk; link: string } | { error: string }> => {
   const identity = input.identity.trim().toLowerCase();
   if (!HEX64.test(identity)) return { error: 'this link names no on-chain identity to check' };
@@ -205,6 +216,7 @@ export const askToProve = async (input: {
     ...(input.anchorTx ? { anchorTx: input.anchorTx } : {}),
     ...(input.record ? { record: input.record } : {}),
     ...(input.kind ? { kind: input.kind } : {}),
+    ...(input.subject === 'animal' || input.subject === 'strain' ? { subject: input.subject } : {}),
     createdAt: Date.now(),
   };
   writeAsks([...readAsks(), ask]);

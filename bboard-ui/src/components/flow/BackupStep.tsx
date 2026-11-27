@@ -203,6 +203,8 @@ export const BackupStep: React.FC<{
   const [waiting, setWaiting] = useState<File>();
   // A lab's receiving key that couldn't be made before this backup (said, not blocking).
   const [labKeyMissing, setLabKeyMissing] = useState(false);
+  // Records VeilCore's server gave another date record for after giving one (stamps.ts rootChanges).
+  const [rootChanged, setRootChanged] = useState(0);
 
   // This device's lock, offered beside the file where the account copy can be set up here.
   const account = useAccountState();
@@ -279,6 +281,12 @@ export const BackupStep: React.FC<{
       savedAt.current = now;
       setLocked(usePassword);
       setSaved(downloadBackupAll(now, text, t('app.backup.shareTitle')));
+      setRootChanged(
+        await import('../../veilcore/stamps').then(
+          (m) => m.rootChanges(),
+          () => 0,
+        ),
+      );
     } catch (e) {
       // A file that couldn't be made whole is not saved, and the reason is said (backup.ts: a
       // document kept on this device only that couldn't be put in it).
@@ -436,6 +444,11 @@ export const BackupStep: React.FC<{
                 {labKeyMissing && (
                   <Alert severity="warning" variant="outlined" sx={{ mt: 1 }} data-lab-key-missing="">
                     {t('app.backup.labKeyNotMade')}
+                  </Alert>
+                )}
+                {rootChanged > 0 && (
+                  <Alert severity="warning" variant="outlined" sx={{ mt: 1 }} data-backup-root-changed="">
+                    {t('app.backup.rootChanged', { n: tr.num(rootChanged) })}
                   </Alert>
                 )}
               </Box>

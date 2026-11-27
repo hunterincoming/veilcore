@@ -11,6 +11,7 @@
 import type { Strings } from './en';
 import { policyJa } from './privacy-policy/ja';
 import { applyLiveSwaps, withoutCadence, type LiveSwaps } from './mainnet-overlay';
+import { PROVE_BY_LINK_RUN_ON_MAINNET } from '../config/copy';
 export const ja: Strings = {
   // Header and footer
   'nav.language': '言語',
@@ -1003,10 +1004,13 @@ const jaSends = (o: Strings): Strings => ({
     'このウェブサイトでは、紐付けは記録とともに保存されますが、まだ日付は付きません。',
     'このウェブサイトでは、ブラウザから紐付けに日付を付けられ、他人がそれを自分の記録に写すことはできません。',
   ),
+  // Proving a record by link has worked on veilcore.org since 27 Nov 2026 (config/copy.ts).
   'm.for.6p': swapJa(
     o['m.for.6p'],
     'このウェブサイトではまだ使えません。',
-    'メインネットワークではまだ試していません。',
+    PROVE_BY_LINK_RUN_ON_MAINNET
+      ? 'veilcore.orgで、Midnightのメインネットワーク上で動いています。'
+      : 'メインネットワークではまだ試していません。',
   ),
   'm.live.stamp.main':
     'あり。バッチには自動で日付が付き、それによって記録の日付が確定します。ブラウザは記録固有の鍵にも日付スタンプを付けますが、それで日付が確定するのは鍵だけです。',

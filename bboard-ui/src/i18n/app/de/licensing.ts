@@ -440,6 +440,10 @@ export const licensing = {
   'app.lic.proof.okText':
     'Wer auf Ihren Link geantwortet hat, hielt beim Eintreffen der Antwort am {when} eine gültige Lizenz, ausgestellt vom Datensatz mit dem Schlüssel {key}. Es zeigt nicht, welche Lizenz, ihre Bedingungen oder wer die Person ist. Lizenzen können später widerrufen werden: Für eine aktuelle Antwort stellen Sie eine neue Anfrage.',
   'app.lic.proof.sendLink': 'Senden Sie diesen Link. Die Antwort erscheint hier, auf der Chain geprüft.',
+  'app.lic.proof.share':
+    'Ich bitte Sie, auf VeilCore zu beweisen, dass Sie eine gültige Lizenz von diesem Datensatz halten. Öffnen Sie diesen Link: {link}',
+  'app.lic.proof.shareAsker':
+    '{asker} bittet Sie, auf VeilCore zu beweisen, dass Sie eine gültige Lizenz von diesem Datensatz halten. Öffnen Sie diesen Link: {link}',
   'app.lic.proof.ended': 'Diese Anfrage ist beendet. Stellen Sie eine neue.',
   'app.lic.proof.unreachable': 'Das VeilCore-Register ist gerade nicht erreichbar. Diese Seite versucht es weiter.',
   'app.lic.proof.pending': 'Eine Antwort ist eingegangen. Warten, bis das Netz sie zeigt…',

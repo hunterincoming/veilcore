@@ -22,16 +22,50 @@ import {
   type MyAsk,
 } from '../../veilcore/prove-relay';
 import { useT } from '../../i18n/app';
+import { forKind, type RecordKind, type Translator } from '../../i18n/translate';
 import { CODE_FONT } from '../../config/theme';
 import { color, mix } from '../../config/tokens';
 
 const WEEK = 7 * 24 * 60 * 60_000;
 const when = (t: number, locale?: string) => localStamp(t, locale);
 
-export const SendLink: React.FC<{ link: string; asker?: string }> = ({ link, asker }) => {
+/**
+ * What the record is about, when the page knows it: an animal's or a strain's words replace a
+ * plant's (translate.ts forKind). Unknown: a plant's.
+ */
+type Kinded = { kind?: RecordKind };
+
+/**
+ * Which sentence goes with the link: 'record' asks the person to prove they hold the record (in
+ * its kind's words); 'license' asks them to prove they hold a live license from it, which names
+ * no kind, so it fits every record.
+ */
+export type SendLinkFor = 'record' | 'license';
+const SHARE_KEYS = {
+  record: { share: 'app.prove.watch.share', shareAsker: 'app.prove.watch.shareAsker' },
+  license: { share: 'app.lic.proof.share', shareAsker: 'app.lic.proof.shareAsker' },
+} as const;
+
+/** The text "Send it" shares, with the asker's name when there is one. */
+export const shareText = (
+  t: Translator['t'],
+  link: string,
+  asker?: string,
+  sentence: SendLinkFor = 'record',
+): string => {
+  const keys = SHARE_KEYS[sentence];
+  return asker ? t(keys.shareAsker, { asker, link }) : t(keys.share, { link });
+};
+
+export const SendLink: React.FC<{ link: string; asker?: string; sentence?: SendLinkFor } & Kinded> = ({
+  link,
+  asker,
+  kind = 'plant',
+  sentence = 'record',
+}) => {
   const [copied, setCopied] = useState(false);
-  const { t } = useT();
-  const text = asker ? t('app.prove.watch.shareAsker', { asker, link }) : t('app.prove.watch.share', { link });
+  const { t } = forKind(useT(), kind);
+  const text = shareText(t, link, asker, sentence);
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
   return (
     <Box>
@@ -102,10 +136,11 @@ const KeyLine: React.FC<{ identity: string }> = ({ identity }) => {
 
 type State = 'waiting' | 'expired' | 'unreachable';
 
-export const ProveWatch: React.FC<{ ask: MyAsk; asker?: string; showLink?: boolean }> = ({
+export const ProveWatch: React.FC<{ ask: MyAsk; asker?: string; showLink?: boolean } & Kinded> = ({
   ask: initial,
   asker,
   showLink = true,
+  kind = 'plant',
 }) => {
   const [ask, setAsk] = useState(initial);
   const [state, setState] = useState<State>('waiting');
@@ -113,7 +148,8 @@ export const ProveWatch: React.FC<{ ask: MyAsk; asker?: string; showLink?: boole
   // An answer is in but the network can't show it yet (just sent, or the indexer is down).
   const [pending, setPending] = useState(false);
   const running = useRef(false);
-  const tr = useT();
+  // An animal record's answer says "animal", never "plant" (mainnet run, 27 Nov 2026).
+  const tr = forKind(useT(), kind);
   const { t, tp } = tr;
 
   // When the fast polling window started, the answers seen so far, and when the request ends.
@@ -223,7 +259,7 @@ export const ProveWatch: React.FC<{ ask: MyAsk; asker?: string; showLink?: boole
 
   return (
     <Stack spacing={1.5}>
-      {showLink && state !== 'expired' && <SendLink link={proveLink(ask.id, ask.token)} asker={asker} />}
+      {showLink && state !== 'expired' && <SendLink link={proveLink(ask.id, ask.token)} asker={asker} kind={kind} />}
       {state === 'expired' ? (
         <Alert severity="info" variant="outlined">
           {t('app.prove.watch.expired')}

@@ -56,6 +56,8 @@ export type AnchorLookup = {
   readonly contractVersion: number | null;
   /** The network's pinned contracts; empty where it has no list. */
   readonly pinned: readonly Pinned[];
+  /** The bundle's batch data came only from a backup file (evidence.json registry.source `backup-file`). */
+  readonly fromBackupFile?: true;
 };
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -69,6 +71,7 @@ export const anchorLookup = (
   a: Record<string, unknown>,
   root: string,
   lists: PinnedLists = PINNED,
+  fromBackupFile = false,
 ): AnchorLookup | null => {
   if (!isString(a.txHash)) return null;
   const network = isString(a.network) ? a.network : 'unknown';
@@ -89,6 +92,7 @@ export const anchorLookup = (
     onList: pinned && address ? entry !== null : null,
     contractVersion: entry ? entry.version : null,
     pinned: pinned ?? [],
+    ...(fromBackupFile ? { fromBackupFile: true as const } : {}),
   };
 };
 
@@ -118,7 +122,7 @@ export const midnightSteps = (a: AnchorLookup): string[] => {
       : `Open a Midnight explorer for ${networkWords(a.network)}.`,
     `Search for transaction ${a.txHash}.` +
       (block || when
-        ? ` VeilCore's registry reports it is${block ? ` in block ${a.blockHeight}` : ''}${when ? `${block ? ',' : ''} at ${when}` : ''}; the explorer's own block and time are the ones to rely on.`
+        ? ` ${a.fromBackupFile ? "The holder's backup file says" : "VeilCore's registry reported"} it is${block ? ` in block ${a.blockHeight}` : ''}${when ? `${block ? ',' : ''} at ${when}` : ''}; the explorer's own block and time are the ones to rely on.`
         : ''),
     a.onList
       ? `Check that the transaction succeeded and that it called VeilCore contract version ${a.contractVersion}, ${normAddress(a.contractAddress)}, and no other VeilCore contract${listed}. Note its block and time: that time is the date.`
@@ -152,8 +156,9 @@ export const tsaSteps = (t: {
   signer?: string;
   qualified?: { scheme: string; trustedList?: string };
   requestedAfterSeal?: boolean;
+  fromBackupFile?: boolean;
 }): string[] => [
-  `The batch root was also stamped by a Time Stamping Authority${t.tsa ? ` (${oneLine(t.tsa)}, as VeilCore's registry reported it)` : ''}${t.signer ? `; the token names its signer as ${oneLine(t.signer)}` : ''}. The token is proof/root.tst; the file it stamps is proof/root.bin. It states the time ${t.genTime ?? '(not read)'}: it shows the batch root existed by that time, and nothing earlier.${t.requestedAfterSeal ? ' This token was asked for after the batch was sealed, so its time is later than the sealing.' : ''}`,
+  `The batch root was also stamped by a Time Stamping Authority${t.tsa ? ` (${oneLine(t.tsa)}, as ${t.fromBackupFile ? "the holder's backup file says" : "VeilCore's registry reported it"})` : ''}${t.signer ? `; the token names its signer as ${oneLine(t.signer)}` : ''}. The token is proof/root.tst; the file it stamps is proof/root.bin. It states the time ${t.genTime ?? '(not read)'}: it shows the batch root existed by that time, and nothing earlier.${t.requestedAfterSeal ? ' This token was asked for after the batch was sealed, so its time is later than the sealing.' : ''}`,
   "With OpenSSL, in the proof folder: openssl ts -verify -data root.bin -in root.tst -token_in -CAfile <the authority's certificate chain>. It must print Verification: OK. Get the chain from the authority's own website, not from VeilCore.",
   t.qualified
     ? `VeilCore's registry stated this authority is qualified under ${oneLine(t.qualified.scheme)}${t.qualified.trustedList ? ` (${oneLine(t.qualified.trustedList)})` : ''}. Check the trusted list for ${oneLine(t.qualified.scheme)} yourself, for the date of the token.`
@@ -223,3 +228,30 @@ export const sealedNameOf = (fields: unknown): string => {
     if (isString(f[k]) && f[k]) return f[k];
   return '';
 };
+
+/**
+ * Said wherever a bundle was made straight from a backup file (source `backup-file`, stamps.ts
+ * evidenceFromFile): README.txt, EXAMINER-SUMMARY.html, evidence.json and verify.html.
+ */
+export const UNCONFIRMED_WORDS =
+  'The batch root, the proof that leads to it and its stamps come from the holder’s backup file and are not confirmed with VeilCore’s registry. Check the batch root yourself (on Midnight, or with its Bitcoin stamp or timestamp token) before relying on any date in this bundle.';
+
+/**
+ * Said wherever a backup file gives more than one root for a record (evidence.json
+ * registry.fileRoots): README.txt, EXAMINER-SUMMARY.html and verify.html.
+ */
+export const DISAGREE_WORDS =
+  'The holder’s backup file gives more than one batch root for this record (VeilCore’s registry gave a second one later, which should never happen). Each is in this bundle in its own folder (proof/backup-file-*), none ranked first. Check each one yourself (on Midnight, or with its Bitcoin stamp or timestamp token); rely only on a root that a check you make yourself dates.';
+
+/**
+ * Said wherever a backup file names more than one Midnight transaction for the same batch root
+ * (evidence.json registry.fileRoots, otherTransaction; review 10 of PR #233, blocker 3), before
+ * the list of each folder's transaction: README.txt, EXAMINER-SUMMARY.html,
+ * DECLARATION-TEMPLATE.txt and verify.html.
+ */
+export const TWO_TX_WORDS =
+  'VeilCore’s registry gave two different date records for the same batch root, which should never happen: the holder’s backup file names more than one Midnight transaction for it. Each is in this bundle in its own folder (proof/backup-file-*), none ranked first, and this bundle does not say which is genuine. Look up each one, with the steps for its folder; rely only on one that you check yourself wrote this batch root.';
+
+/** Who said where the batch root was recorded: VeilCore's registry, or only the holder's backup file. */
+export const reporterWords = (source: string): string =>
+  source === 'backup-file' ? 'the holder’s backup file' : 'VeilCore’s registry';

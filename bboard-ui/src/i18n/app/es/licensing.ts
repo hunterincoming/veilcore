@@ -434,6 +434,10 @@ export const licensing = {
   'app.lic.proof.okText':
     'Quien respondió a su enlace tenía una licencia vigente emitida desde el registro con clave {key} cuando llegó su respuesta, el {when}. No muestra qué licencia, sus condiciones ni quién es. Las licencias pueden revocarse después: para una respuesta nueva, haga una nueva solicitud.',
   'app.lic.proof.sendLink': 'Envíeles este enlace. Su respuesta aparece aquí, comprobada en la cadena.',
+  'app.lic.proof.share':
+    'Le pido que demuestre en VeilCore que tiene una licencia vigente de este registro. Abra este enlace: {link}',
+  'app.lic.proof.shareAsker':
+    '{asker} le pide que demuestre en VeilCore que tiene una licencia vigente de este registro. Abra este enlace: {link}',
   'app.lic.proof.ended': 'Esta solicitud terminó. Haga una nueva.',
   'app.lic.proof.unreachable':
     'No se puede conectar ahora con el servidor de registros de VeilCore. Esta página sigue intentándolo.',
