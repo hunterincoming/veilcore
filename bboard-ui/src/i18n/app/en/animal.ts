@@ -204,6 +204,8 @@ export const animal = {
   'app.animal.v.app.verify.ownReceiptTail':
     ' You see this because the animal is in this browser; someone you send the link to sees only the signature line above.',
   'app.animal.v.app.prove.openCheckPage': "Open the animal's check page",
+  'app.animal.v.app.prove.youAsked':
+    "You asked the holder of this animal to prove they hold its record. Send them this link if you haven't yet.",
   'app.animal.v.app.prove.doneText':
     "They'll see the answer on their page. Nothing about the animal was sent: only proof that you hold its record.",
   'app.animal.v.app.prove.thePlant': 'the animal',

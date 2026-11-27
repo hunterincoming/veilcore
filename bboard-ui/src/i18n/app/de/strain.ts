@@ -120,6 +120,8 @@ export const strain = {
   'app.strain.v.app.verify.ownReceiptTail':
     ' Sie sehen das, weil die Linie in diesem Browser ist; wer Ihren Link erhält, sieht nur die Signaturzeile oben.',
   'app.strain.v.app.prove.openCheckPage': 'Die Prüfseite der Linie öffnen',
+  'app.strain.v.app.prove.youAsked':
+    'Sie haben den Inhaber dieser Linie gebeten zu beweisen, dass er den Datensatz dazu hält. Senden Sie ihm diesen Link, falls noch nicht geschehen.',
   'app.strain.v.app.prove.doneText':
     'Die Antwort erscheint auf der Seite des Anfragenden. Über die Linie wurde nichts gesendet: nur der Beweis, dass Sie ihren Datensatz halten.',
   'app.strain.v.app.prove.thePlant': 'die Linie',

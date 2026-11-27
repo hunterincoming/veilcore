@@ -29,8 +29,9 @@ const ANIMAL: Record<Lang, RegExp> = {
   fr: /animal/,
   ja: /動物/,
 };
-// Every sentence ProveWatch, SendLink and LicenseProofPanel show that names the record.
+// Every sentence ProveWatch, SendLink, LicenseProofPanel and the asker's /prove page show that names the record.
 const KEYS = [
+  'app.prove.youAsked',
   'app.prove.watch.notWho',
   'app.prove.watch.holderStatement',
   'app.prove.watch.share',

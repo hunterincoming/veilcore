@@ -187,6 +187,8 @@ export const animal = {
   'app.animal.v.app.verify.ownReceiptTail':
     'これが見えるのは、動物がこのブラウザにあるからです。リンクを送った相手には、上の署名の行だけが見えます。',
   'app.animal.v.app.prove.openCheckPage': '動物の確認ページを開く',
+  'app.animal.v.app.prove.youAsked':
+    'この動物の保有者に、その記録を保有していることの証明を求めました。まだなら、このリンクを送ってください。',
   'app.animal.v.app.prove.doneText':
     '相手のページに答えが表示されます。動物については何も送信されていません。送ったのは、あなたがその記録を保有していることの証明だけです。',
   'app.animal.v.app.prove.thePlant': 'その動物',
@@ -205,7 +207,7 @@ export const animal = {
   'app.animal.v.app.prove.watch.shareAsker':
     '{asker}が、VeilCoreでこの動物を保有していることの証明を求めています。このリンクを開いてください：{link}',
   'app.animal.v.app.prove.watch.share':
-    'VeilCoreでこの動物を保有していることを証明してください。このリンクを開いてください：{link}',
+    'VeilCoreでこの動物を保有していることを証明するため、このリンクを開いてください：{link}',
   'app.animal.v.app.lic.proof.panelText':
     '誰かがこの動物を繁殖に使う、または販売するライセンスを持っていると言っていますか？リンクを送ってください。相手はライセンスを保有する端末から答え、このページがMidnightで確認します。わかるのは、相手が答えた時点でこの記録からの有効なライセンスを保有していたことだけです。',
   'app.animal.v.app.prove.own.title': 'この動物の鍵を保有していることを証明する（テストネットワーク）',

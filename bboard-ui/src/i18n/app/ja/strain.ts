@@ -117,6 +117,8 @@ export const strain = {
   'app.strain.v.app.verify.ownReceiptTail':
     'これが見えるのは、系統がこのブラウザにあるからです。リンクを送った相手には、上の署名の行だけが見えます。',
   'app.strain.v.app.prove.openCheckPage': '系統の確認ページを開く',
+  'app.strain.v.app.prove.youAsked':
+    'この系統の保有者に、その記録を保有していることの証明を求めました。まだなら、このリンクを送ってください。',
   'app.strain.v.app.prove.doneText':
     '相手のページに答えが表示されます。系統については何も送信されていません。送ったのは、あなたがその記録を保有していることの証明だけです。',
   'app.strain.v.app.prove.thePlant': 'その系統',

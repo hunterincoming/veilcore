@@ -119,6 +119,8 @@ export const strain = {
   'app.strain.v.app.verify.ownReceiptTail':
     ' Usted lo ve porque la cepa está en este navegador; quien reciba el enlace solo ve la línea de firma de arriba.',
   'app.strain.v.app.prove.openCheckPage': 'Abrir la página de comprobación de la cepa',
+  'app.strain.v.app.prove.youAsked':
+    'Usted pidió al titular de esta cepa que demuestre que tiene su registro. Envíele este enlace si todavía no lo hizo.',
   'app.strain.v.app.prove.doneText':
     'Verán la respuesta en su página. No se envió nada sobre la cepa: solo la prueba de que usted tiene su registro.',
   'app.strain.v.app.prove.thePlant': 'la cepa',

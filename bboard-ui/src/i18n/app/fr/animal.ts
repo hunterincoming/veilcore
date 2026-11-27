@@ -196,6 +196,8 @@ export const animal = {
   'app.animal.v.app.verify.ownReceiptTail':
     ' Vous le voyez parce que l’animal est dans ce navigateur ; la personne à qui vous envoyez le lien ne voit que la ligne de signature ci-dessus.',
   'app.animal.v.app.prove.openCheckPage': 'Ouvrir la page de vérification de l’animal',
+  'app.animal.v.app.prove.youAsked':
+    'Vous avez demandé au détenteur de cet animal de prouver qu’il en détient l’enregistrement. Envoyez-lui ce lien si ce n’est pas déjà fait.',
   'app.animal.v.app.prove.doneText':
     'La réponse s’affichera sur sa page. Rien n’a été envoyé sur l’animal : seulement la preuve que vous détenez son enregistrement.',
   'app.animal.v.app.prove.thePlant': 'l’animal',

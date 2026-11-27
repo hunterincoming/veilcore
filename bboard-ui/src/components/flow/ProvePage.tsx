@@ -90,7 +90,7 @@ export const ProvePage: React.FC = () => {
         <Typography variant="body1" sx={{ mb: 2 }}>
           {record
             ? rich(askedT.t('app.prove.youAskedNamed'), { b }, { name: record.strainName })
-            : t('app.prove.youAsked')}
+            : askedT.t('app.prove.youAsked')}
         </Typography>
         <ProveWatch ask={mine} kind={askedKind} />
         {mine.recordId && (

@@ -118,6 +118,8 @@ export const strain = {
   'app.strain.v.app.verify.ownReceiptTail':
     ' You see this because the strain is in this browser; someone you send the link to sees only the signature line above.',
   'app.strain.v.app.prove.openCheckPage': "Open the strain's check page",
+  'app.strain.v.app.prove.youAsked':
+    "You asked the holder of this strain to prove they hold its record. Send them this link if you haven't yet.",
   'app.strain.v.app.prove.doneText':
     "They'll see the answer on their page. Nothing about the strain was sent: only proof that you hold its record.",
   'app.strain.v.app.prove.thePlant': 'the strain',

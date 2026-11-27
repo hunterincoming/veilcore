@@ -192,6 +192,8 @@ export const animal = {
   'app.animal.v.app.verify.ownReceiptTail':
     ' Sie sehen das, weil das Tier in diesem Browser ist; wer Ihren Link erhält, sieht nur die Signaturzeile oben.',
   'app.animal.v.app.prove.openCheckPage': 'Die Prüfseite des Tieres öffnen',
+  'app.animal.v.app.prove.youAsked':
+    'Sie haben den Inhaber dieses Tieres gebeten zu beweisen, dass er den Datensatz dazu hält. Senden Sie ihm diesen Link, falls noch nicht geschehen.',
   'app.animal.v.app.prove.doneText':
     'Die Antwort erscheint auf der Seite des Anfragenden. Über das Tier wurde nichts gesendet: nur der Beweis, dass Sie seinen Datensatz halten.',
   'app.animal.v.app.prove.thePlant': 'das Tier',

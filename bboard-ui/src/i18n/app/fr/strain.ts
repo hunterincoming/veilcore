@@ -121,6 +121,8 @@ export const strain = {
   'app.strain.v.app.verify.ownReceiptTail':
     ' Vous le voyez parce que la souche est dans ce navigateur ; la personne à qui vous envoyez le lien ne voit que la ligne de signature ci-dessus.',
   'app.strain.v.app.prove.openCheckPage': 'Ouvrir la page de vérification de la souche',
+  'app.strain.v.app.prove.youAsked':
+    'Vous avez demandé au détenteur de cette souche de prouver qu’il en détient l’enregistrement. Envoyez-lui ce lien si ce n’est pas déjà fait.',
   'app.strain.v.app.prove.doneText':
     'La réponse s’affichera sur sa page. Rien n’a été envoyé sur la souche : seulement la preuve que vous détenez son enregistrement.',
   'app.strain.v.app.prove.thePlant': 'la souche',
