@@ -173,6 +173,8 @@ export const backup = {
     'Usa las pruebas de fecha que hay dentro de su archivo de copia de seguridad, así que funciona aunque no se pueda conectar con VeilCore. No se guarda aquí nada del archivo, y el paquete dice que viene de su archivo de copia de seguridad, sin comprobar con VeilCore.',
   'app.filebundle.offline':
     'Ahora no se puede conectar con VeilCore. Puede crear el paquete a partir de su archivo de copia de seguridad.',
+  'app.filebundle.keptCopy':
+    'Ahora no se puede conectar con VeilCore, así que este paquete se creó a partir de la copia guardada en este navegador. También puede crearlo a partir de su archivo de copia de seguridad.',
   'app.filebundle.pick': 'Elegir archivo de copia de seguridad',
   'app.filebundle.which': 'Registro',
   'app.filebundle.make': 'Crear el paquete',
@@ -184,7 +186,7 @@ export const backup = {
   'app.backup.fileIsLasting':
     'Restaurar nunca cambia su archivo de copia de seguridad en su propio dispositivo; consérvelo: es la copia duradera.',
   'app.backup.rootChanged':
-    'El servidor de VeilCore dio para {n} de sus registros una prueba de fecha distinta de la que dio antes. Eso no debería pasar nunca. Se conserva la primera, y las dos están en esta copia de seguridad. Guarde este archivo y contacte con VeilCore.',
+    'El servidor de VeilCore dio para {n} de sus registros una prueba de fecha distinta de la que dio antes. Eso no debería pasar nunca. Se conserva la primera, y todas están en esta copia de seguridad. Guarde este archivo y contacte con VeilCore.',
   'app.backup.fromFileProblem':
     'No se pudieron recuperar los registros del archivo: {why} Sus claves están restauradas.',
   'app.backup.passkey.err.busy': 'Su otro dispositivo guardó en el mismo momento. Se vuelve a intentar solo.',

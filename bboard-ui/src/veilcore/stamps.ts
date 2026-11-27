@@ -11,7 +11,10 @@
 // (backup.ts withRecordsAndProofs) asks the registry for each record's proof, its batch's Bitcoin
 // file and tokens, and the record's own tokens, checks each against the record or the batch root,
 // keeps them, and writes them into the file. A pending Bitcoin file is kept and the finished one
-// taken when the registry has it; a finished one is never swapped back. If the registry ever
+// taken when the registry has it; a finished one is never swapped back. A proof the registry
+// answers again for the same batch and root replaces the kept one, so its Midnight anchor follows
+// the registry's (given once the root lands on chain, and a main-network one in place of a test
+// network's), but an anchor kept is never lost to an answer without one (upgraded). If the registry ever
 // answers with another root for a record whose batch it already gave (an honest registry never
 // changes a sealed batch), the first answer stays, the new one is kept aside and goes in the file
 // too, and the backup page warns (rootChanges). Nothing here is deleted except when its record is
@@ -376,6 +379,43 @@ const pruneDeleted = (o: Own): void => {
 const sameBatch = (a: { batchId: string; root: string }, b: { batchId: string; root: string }): boolean =>
   a.batchId === b.batchId && a.root === b.root;
 
+const anchorOf = (p: InclusionProof): Record<string, unknown> | undefined => {
+  const a: unknown = (p as unknown as Record<string, unknown>).anchor;
+  return isObject(a) ? a : undefined;
+};
+
+const anchorsOf = (p: InclusionProof): unknown[] | undefined => {
+  const a: unknown = (p as unknown as Record<string, unknown>).anchors;
+  return Array.isArray(a) && a.length ? a : undefined;
+};
+
+/**
+ * The registry's answer now for a batch and root it gave before: kept in place of the old one
+ * (review 8 of PR #233). The registry hands out a proof when the batch is sealed and adds the
+ * Midnight anchor once the root lands on chain, and a test-network anchor is later replaced by
+ * the main network's; the root and path can't change (sameBatch, and checkProof ties them to the
+ * record). Only an anchor is never lost: an answer with none, or one that would replace a
+ * main-network anchor with a test network's, keeps the anchor kept before.
+ */
+const keepOldAnchor = (had: InclusionProof, fresh: InclusionProof): boolean => {
+  const before = anchorOf(keepable(had));
+  const after = anchorOf(keepable(fresh));
+  return !!before && (!after || (before.network === 'mainnet' && after.network !== 'mainnet'));
+};
+
+const upgraded = (had: InclusionProof, fresh: InclusionProof): InclusionProof => {
+  const now = keepable(fresh);
+  const before = anchorOf(keepable(had));
+  const after = anchorOf(now);
+  const keepOld = keepOldAnchor(had, fresh);
+  const anchors = anchorsOf(now) ?? anchorsOf(had);
+  const { anchor: _a, anchors: _l, ...rest } = now as unknown as Record<string, unknown>;
+  void _a;
+  void _l;
+  const anchor = keepOld ? before : after;
+  return { ...rest, ...(anchor ? { anchor } : {}), ...(anchors ? { anchors } : {}) } as unknown as InclusionProof;
+};
+
 /**
  * For a backup about to be made: what is kept here refreshed from the registry where it answers,
  * and what the file carries. `proofs` (by proof code) are the inclusion proofs the registry just
@@ -428,6 +468,12 @@ const refreshFromRegistry = async (own: Own, wanted: ReadonlySet<string>, proofs
           proofs[fp] = first;
           const aside = own.changed[fp] ?? [];
           if (!aside.some((p) => sameBatch(p, st.proof))) own.changed[fp] = [...aside, keepable(st.proof)];
+        } else {
+          // Same batch and root: the registry's anchor now (a later or main-network one) is kept,
+          // and the file carries the same, so a backup made offline later names it too.
+          own.proofs[fp] = upgraded(first, st.proof);
+          const fr = proofs[fp];
+          if (keepOldAnchor(first, st.proof) && isObject(fr)) proofs[fp] = { ...fr, anchor: anchorOf(own.proofs[fp]) };
         }
         continue;
       }

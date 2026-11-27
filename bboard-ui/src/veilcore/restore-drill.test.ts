@@ -40,6 +40,7 @@ import { loadPageVerifier } from './evidence/test-records';
 import { differ, snapshotOf } from '../e2e-fixtures/restore-drill-snapshot';
 import { sealOnDevice } from './fixtures/device-only-doc';
 import { otsFile, testTsa, type TestTsa } from './fixtures/test-stamps';
+import { MAINNET_PINNED } from '../../../api/src/pinned-contracts';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PASSWORD = 'practice drill password';
@@ -1506,6 +1507,162 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     await A.run(() => A.m.stamps.stampsForBackup([{ id: made.plant, recordFingerprint: plantFp }], {}));
     expect(await A.run(() => A.m.stamps.keptEvidence(animalFp))).toBeNull();
     expect(await A.run(() => A.m.stamps.keptEvidence(plantFp))).not.toBeNull();
+  });
+
+  // The registry gives a proof when the batch is sealed and adds the Midnight anchor once the
+  // root lands on chain; a test-network anchor is later replaced by the main network's (review 8).
+  const MAINNET = {
+    chain: 'midnight',
+    network: 'mainnet',
+    // VeilCore's own main-network contract, so the steps date it (deployments/mainnet.json).
+    contractAddress: MAINNET_PINNED.find((c) => c.kind === 'veilcore')!.address,
+    txHash: 'ef'.repeat(32),
+    blockHeight: 9999,
+    anchoredAt: '2026-11-27T12:00:00.000Z',
+  };
+  const PREVIEW_TX = 'ab'.repeat(32);
+  /** Every proof the registry serves, with this anchor (or none). */
+  const anchorAll = (anchor: unknown) => {
+    for (const [fp, pr] of w.proofs) {
+      const { anchor: _a, ...rest } = pr as Record<string, unknown>;
+      void _a;
+      w.proofs.set(fp, anchor ? { ...rest, anchor } : rest);
+    }
+  };
+  const anchorIn = (inner: Record<string, unknown>, fp: string) =>
+    (inner.proofs as Record<string, { anchor?: { txHash: string; network: string } }>)[fp]?.anchor;
+
+  it('a proof first given before its batch was on chain picks up the later Midnight anchor, kept and in offline backups (R8-1)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    anchorAll(null);
+    await backUp(A);
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    anchorAll(MAINNET);
+    expect(anchorIn(await opened(A, await backUp(A)), fp)?.txHash).toBe(MAINNET.txHash);
+    w.goDown();
+    expect(anchorIn(await opened(A, await backUp(A)), fp)?.txHash, 'offline backup').toBe(MAINNET.txHash);
+    const { ev, file } = await bundleOf(A, made.plant);
+    expect(ev.batch?.anchor).toMatchObject({ network: 'mainnet', txHash: MAINNET.txHash });
+    expect(textOf(file('README.txt'))).not.toContain('not dated on any network yet');
+    expect(textOf(file('proof/anchors.json'))).toContain(MAINNET.txHash);
+  });
+
+  it('a test-network anchor replaced by a main-network one is followed; an answer without one, or a test one after it, never takes it away (R8-2)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    expect(anchorIn(await opened(A, await backUp(A)), fp)).toMatchObject({ network: 'preview', txHash: PREVIEW_TX });
+    anchorAll(MAINNET);
+    await backUp(A);
+    // An answer with no anchor, then one naming the test network again: the main network's stays.
+    anchorAll(null);
+    expect(anchorIn(await opened(A, await backUp(A)), fp)?.txHash, 'online, no anchor in the answer').toBe(
+      MAINNET.txHash,
+    );
+    anchorAll({ ...MAINNET, network: 'preview', txHash: PREVIEW_TX });
+    expect(anchorIn(await opened(A, await backUp(A)), fp)?.network, 'online, a test anchor again').toBe('mainnet');
+    w.goDown();
+    const offline = await opened(A, await backUp(A));
+    expect(anchorIn(offline, fp)).toMatchObject({ network: 'mainnet', txHash: MAINNET.txHash });
+    const { ev, file } = await bundleOf(A, made.plant);
+    expect(ev.batch?.anchor).toMatchObject({ network: 'mainnet', txHash: MAINNET.txHash });
+    expect(textOf(file('README.txt'))).not.toContain('practice data');
+    expect(textOf(file('proof/anchors.json'))).toContain(MAINNET.txHash);
+    expect(textOf(file('proof/anchors.json'))).not.toContain(PREVIEW_TX);
+  });
+
+  /** README.txt, EXAMINER-SUMMARY.html and DECLARATION-TEMPLATE.txt of a bundle made from a backup file. */
+  const pagesFromFile = async (anchor: unknown) => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    w.upgrade();
+    if (anchor !== undefined) anchorAll(anchor);
+    const text = await backUp(A);
+    w.goDown();
+    const { b: N } = await restoreInto('new-device', text);
+    const { ev, file } = (await bundleFromFile(N, made.plant, text))!;
+    const dump = process.env.VEILCORE_DUMP_PAGES;
+    if (dump) {
+      const dir = path.join(dump, String(anchor === undefined ? 'preview' : anchor === null ? 'none' : 'mainnet'));
+      fs.mkdirSync(dir, { recursive: true });
+      for (const f of ['README.txt', 'EXAMINER-SUMMARY.html', 'DECLARATION-TEMPLATE.txt'])
+        fs.writeFileSync(path.join(dir, f), Buffer.from(file(f)!));
+    }
+    const html = textOf(file('EXAMINER-SUMMARY.html'))
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ');
+    return {
+      ev,
+      readme: textOf(file('README.txt')),
+      examiner: html,
+      declaration: textOf(file('DECLARATION-TEMPLATE.txt')),
+    };
+  };
+  /** What no page of a bundle from a file that gives a batch may say. */
+  const UNTRUE_FOR_A_FILE = [
+    'not dated on any network yet',
+    'not in a batch yet',
+    'There is no Midnight transaction to look up yet',
+    'not recorded on a network yet',
+    'from what VeilCore’s registry returned',
+    "from what VeilCore's registry returned",
+    'Only a root Midnight holds dates anything',
+    'only a root Midnight holds dates anything',
+  ];
+
+  it('a bundle made from a backup file says on every page what the file gives: its batch, transaction, Bitcoin block and token (R8-4)', async () => {
+    const { ev, readme, examiner, declaration } = await pagesFromFile(undefined);
+    const root = ev.registry.fileRoots![0].root;
+    for (const [name, page] of Object.entries({ readme, examiner, declaration })) {
+      for (const bad of UNTRUE_FOR_A_FILE) expect(page, `${name}: ${bad}`).not.toContain(bad);
+      expect(page, name).toContain(BATCH_ID);
+      expect(page, name).toContain(root);
+      expect(page, name).toContain(PREVIEW_TX);
+      expect(page, name).toContain(String(STAMP_BLOCK));
+      expect(page, name).toContain('backup file');
+      // The file's transaction is on a test network: said as such, never as a real date.
+      expect(page, name).toContain('Midnight Preview (a test network)');
+      expect(page, name).toContain('practice data');
+      expect(page, name).not.toMatch(/ownership|proves you own/i);
+    }
+    expect(examiner).toContain('From the holder’s backup file: proof/backup-file-1');
+    expect(examiner).toContain('Names Bitcoin block 870123');
+    expect(examiner).toContain('1 in the backup file, over proof/backup-file-1/root.bin: proof/backup-file-1/root.tst');
+    expect(examiner).toContain('Not checked for you: the Midnight transaction the backup file names for each folder.');
+    expect(declaration).toContain('This bundle was made from my backup file of the record, not with VeilCore');
+    expect(declaration).toContain('from my backup file, read in my browser');
+    expect(declaration).toContain('named Bitcoin block 870123');
+    expect(declaration).toContain('proof/backup-file-1/root.tst');
+    // No script is written for a Preview transaction, and no page names one.
+    expect(readme).not.toContain('check-on-midnight.mjs');
+    expect(ev.registry.fileRoots![0].files.some((f) => f.endsWith('check-on-midnight.mjs'))).toBe(false);
+  });
+
+  it('a bundle from a backup file naming a main-network transaction gives no warning, and its script path is its folder’s (R8-4)', async () => {
+    const { readme, examiner, declaration } = await pagesFromFile(MAINNET);
+    for (const [name, page] of Object.entries({ readme, examiner, declaration })) {
+      for (const bad of UNTRUE_FOR_A_FILE) expect(page, `${name}: ${bad}`).not.toContain(bad);
+      expect(page, name).toContain(MAINNET.txHash);
+      expect(page, name).not.toContain('practice data');
+    }
+    expect(readme).not.toMatch(/(^|[^-\w])proof\/check-on-midnight\.mjs/);
+  });
+
+  it('a bundle from a backup file naming no transaction says so, and what else dates it (R8-4)', async () => {
+    const { readme, examiner, declaration } = await pagesFromFile(null);
+    for (const [name, page] of Object.entries({ readme, examiner, declaration })) {
+      for (const bad of UNTRUE_FOR_A_FILE) expect(page, `${name}: ${bad}`).not.toContain(bad);
+      expect(page, name).toContain('names no Midnight transaction');
+      expect(page, name).toContain(String(STAMP_BLOCK));
+      expect(page, name).toContain('a separate date, once you check it yourself');
+    }
   });
 });
 

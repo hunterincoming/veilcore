@@ -168,6 +168,8 @@ export const backup = {
     'This uses the date proofs inside your backup file, so it works when VeilCore can’t be reached. Nothing from the file is kept here, and the bundle says it comes from your backup file, not checked with VeilCore.',
   'app.filebundle.offline':
     'VeilCore can’t be reached right now. You can make the bundle from your backup file instead.',
+  'app.filebundle.keptCopy':
+    'VeilCore can’t be reached right now, so this bundle was made from the copy kept in this browser. You can also make one from your backup file.',
   'app.filebundle.pick': 'Choose backup file',
   'app.filebundle.which': 'Record',
   'app.filebundle.make': 'Make the bundle',
@@ -178,7 +180,7 @@ export const backup = {
   'app.backup.fileIsLasting':
     'Your backup file on your own device is never changed by restoring; keep it — it’s the lasting copy.',
   'app.backup.rootChanged':
-    'VeilCore’s server gave a different date record for {n} of your records than it gave before. That should never happen. The first one is kept, and both are in this backup. Keep this file, and contact VeilCore.',
+    'VeilCore’s server gave a different date record for {n} of your records than it gave before. That should never happen. The first one is kept, and every one it gave is in this backup. Keep this file, and contact VeilCore.',
   'app.backup.fromFileProblem': "The records inside the file couldn't be put back: {why} Your keys are restored.",
   'app.backup.passkey.err.busy': 'Your other device kept saving at the same moment. It tries again by itself.',
   // Summit 5b item 15: on the backup screen (BackupStep.tsx).

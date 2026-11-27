@@ -234,7 +234,7 @@ export const sealedNameOf = (fields: unknown): string => {
  * evidenceFromFile): README.txt, EXAMINER-SUMMARY.html, evidence.json and verify.html.
  */
 export const UNCONFIRMED_WORDS =
-  'The batch root, the proof that leads to it and its stamps come from the holder’s backup file and are not confirmed with VeilCore’s registry. Look the batch root up on Midnight before relying on any date in this bundle.';
+  'The batch root, the proof that leads to it and its stamps come from the holder’s backup file and are not confirmed with VeilCore’s registry. Check the batch root yourself (on Midnight, or with its Bitcoin stamp or timestamp token) before relying on any date in this bundle.';
 
 /**
  * Said wherever a backup file gives more than one root for a record (evidence.json

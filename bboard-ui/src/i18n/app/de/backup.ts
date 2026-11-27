@@ -178,6 +178,8 @@ export const backup = {
     'Dafür werden die Datumsnachweise in Ihrer Sicherungsdatei verwendet, es geht also auch, wenn VeilCore nicht erreichbar ist. Nichts aus der Datei wird hier aufbewahrt, und im Paket steht, dass es aus Ihrer Sicherungsdatei stammt und nicht mit VeilCore geprüft ist.',
   'app.filebundle.offline':
     'VeilCore ist gerade nicht erreichbar. Sie können das Paket stattdessen aus Ihrer Sicherungsdatei erstellen.',
+  'app.filebundle.keptCopy':
+    'VeilCore ist gerade nicht erreichbar, daher wurde dieses Paket aus der in diesem Browser gespeicherten Kopie erstellt. Sie können es auch aus Ihrer Sicherungsdatei erstellen.',
   'app.filebundle.pick': 'Sicherungsdatei wählen',
   'app.filebundle.which': 'Datensatz',
   'app.filebundle.make': 'Paket erstellen',
@@ -189,7 +191,7 @@ export const backup = {
   'app.backup.fileIsLasting':
     'Ihre Sicherungsdatei auf Ihrem eigenen Gerät wird durch das Wiederherstellen nie verändert; bewahren Sie sie auf – sie ist die dauerhafte Kopie.',
   'app.backup.rootChanged':
-    'Der Server von VeilCore hat für {n} Ihrer Datensätze einen anderen Datumsnachweis geliefert als zuvor. Das darf nie vorkommen. Der erste bleibt erhalten, und beide sind in dieser Sicherung. Bewahren Sie diese Datei auf und wenden Sie sich an VeilCore.',
+    'Der Server von VeilCore hat für {n} Ihrer Datensätze einen anderen Datumsnachweis geliefert als zuvor. Das darf nie vorkommen. Der erste bleibt erhalten, und alle sind in dieser Sicherung. Bewahren Sie diese Datei auf und wenden Sie sich an VeilCore.',
   'app.backup.fromFileProblem':
     'Die Datensätze in der Datei konnten nicht wiederhergestellt werden: {why} Ihre Schlüssel sind wiederhergestellt.',
   'app.backup.passkey.err.busy':

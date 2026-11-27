@@ -58,9 +58,10 @@ export const EvidenceBundle: React.FC<{
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
-  // VeilCore's registry couldn't be reached (and this browser has no copy it gave): the bundle
-  // can be made from the holder's backup file instead (BundleFromBackupFile).
-  const [offline, setOffline] = useState(false);
+  // VeilCore's registry couldn't be reached: with no copy it gave this browser ('unreachable'),
+  // or with the bundle made from that copy ('kept'), the bundle can be made from the holder's
+  // backup file too (BundleFromBackupFile): the file may hold what this browser never saw.
+  const [offline, setOffline] = useState<false | 'unreachable' | 'kept'>(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const { t, tp } = useRecordT(record);
   const { locked } = useSealedView();
@@ -132,8 +133,11 @@ export const EvidenceBundle: React.FC<{
       const out = await downloadEvidenceBundle(record, keys, options);
       if ('error' in out) {
         setError(out.error);
-        if (out.error === UNREACHABLE) setOffline(true);
-      } else setDone(out.name);
+        if (out.error === UNREACHABLE) setOffline('unreachable');
+      } else {
+        setDone(out.name);
+        if (out.source === 'this-device') setOffline('kept');
+      }
     } finally {
       setBusy(false);
     }
@@ -247,7 +251,9 @@ export const EvidenceBundle: React.FC<{
             )}
             {offline && sealed && (
               <Stack spacing={1} data-bundle-offline="">
-                <Typography variant="body2">{t('app.filebundle.offline')}</Typography>
+                <Typography variant="body2">
+                  {t(offline === 'kept' ? 'app.filebundle.keptCopy' : 'app.filebundle.offline')}
+                </Typography>
                 <BundleFromBackupFile record={record} make={fromFile} />
               </Stack>
             )}
