@@ -164,6 +164,8 @@ export const document = {
   'app.claim.going': 'Preuve en cours…',
   'app.claim.done': 'Prouvé sur Midnight :',
   'app.claim.copy': 'Copier le lien qui le prouve',
+  'app.claim.linkLater':
+    'Ce lien ne peut pas être créé pour le moment : une transaction qu’il contient n’a pas pu être consultée sur Midnight. Réessayez dans quelques minutes.',
   'app.claim.copied': 'Copié.',
   'app.claim.made': 'Ce que vous avez prouvé',
   'app.claim.line.atMost': '{label} est au plus {bound} {unit}',

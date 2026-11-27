@@ -161,6 +161,8 @@ export const document = {
   'app.claim.going': '証明中…',
   'app.claim.done': 'Midnight上で証明しました：',
   'app.claim.copy': 'これを証明するリンクをコピー',
+  'app.claim.linkLater':
+    '今はこのリンクを作成できません。含まれるトランザクションをMidnightで調べられませんでした。数分後にもう一度お試しください。',
   'app.claim.copied': 'コピーしました。',
   'app.claim.made': '証明した内容',
   'app.claim.line.atMost': '{label}は{bound} {unit}以下',

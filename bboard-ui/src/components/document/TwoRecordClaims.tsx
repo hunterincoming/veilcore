@@ -30,7 +30,8 @@ import {
   Typography,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { isKeptOnDeviceOnly, type StrainRecord } from '../../veilcore/records';
+import { isKeptOnDeviceOnly, renameTransactions, type StrainRecord } from '../../veilcore/records';
+import { readyTwoClaimLink } from '../../veilcore/link-hashes';
 import {
   carriedClaims,
   changedSlots,
@@ -38,7 +39,6 @@ import {
   formSlots,
   distinctRefusal,
   pairCandidates,
-  twoClaimLink,
   twoRecordFormOffered,
   unchangedRefusal,
   type HeldTwoClaim,
@@ -184,7 +184,18 @@ export const TwoRecordPanel: React.FC<{
     b: nameOf(all.find((r) => r.id === c.ids[1]) ?? (c.ids[1] === record.id ? record : undefined)),
   });
   const copy = async (c: TwoClaim) => {
-    await navigator.clipboard.writeText(twoClaimLink(c, CANONICAL_ORIGIN));
+    setCopied(false);
+    setError(undefined);
+    // Its transaction by its hash, an older build's identifier looked up and saved back first
+    // (link-hashes.ts); no link at all when that can't be done right now.
+    let link: string;
+    try {
+      link = await readyTwoClaimLink(c, CANONICAL_ORIGIN, { save: renameTransactions });
+    } catch {
+      setError(t('app.claim.linkLater'));
+      return;
+    }
+    await navigator.clipboard.writeText(link);
     setCopied(true);
   };
 

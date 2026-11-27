@@ -165,6 +165,8 @@ export const document = {
   'app.claim.going': 'Wird belegt…',
   'app.claim.done': 'Auf Midnight belegt:',
   'app.claim.copy': 'Den Link kopieren, der das belegt',
+  'app.claim.linkLater':
+    'Dieser Link lässt sich gerade nicht erstellen: Eine Transaktion darin konnte auf Midnight nicht nachgeschlagen werden. Versuchen Sie es in ein paar Minuten erneut.',
   'app.claim.copied': 'Kopiert.',
   'app.claim.made': 'Was Sie belegt haben',
   'app.claim.line.atMost': '{label} ist höchstens {bound} {unit}',

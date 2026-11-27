@@ -301,6 +301,20 @@ const unreadableState = (stateHex: string): Extract<Answer, { kind: 'unreachable
   };
 };
 
+/** The indexer's latest block in an answer (`tip`), or undefined when it gave none. */
+const tipOf = (data: unknown): { height?: number; time?: number } | undefined => {
+  const t = typeof data === 'object' && data !== null ? (data as { tip?: unknown }).tip : undefined;
+  if (typeof t !== 'object' || t === null) return undefined;
+  const b = t as { height?: unknown; timestamp?: unknown };
+  return { height: heightOf(b.height), time: blockTimeMs(b.timestamp) };
+};
+
+/** The registry's block and time for the anchor, as missingFromChain takes them. */
+const reportedOf = (input: { reportedHeight?: number; reportedAt?: string }) => ({
+  height: input.reportedHeight,
+  time: input.reportedAt === undefined ? undefined : Date.parse(input.reportedAt),
+});
+
 const heightOf = (h: unknown): number | undefined =>
   typeof h === 'number' && Number.isSafeInteger(h) && h >= 0 ? h : undefined;
 
@@ -350,8 +364,15 @@ const askOne = async (
   } catch {
     return { kind: 'unreachable', why: 'no-answer', reason: 'the indexer did not answer' };
   }
-  if (Array.isArray(body.errors) && body.errors.length > 0)
-    return { kind: 'unreachable', why: 'no-answer', reason: 'the indexer could not answer the question' };
+  // An indexer that answered with errors but still gave its latest block is up: what it couldn't
+  // find is judged by that block and the clock, as for a claim (read-failure.ts), never left amber
+  // on the registry's word alone. Without a latest block it is "couldn't reach".
+  if (Array.isArray(body.errors) && body.errors.length > 0) {
+    const tip = tipOf(body.data);
+    return tip !== undefined && missingFromChain(tip, reportedOf(input), (deps.now ?? Date.now)())
+      ? { kind: 'refused', notFound: true, reason: `Midnight’s indexer has no transaction ${short(input.txId)}` }
+      : { kind: 'unreachable', why: 'no-answer', reason: 'the indexer could not answer the question' };
+  }
   if (typeof body.data !== 'object' || body.data === null)
     return { kind: 'unreachable', why: 'no-answer', reason: 'the indexer’s answer could not be read' };
 
@@ -377,16 +398,7 @@ const askOne = async (
   if (found.size === 0) {
     // Missing, or not reached yet: judged against the indexer's own latest block and this
     // browser's clock, never on the registry's word alone (missingFromChain).
-    const tip =
-      typeof body.data.tip === 'object' && body.data.tip !== null ? (body.data.tip as Tx['block']) : undefined;
-    const past = missingFromChain(
-      { height: heightOf(tip?.height), time: blockTimeMs(tip?.timestamp) },
-      {
-        height: input.reportedHeight,
-        time: input.reportedAt === undefined ? undefined : Date.parse(input.reportedAt),
-      },
-      (deps.now ?? Date.now)(),
-    );
+    const past = missingFromChain(tipOf(body.data) ?? {}, reportedOf(input), (deps.now ?? Date.now)());
     return past
       ? { kind: 'refused', notFound: true, reason: `Midnight’s indexer has no transaction ${short(input.txId)}` }
       : {

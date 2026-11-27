@@ -454,6 +454,25 @@ describe('checkAnchorOnChain', () => {
         expect(await forged({ reportedAt: 'not a date' })).toMatchObject(missing);
       });
 
+      it('an indexer that answers with errors but gives its latest block is judged by it, like a claim', async () => {
+        const erring = (tip: unknown) =>
+          (() =>
+            Promise.resolve(
+              new Response(JSON.stringify({ data: { byHash: null, byId: null, tip }, errors: [{ message: 'x' }] })),
+            )) as unknown as typeof fetch;
+        const ask = (tip: unknown, more: { reportedAt?: string } = {}) =>
+          checkAnchorOnChain(
+            { ...input, ...more },
+            { buildNetwork: 'mainnet', indexers: [I1], fetch: erring(tip), now: () => NOW },
+          );
+        expect(await ask(TIP)).toMatchObject(missing);
+        expect(await ask(TIP, { reportedAt: iso(TIP.timestamp - 60_000) })).toMatchObject({
+          status: 'unreachable',
+          why: 'no-answer',
+        });
+        expect(await ask(null)).toMatchObject({ status: 'unreachable', why: 'no-answer' });
+      });
+
       it('only a time within the last hour may stay "not yet": that backdates nothing', async () => {
         for (const ago of [0, 60_000, NOT_FOUND_MARGIN_MS - 60_000])
           expect(await forged({ reportedAt: iso(TIP.timestamp - ago) }), String(ago)).toMatchObject({
