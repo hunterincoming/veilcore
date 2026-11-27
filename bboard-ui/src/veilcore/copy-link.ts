@@ -57,11 +57,14 @@ export const copyLink = async (
   const making = later();
   let handed: Promise<boolean> | undefined;
   if (clip?.write && Item) {
+    // The text the browser writes once the link is made. If the link can't be made it rejects,
+    // so nothing is written; that rejection is also caught here, so it is never logged as
+    // unhandled when the clipboard (or ClipboardItem) throws before taking it.
+    const text = making.then((l) => new Blob([l], { type: 'text/plain' }));
+    text.catch(() => undefined);
     try {
       // Asked now, inside the tap; the browser writes the text once the link is made.
-      const written = clip.write([
-        new Item({ 'text/plain': making.then((l) => new Blob([l], { type: 'text/plain' })) }),
-      ]);
+      const written = clip.write([new Item({ 'text/plain': text })]);
       handed = written.then(
         () => true,
         () => false,

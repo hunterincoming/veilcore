@@ -108,4 +108,29 @@ describe('copying a link on the first tap', () => {
     ).rejects.toBeInstanceOf(LinkNotReady);
     expect(s.text).toEqual([]);
   });
+
+  // #235 review, polish 3: a clipboard that throws at once, and then a link that can't be made,
+  // must not leave the link's text promise rejected with nobody listening.
+  it('a clipboard that throws at once, then a link that can’t be made: no unhandled rejection', async () => {
+    const unhandled: unknown[] = [];
+    const listen = (e: unknown) => unhandled.push(e);
+    process.on('unhandledRejection', listen);
+    try {
+      const s = safari();
+      const throwing: ClipboardLike = {
+        ...s.clipboard,
+        write: () => {
+          throw new Error('refused at once');
+        },
+      };
+      const notReady = () => new Promise<string>((_r, j) => setTimeout(() => j(new LinkNotReady()), 5));
+      await expect(
+        s.tap(() => copyLink(undefined, notReady, { clipboard: throwing, item: Item })),
+      ).rejects.toBeInstanceOf(LinkNotReady);
+      await new Promise((r) => setTimeout(r, 20));
+      expect(unhandled).toEqual([]);
+    } finally {
+      process.off('unhandledRejection', listen);
+    }
+  });
 });
