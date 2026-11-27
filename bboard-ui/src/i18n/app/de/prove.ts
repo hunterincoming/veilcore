@@ -42,6 +42,14 @@ export const prove = {
   'app.prove.copy': 'Kopieren',
   'app.prove.title': 'Beweisen Sie, dass Sie {name} halten',
   'app.prove.thisPlant': 'diese Pflanze',
+  'app.prove.thisRecord': 'diesen Datensatz',
+  'app.prove.theRecord': 'dem Datensatz',
+  'app.prove.any.whatSends':
+    '<b>Was gesendet wird:</b> nur der Beweis, dass Sie diesen Datensatz halten, im Testnetz. Kein Name, keine Genetik, nichts über Ihre anderen Datensätze.',
+  'app.prove.any.answering':
+    'Wenn Sie antworten, erfährt die Person, die Ihnen diesen Link gesendet hat, dass Sie diesen Datensatz halten.',
+  'app.prove.any.doneText':
+    'Die Antwort erscheint auf der Seite des Anfragenden. Über den Datensatz wurde nichts gesendet: nur der Beweis, dass Sie ihn halten.',
   'app.prove.askedBy':
     'Angefragt von jemandem, der angibt, <b>„{asker}“</b> zu sein. <muted>VeilCore hat das nicht geprüft.</muted>',
   'app.prove.askedAnon': 'Jemand hat Sie gebeten, es zu beweisen, ohne einen Namen zu nennen.',

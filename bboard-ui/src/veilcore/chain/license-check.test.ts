@@ -6,7 +6,7 @@ import { ledger } from '../../../../contract/src/managed/veilcore/contract/index
 import { createVeilcorePrivateState, withLicense } from '../../../../contract/src/witnesses';
 import { identityOf, licenseRequestFor, recoveryCommitmentOf } from './actions';
 import { contractStateAfter } from './test-chain';
-import { checkLicense } from './license-check';
+import { checkLicense, markUsed } from './license-check';
 import { newChallenge } from './challenge-book';
 
 const ISSUER = new Uint8Array(32).fill(0x31);
@@ -65,8 +65,15 @@ describe('checking a license proof', () => {
     const v = await checkLicense({ txId: TX, identity: issuerIdentity, challenge }, deps(s));
     expect(v.accepted, v.reason).toBe(true);
     expect(v.landedAt).toBe(NOW);
-    const again = await checkLicense({ txId: TX, identity: issuerIdentity, challenge }, deps(s));
-    expect(again.accepted).toBe(false);
+    // Not used up by checking: only once the caller has saved the result (markUsed). Checked
+    // again before then (a reload mid-check), the same answer still passes.
+    expect((await checkLicense({ txId: TX, identity: issuerIdentity, challenge }, deps(s))).accepted).toBe(true);
+    markUsed(challenge, TX);
+    // The answer that used it may be checked again; any other answer is refused.
+    expect((await checkLicense({ txId: TX, identity: issuerIdentity, challenge }, deps(s))).accepted).toBe(true);
+    const other = await checkLicense({ txId: 'cd'.repeat(32), identity: issuerIdentity, challenge }, deps(s));
+    expect(other.accepted).toBe(false);
+    expect(other.reason).toMatch(/already answered/);
   });
 
   it('refuses the same answer checked against another record', async () => {

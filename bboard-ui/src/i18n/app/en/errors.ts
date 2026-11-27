@@ -35,6 +35,7 @@ export const errors = {
   'app.err.chain.filesMissing': 'The proving files for {circuit} are not on this site yet.',
   'app.err.chain.paramsMissing': 'The public parameters (k={k}) are not on this site yet.',
   'app.err.chain.callFailed': 'The network included the call but it did not succeed ({status}).',
+  'app.err.chain.hashUnreadable': 'The network included it, but its transaction hash could not be read',
   'app.err.chain.claimFailed': 'The network included the claim but it did not succeed ({status}).',
   'app.err.chain.noSlot': 'Could not find a free license slot. Nothing was sent.',
   'app.err.chain.notSendersRecord':

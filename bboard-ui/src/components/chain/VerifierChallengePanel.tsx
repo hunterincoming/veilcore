@@ -188,7 +188,7 @@ const ByHand: React.FC<{ claim: ClaimedChainAnchor; record?: KeyedRecord }> = ({
   const check = () =>
     call.run(async (progress) => {
       progress('Reading the answer from the network…');
-      const { checkOwnership, checkAnchor } = await import('../../veilcore/chain/ownership-check');
+      const { checkOwnership, checkAnchor, markUsed } = await import('../../veilcore/chain/ownership-check');
       const v = await checkOwnership({
         txId,
         identity: claim.identity,
@@ -196,6 +196,8 @@ const ByHand: React.FC<{ claim: ClaimedChainAnchor; record?: KeyedRecord }> = ({
         ...(record ? { record } : {}),
       });
       const anchor = claim.txId ? await checkAnchor(claim.txId, claim.identity) : undefined;
+      // Marked used once the whole result is in hand, by this answer only (challenge-book.ts).
+      if (v.accepted && challenge) markUsed(challenge, txId);
       return { ...v, anchor };
     });
 
