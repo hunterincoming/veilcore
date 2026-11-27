@@ -180,6 +180,17 @@ export type BackupContents = {
    * checks against it (restore drill, 26 Nov). Optional, like `revs`.
    */
   readonly heldEvidence?: Readonly<Record<string, unknown>>;
+  /**
+   * The files that check each record's dates on Bitcoin and with a Time Stamping Authority
+   * (stamps.ts): per batch a record sits in, its root, its OpenTimestamps file (root.bin.ots) and
+   * its RFC 3161 tokens (root.tst); per record, the RFC 3161 tokens on its own proof code: only
+   * what VeilCore's registry gave the browser that made the file, never anything from another
+   * file. A restore doesn't bring them into the browser: with the registry out of reach, an
+   * evidence bundle is made straight from the file (readBackupStamps, stamps.ts
+   * evidenceFromFile), labelled so. Optional, like `revs`: an older file has none, and an older
+   * app passes over it.
+   */
+  readonly stamps?: import('./stamps').StampsInFile;
 };
 
 const WARNING =
@@ -396,6 +407,9 @@ export const withRecordsAndProofs = async (contents: BackupContents): Promise<Ba
       if (p.status !== 'none') proofs[batch[j]] = p.proof;
     });
   }
+  // The Bitcoin and RFC 3161 files for them, and any proof the registry couldn't give now that
+  // this browser kept from before (stamps.ts). Never stops the backup.
+  const stamps = await (await import('./stamps')).stampsForBackup(recordData, proofs).catch(() => undefined);
   const sealedFields: Record<string, Record<string, unknown>> = {};
   for (const r of recordData) {
     if (!r.nonce) continue;
@@ -410,6 +424,7 @@ export const withRecordsAndProofs = async (contents: BackupContents): Promise<Ba
     recordData,
     ...(Object.keys(proofs).length ? { proofs } : {}),
     ...(Object.keys(sealedFields).length ? { sealedFields } : {}),
+    ...(stamps ? { stamps } : {}),
     ...heldEvidence,
     ...unreadable,
     ...extras,
@@ -711,6 +726,18 @@ export const peekBackup = async (
 };
 
 /**
+ * A backup file's date proofs, read in memory only, for an evidence bundle made straight from the
+ * file (stamps.ts evidenceFromFile): nothing in this browser changes. A locked file needs its
+ * password (the same errors as a restore).
+ */
+export const readBackupStamps = async (file: File, password?: string): Promise<import('./stamps').BackupFileStamps> => {
+  const v = await opened(parse(await file.text()), password);
+  if (v.format !== BACKUP_FORMAT)
+    throw new Error("That file isn't a VeilCore backup. Pick the file you saved from VeilCore.");
+  return { stamps: v.stamps, proofs: v.proofs };
+};
+
+/**
  * Restore from any VeilCore backup: the one-file backup, an older single record's keys
  * file, or an older holder-key text file. Never replaces a different key already here.
  */
@@ -839,6 +866,8 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
   } catch {
     /* a record's evidence that can't be checked here stays out; the rest of the restore stands */
   }
+  // The file's date proofs (stamps) are not brought into this browser: they stay in the file,
+  // the lasting copy, and an evidence bundle can be made straight from it (readBackupStamps).
   // Entries the file carries raw (they couldn't be read where it was made): back as they were,
   // after the records, so what this browser and the registry hold is known (records.ts).
   restoreUnreadable(v.deviceOnlyUnreadable);

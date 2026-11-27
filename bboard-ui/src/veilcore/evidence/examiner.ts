@@ -13,7 +13,20 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { isNumber, isObject, isString } from '../json';
-import type { Evidence, SignatureLine } from './bundle';
+import {
+  fileDating,
+  fileDatingNote,
+  fileRootAnchor,
+  fileRootGiven,
+  fileRootsDisagree,
+  fileTxConflictLines,
+  inFolder,
+  keptAnchorLine,
+  otherRootLine,
+  type Evidence,
+  type FileRootFacts,
+  type SignatureLine,
+} from './bundle';
 import {
   anchorLookup,
   bitcoinSteps,
@@ -23,8 +36,24 @@ import {
   sealedNameOf,
   subjectOf,
   utcWords,
+  UNCONFIRMED_WORDS,
+  DISAGREE_WORDS,
+  reporterWords,
 } from './words';
 
+/**
+ * The times that are one party's own clock, naming only those the bundle has (review 9 of PR
+ * #233: a bundle with no "first saw" time named it anyway).
+ */
+const ownClocks = (firstSeen: boolean, sigs: boolean): string => {
+  const parts = [
+    'The sealing time in the record',
+    firstSeen ? 'the registry’s “first saw” time' : null,
+    sigs ? 'the time on each lab signature' : null,
+  ].filter((x): x is string => !!x);
+  if (parts.length === 1) return `${parts[0]}: one party’s own clock.`;
+  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}: each is one party’s own clock.`;
+};
 export const EXAMINER_FILE = 'EXAMINER-SUMMARY.html';
 
 /**
@@ -289,6 +318,10 @@ const custodySection = (ev: Evidence): string => {
   return out.join('');
 };
 
+/** A backup file folder's token files (bundle.ts tstNames). */
+const tstFiles = (c: FileRootFacts): string[] =>
+  c.tokens === 1 ? ['root.tst'] : Array.from({ length: c.tokens }, (_, i) => `root-${i + 1}.tst`);
+
 /** How to check the RFC 3161 token with OpenSSL and nothing from VeilCore. */
 const TSA_STEPS: string[] = [
   'The token is proof/root.tst; the file it stamps is proof/root.bin (the batch root as 32 bytes). It shows the batch root existed by the time it states, and nothing earlier.',
@@ -301,6 +334,9 @@ const tsaStanding = (q: { scheme: string; trustedList?: string } | undefined): s
   q
     ? `Legal standing: VeilCore’s registry stated this authority is qualified under ${oneLine(q.scheme)}${q.trustedList ? ` (${oneLine(q.trustedList)})` : ''}. Check its trusted list yourself for the token’s date. Where it is qualified, EU law presumes a qualified time stamp’s date is accurate (eIDAS Article 41).`
     : 'Legal standing: VeilCore doesn’t record whether this authority is qualified. Check its status yourself on the EU trusted list. If the token is a qualified time stamp, EU law presumes its date is accurate (eIDAS Article 41); if not, a court weighs it as it would any signed timestamp.';
+
+/** An RFC 3161 token's standing, for a bundle from a backup file (it records no authority's status). */
+const TOKEN_STANDING = tsaStanding(undefined).replace(/^Legal standing:/, 'Legal standing of an RFC 3161 token:');
 
 /** Bitcoin's and Midnight's legal standing: not qualified under EU law, and only a few places presume their date. */
 const CHAIN_STANDING =
@@ -317,26 +353,66 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   const anchor = ev.batch?.anchor ?? null;
   const tx = anchor && isString(anchor.txHash) ? anchor.txHash : null;
   const test = anchor ? anchor.network !== 'mainnet' : true;
-  const lookup = ev.batch && anchor ? anchorLookup(anchor, ev.batch.root) : null;
+  const fromFile = ev.registry.source === 'backup-file';
+  // Who said where the batch was recorded: the registry, or only the holder's backup file.
+  const who = reporterWords(ev.registry.source);
+  const said = fromFile ? 'as the holder’s backup file says it, not confirmed' : 'as VeilCore’s registry reported it';
+  const lookup = ev.batch && anchor ? anchorLookup(anchor, ev.batch.root, undefined, fromFile) : null;
   const ots = ev.batch && hasOts ? ev.batch.opentimestamps : null;
   const tsa = ev.batch?.rfc3161?.available ? ev.batch.rfc3161 : null;
   const made = utcWords(ev.createdAt) ?? ev.createdAt;
   const keyBound = isString(fields.keyBinding);
+  // A bundle made from a backup file: each root the file gives, with its own dates (review 8).
+  const fd = fileDating(ev);
+  const fileRoots = fromFile ? fd.roots : [];
+  const anyOts = !!ots || fd.ots;
+  const anyTsa = !!tsa || fd.tokens;
+  const anyTx = !!tx || fd.tx;
+  const anyAnchor = !!anchor || fd.tx;
 
-  const banner = test
-    ? anchor
-      ? `Practice data. This record is dated on ${networkWords(anchor.network)}. A test network can be reset and its dates carry no weight.`
-      : tsa || ots?.status === 'bitcoin'
-        ? `This record is not dated on Midnight yet. The ${tsa ? 'RFC 3161 token' : 'Bitcoin stamp'} below dates its batch root.`
-        : 'This record is not dated on any network yet. Until it is, nothing here dates it.'
-    : null;
+  // Two Midnight transactions for one batch root (review 10 of PR #233): each named, none ranked.
+  const kept = keptAnchorLine(ev);
+  const root = otherRootLine(ev);
+  const twoTx = [...(kept ? [kept] : []), ...(root ? [root] : []), ...fileTxConflictLines(ev)];
+  // Each "- folder: transaction" line goes in one list under the line before it.
+  const twoTxHtml = twoTx
+    .reduce<{ head: string; items: string[] }[]>((out, l) => {
+      if (l.startsWith('- ') && out.length) out[out.length - 1].items.push(l.slice(2));
+      else out.push({ head: l, items: [] });
+      return out;
+    }, [])
+    .map((g) => `${p(g.head)}${g.items.length ? list(g.items) : ''}`)
+    .join('');
+  const banner = fileRoots.length
+    ? fileDatingNote(ev)
+    : test
+      ? anchor
+        ? `Practice data. This record is dated on ${networkWords(anchor.network)}. A test network can be reset and its dates carry no weight.`
+        : tsa || ots?.status === 'bitcoin'
+          ? `This record is not dated on Midnight yet. The ${tsa ? 'RFC 3161 token' : 'Bitcoin stamp'} below dates its batch root.`
+          : 'This record is not dated on any network yet. Until it is, nothing here dates it.'
+      : null;
 
   // How it was checked: what the site did when it made the bundle, and what it did not do.
   const checked: string[] = [
+    ...(fromFile ? [`Not confirmed: ${UNCONFIRMED_WORDS}`] : []),
+    ...(ev.registry.fileRoots?.length
+      ? [
+          `From the holder’s backup file, not confirmed with VeilCore’s registry: ${ev.registry.fileRoots
+            .map((c) => `${c.folder} (batch ${oneLine(c.batchId)}, batch root ${c.root}${fileRootGiven(c)})`)
+            .join('; ')}.`,
+          ...(fileRootsDisagree(ev) ? [`More than one root: ${DISAGREE_WORDS}`] : []),
+          ...(ev.registry.registryRoots ?? []).map(
+            (r) => `VeilCore’s registry gave the holder’s browser another root for this batch: ${r}.`,
+          ),
+        ]
+      : []),
     `The record’s proof code was worked out again from the sealed fields below and matched${keyBound ? ' (with the record’s key binding folded in)' : ''}. The bundle can’t be made if it doesn’t.`,
     ev.proof && ev.batch
       ? `The proof leads from the record’s proof code to the root of batch ${ev.batch.batchId}. The batch root is one code that stands for every record in the batch.`
-      : 'The record is not in a batch yet, so there is no proof and nothing to look up.',
+      : fileRoots.length
+        ? `The proof in each folder from the holder’s backup file leads from the record’s proof code to the batch root that folder names (a proof that doesn’t is left out). The batch root is one code that stands for every record in the batch.`
+        : 'The record is not in a batch yet, so there is no proof and nothing to look up.',
   ];
   if (ev.key) checked.push('The record’s key is in the bundle and matches the key the record names.');
   const okSigs = sigs.filter((s) => s.ok).length;
@@ -354,10 +430,24 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     checked.push(
       'The RFC 3161 token was checked against the batch root in the holder’s browser when the bundle was made (a token that doesn’t check is left out). The steps below say how to check it again with OpenSSL.',
     );
+  if (fileRoots.length) {
+    if (fd.ots)
+      checked.push(
+        'Not checked for you: the Bitcoin block. Each Bitcoin stamp file from the backup file was read in the holder’s browser and starts from its folder’s batch root (one that doesn’t is left out); verify.html reads it, and the steps below say how to check it against Bitcoin.',
+      );
+    if (fd.tokens)
+      checked.push(
+        'Each RFC 3161 token from the backup file was checked in the holder’s browser against its folder’s batch root, signed by a timestamp authority this site pins, with a time inside that authority’s certificate dates (a token that doesn’t check is left out). The steps below say how to check it again with OpenSSL.',
+      );
+  }
   checked.push(
     tx
-      ? 'Not checked for you: the Midnight transaction. VeilCore’s registry reported it; nobody has looked it up on the chain for you. The steps below say how.'
-      : 'There is no Midnight transaction to look up yet.',
+      ? `Not checked for you: the Midnight transaction. ${who.replace(/^t/, 'T')} ${fromFile ? 'names' : 'reported'} it; nobody has looked it up on the chain for you. The steps below say how.`
+      : fileRoots.length
+        ? fd.tx
+          ? 'Not checked for you: the Midnight transaction the backup file names for each folder. Nobody has looked it up on the chain for you. The steps below say how.'
+          : 'The holder’s backup file names no Midnight transaction for this record, so there is none to look up.'
+        : 'There is no Midnight transaction to look up yet.',
   );
 
   const ids: [string, string | null][] = [
@@ -365,8 +455,14 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     ['Proof code', ev.record.fingerprint],
     ['How the proof code is made', ev.record.fingerprintAlgorithm],
     ['Content hash (SHA-256 of the sealed fields)', ev.record.contentHash],
-    ['Batch', ev.batch?.batchId ?? 'not in a batch yet'],
-    ['Batch root', ev.batch?.root ?? null],
+    [
+      'Batch',
+      ev.batch?.batchId ??
+        (fileRoots.length
+          ? `${[...new Set(fileRoots.map((c) => oneLine(c.batchId)))].join(', ')} (${said})`
+          : 'not in a batch yet'),
+    ],
+    ['Batch root', ev.batch?.root ?? (fileRoots.length ? [...new Set(fileRoots.map((c) => c.root))].join(', ') : null)],
     ['Batch sealed by the registry at', ev.batch?.sealedAt ? (utcWords(ev.batch.sealedAt) ?? ev.batch.sealedAt) : null],
     [
       'Registry first saw the record',
@@ -381,8 +477,8 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     ['Network', anchor ? networkWords(anchor.network) : 'not recorded on a network yet'],
     ['Contract', anchor && isString(anchor.contractAddress) ? anchor.contractAddress : null],
     ['Transaction', tx],
-    ['Block (as the registry reported it)', anchor && isNumber(anchor.blockHeight) ? String(anchor.blockHeight) : null],
-    ['Time (as the registry reported it)', anchor ? utcWords(anchor.anchoredAt) : null],
+    [`Block (${said})`, anchor && isNumber(anchor.blockHeight) ? String(anchor.blockHeight) : null],
+    [`Time (${said})`, anchor ? utcWords(anchor.anchoredAt) : null],
   ];
   for (const a of ev.batch?.earlierAnchors ?? []) {
     midnightRows.push([
@@ -394,7 +490,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   const bitcoinRows: [string, string | null][] = ots
     ? [
         [
-          'Status the registry reported',
+          fromFile ? 'Status the holder’s backup file gives' : 'Status the registry reported',
           ots.status === 'bitcoin'
             ? `In Bitcoin block ${isNumber(ots.bitcoinBlockHeight) ? ots.bitcoinBlockHeight : '(not given)'}`
             : 'Pending: not yet in a Bitcoin block',
@@ -410,7 +506,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   const tsaRows: [string, string | null][] = tsa
     ? [
         ['Time the token states', tsa.genTime ? (utcWords(tsa.genTime) ?? tsa.genTime) : '(not read)'],
-        ['Authority (as VeilCore’s registry reported it)', tsa.tsa ? oneLine(tsa.tsa) : null],
+        [`Authority (${said})`, tsa.tsa ? oneLine(tsa.tsa) : null],
         ['Signer named in the token', tsa.signer ? oneLine(tsa.signer) : null],
         ['Token file', 'proof/root.tst, over proof/root.bin (the batch root as 32 bytes)'],
         [
@@ -419,6 +515,48 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
         ],
       ]
     : [];
+
+  /** One root from the backup file: its batch, its Midnight transaction and its stamps, as the file gives them. */
+  const fileRootBlock = (c: FileRootFacts): string => {
+    const a = fileRootAnchor(c);
+    const rows: [string, string | null][] = [
+      ['Folder', c.folder],
+      ['Batch', oneLine(c.batchId)],
+      ['Batch root', c.root],
+      [
+        'Given',
+        c.otherTransaction
+          ? 'Later in the backup file: the same batch root as another folder, with another Midnight transaction VeilCore’s registry gave later (a second date record for this root)'
+          : c.later
+            ? 'Later in the backup file: one it says VeilCore’s registry gave after another for the same batch'
+            : 'First in the backup file: the proof it gives for this record',
+      ],
+      ['Midnight network', a ? networkWords(a.network) : 'The backup file names no Midnight transaction for this root'],
+      ['Contract', a && isString(a.contractAddress) ? a.contractAddress : null],
+      ['Transaction', a ? String(a.txHash) : null],
+      [`Block (${said})`, a && isNumber(a.blockHeight) ? String(a.blockHeight) : null],
+      [`Time (${said})`, a ? utcWords(a.anchoredAt) : null],
+      [
+        'Bitcoin stamp (OpenTimestamps)',
+        c.opentimestamps.available
+          ? `${
+              c.opentimestamps.status === 'bitcoin'
+                ? `Names Bitcoin block ${isNumber(c.opentimestamps.bitcoinBlockHeight) ? c.opentimestamps.bitcoinBlockHeight : '(not given)'}`
+                : 'Pending: not yet in a Bitcoin block'
+            }, as the stamp file in the backup file shows it. File: ${c.folder}/root.bin.ots, over ${c.folder}/root.bin`
+          : 'None in the backup file',
+      ],
+      [
+        'RFC 3161 tokens',
+        c.tokens
+          ? `${c.tokens} in the backup file, over ${c.folder}/root.bin: ${tstFiles(c)
+              .map((f) => `${c.folder}/${f}`)
+              .join(', ')}`
+          : 'None in the backup file',
+      ],
+    ];
+    return `<h3>From the holder’s backup file: ${escapeHtml(c.folder)}</h3>${table(rows)}`;
+  };
 
   const lab = ev.labReport;
   const labRows: [string, string | null][] = lab
@@ -476,7 +614,9 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   });
 
   const shows: string[] = [
-    `Once ${[ots ? 'the Bitcoin stamp' : null, tsa ? 'the RFC 3161 token in proof/root.tst (by the time it states)' : null, 'the Midnight transaction'].filter(Boolean).join(' or ')} is checked and holds this batch root: this record existed, unchanged, by that date. Whoever had it sealed held this record by then.`,
+    fileRoots.length
+      ? `Once ${[fd.ots ? 'a folder’s Bitcoin stamp' : null, fd.tokens ? 'a folder’s RFC 3161 token (by the time it states)' : null, fd.tx ? 'the Midnight transaction a folder names' : null].filter(Boolean).join(' or ') || 'a date for one of these batch roots'} is checked and holds that folder’s batch root: this record existed, unchanged, by that date. Whoever had it sealed held this record by then.`
+      : `Once ${[ots ? 'the Bitcoin stamp' : null, tsa ? 'the RFC 3161 token in proof/root.tst (by the time it states)' : null, 'the Midnight transaction'].filter(Boolean).join(' or ')} is checked and holds this batch root: this record existed, unchanged, by that date. Whoever had it sealed held this record by then.`,
     'The sealed fields above are exactly what the proof code was made from: any change to them, even one character, gives a different proof code.',
   ];
   if (ev.key) shows.push('The record named this key when it was sealed, so the key can’t have been swapped since.');
@@ -490,15 +630,17 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
       : 'That anything the record says is true: the name, who bred it, the stated date. The breeder wrote those.',
     `Who holds the ${subject} or the record now.`,
     'That a signing key belongs to the lab it names. VeilCore doesn’t vouch for anyone.',
-    `Any date at all until ${[ots ? 'the Bitcoin stamp checks' : null, tsa ? 'the RFC 3161 token checks' : null, 'the batch root is found in the named Midnight transaction'].filter(Boolean).join(' or ')}.`,
-    `The sealing time in the record${sigs.length ? ', the registry’s “first saw” time and the time on each lab signature' : ' and the registry’s “first saw” time'}: each is one party’s own clock.`,
+    fileRoots.length
+      ? `Any date at all until ${[fd.ots ? 'a folder’s Bitcoin stamp checks' : null, fd.tokens ? 'a folder’s RFC 3161 token checks' : null, fd.tx ? 'a folder’s batch root is found in the Midnight transaction it names' : null].filter(Boolean).join(' or ') || 'one of these batch roots is dated'}.`
+      : `Any date at all until ${[ots ? 'the Bitcoin stamp checks' : null, tsa ? 'the RFC 3161 token checks' : null, 'the batch root is found in the named Midnight transaction'].filter(Boolean).join(' or ')}.`,
+    ownClocks(!!ev.registry.firstSeen, sigs.length > 0),
   ];
   if (lab)
     doesNot.push(
       `When the lab report was saved to the ${subject}. That came after sealing and isn’t inside the record’s proof code, so the batch doesn’t date it.`,
     );
   // Bitcoin and Midnight only: the RFC 3161 token's standing is its own line in section 2.
-  const chains = [ots ? 'the Bitcoin stamp' : null, anchor ? 'the Midnight date' : null].filter(
+  const chains = [anyOts ? 'the Bitcoin stamp' : null, anyAnchor ? 'the Midnight date' : null].filter(
     (x): x is string => !!x,
   );
   doesNot.push(
@@ -508,14 +650,37 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
         : chains.length === 1
           ? `${chains[0].replace(/^t/, 'T')} is not a qualified electronic time stamp under EU law (eIDAS); most places have no law presuming its date. `
           : ''
-    }${tsa ? 'The RFC 3161 token’s standing is in its own line in section 2. ' : ''}How much weight a court or agency gives any of it is for them to decide.`,
+    }${tsa ? 'The RFC 3161 token’s standing is in its own line in section 2. ' : fd.tokens ? `${TOKEN_STANDING} ` : ''}How much weight a court or agency gives any of it is for them to decide.`,
   );
 
   const steps: string[] = [];
   if (ots) steps.push(`<h3>The Bitcoin stamp</h3>${list(bitcoinSteps(ots.status !== 'bitcoin'), true)}`);
   if (tsa) steps.push(`<h3>The RFC 3161 token</h3>${list(TSA_STEPS, true)}`);
   if (lookup) {
-    steps.push(`<h3>Date it on Midnight (as VeilCore’s registry reported it)</h3>${list(midnightSteps(lookup), true)}`);
+    steps.push(`<h3>Date it on Midnight (${said})</h3>${list(midnightSteps(lookup), true)}`);
+  }
+  for (const c of fileRoots) {
+    const a = fileRootAnchor(c);
+    const l = a ? anchorLookup(a, c.root, undefined, true) : null;
+    const each: string[] = [];
+    if (c.opentimestamps.available)
+      each.push(
+        `Bitcoin: on opentimestamps.org, drop in ${c.folder}/root.bin.ots and then ${c.folder}/root.bin; or, in that folder, ots verify root.bin.ots${c.opentimestamps.status === 'bitcoin' ? '' : ' (run ots upgrade root.bin.ots first; that needs the internet once)'}.`,
+      );
+    if (c.tokens)
+      each.push(
+        `RFC 3161 token: in that folder, openssl ts -verify -data root.bin -in ${tstFiles(c)[0]} -token_in -CAfile <the authority’s published chain file>. It must print Verification: OK. Get that chain file from the authority’s own website, not from VeilCore.`,
+      );
+    steps.push(
+      `<h3>${escapeHtml(c.folder)} (${said})</h3>${
+        l
+          ? list(
+              midnightSteps(l).map((x) => inFolder(x, c)),
+              true,
+            )
+          : p('The backup file names no Midnight transaction for this root.')
+      }${each.length ? list(each) : ''}`,
+    );
   }
 
   // How someone who disagrees can check this: what rests on tools anyone has, and what rests
@@ -523,13 +688,13 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   const standard: string[] = [
     'The record’s content hash: the SHA-256 of record/sealed-fields.canonical.json, with any SHA-256 tool.',
   ];
-  if (ev.proof && ev.batch)
+  if ((ev.proof && ev.batch) || fileRoots.length)
     standard.push(
-      'The path from the proof code to the batch root (proof/inclusion-proof.json): SHA-256 steps, which any SHA-256 tool can redo by SPEC.md.',
+      `The path from the proof code to the batch root (${fileRoots.length ? 'inclusion-proof.json in each proof/backup-file-* folder' : 'proof/inclusion-proof.json'}): SHA-256 steps, which any SHA-256 tool can redo by SPEC.md.`,
     );
-  if (ots) standard.push('The Bitcoin stamp: the OpenTimestamps client, or opentimestamps.org.');
-  if (tsa) standard.push('The RFC 3161 token: OpenSSL (openssl ts), with the authority’s own published files.');
-  if (tx) standard.push('That the Midnight transaction exists, succeeded and when: any Midnight explorer.');
+  if (anyOts) standard.push('The Bitcoin stamp: the OpenTimestamps client, or opentimestamps.org.');
+  if (anyTsa) standard.push('The RFC 3161 token: OpenSSL (openssl ts), with the authority’s own published files.');
+  if (anyTx) standard.push('That the Midnight transaction exists, succeeded and when: any Midnight explorer.');
   if (sigs.length)
     standard.push(
       'The lab signatures: Ed25519, with any Ed25519 tool. The bytes signed follow VeilCore’s published format (SPEC.md).',
@@ -539,7 +704,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   ];
   if (keyBound)
     veilcoreOnly.push('How the record’s key is folded into its proof code (key binding): VeilCore’s own scheme.');
-  if (tx)
+  if (anyTx)
     veilcoreOnly.push(
       'That the Midnight transaction wrote this batch root: reading it needs VeilCore’s compiled contract. VeilCore’s contract wrote it.',
     );
@@ -606,6 +771,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   <h1>${escapeHtml(title)}</h1>
   ${p(`Made ${made} by the VeilCore site, from the holder’s own copy of the record. Bundle format ${ev.format}; record format ${ev.spec.version}.`, 'muted')}
   ${banner ? `<div class="note warn" data-practice="yes">${p(banner)}</div>` : ''}
+  ${twoTx.length ? `<div class="note warn" data-two-transactions="yes">${twoTxHtml}</div>` : ''}
   <div class="note">${p('This page is a printout of what the VeilCore site found when it made this bundle. It runs no code and checks nothing when opened. To check the files yourself, open verify.html in the same folder (it works offline); README.txt explains every file.')}${p('You don’t need to open any link to read this: everything it says is on the page. The addresses and commands below are only for checking it.', 'muted')}</div>
 
   <h2>1. The record as it was sealed</h2>
@@ -613,12 +779,16 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   ${table(sealedRows(fields), 'sealed')}
 
   <h2>2. The dates</h2>
-  ${ots || tsa ? p(`${[ots ? 'Bitcoin' : null, tsa ? 'the timestamp authority’s token' : null, anchor ? 'Midnight' : null].filter(Boolean).join(', then ').replace(/^t/, 'T')}${anchor ? '' : ', then Midnight once it is dated there'}. Each is separate: any one that checks dates the record.`, 'muted') : ''}
+  ${!fileRoots.length && (ots || tsa) ? p(`${[ots ? 'Bitcoin' : null, tsa ? 'the timestamp authority’s token' : null, anchor ? 'Midnight' : null].filter(Boolean).join(', then ').replace(/^t/, 'T')}${anchor ? '' : ', then Midnight once it is dated there'}. Each is separate: any one that checks dates the record.`, 'muted') : ''}
   ${ots ? `<h3>Bitcoin (OpenTimestamps)</h3>${table(bitcoinRows)}${p(`Legal standing: ${CHAIN_STANDING} Bitcoin has run since 2009, and anyone can check the stamp.`, 'muted')}` : ''}
   ${tsa ? `<h3>RFC 3161 token from a Time Stamping Authority</h3>${table(tsaRows)}${p(tsaStanding(tsa.qualified), 'muted')}` : ''}
-  <h3>Midnight</h3>
-  ${table(midnightRows)}
-  ${anchor ? p(`As VeilCore’s registry reported it: nothing in this bundle read it from Midnight for you. Legal standing: ${CHAIN_STANDING} Midnight is a newer public blockchain, and a court may want an expert to read it.`, 'muted') : ''}
+  ${
+    fileRoots.length
+      ? `${p(`Each root the holder’s backup file gives for this record, with what the file gives to date it. Not confirmed with VeilCore’s registry. Each date is separate: any one that checks dates the record.${fd.ots || fd.tx ? ` Legal standing of ${[fd.ots ? 'a Bitcoin stamp' : null, fd.tx ? 'a Midnight date' : null].filter(Boolean).join(' or ')}: ${CHAIN_STANDING}` : ''}${fd.tokens ? ` ${TOKEN_STANDING}` : ''}`, 'muted')}${fileRoots.map(fileRootBlock).join('')}`
+      : `<h3>Midnight</h3>
+  ${table(midnightRows)}`
+  }
+  ${anchor ? p(`${said.replace(/^a/, 'A')}: nothing in this bundle read it from Midnight for you. Legal standing: ${CHAIN_STANDING} Midnight is a newer public blockchain, and a court may want an expert to read it.`, 'muted') : ''}
 
   <h2>3. Proof code and batch</h2>
   ${table(ids)}

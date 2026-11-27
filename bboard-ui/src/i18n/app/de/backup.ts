@@ -173,6 +173,25 @@ export const backup = {
   'app.intake.err.hasHash': 'Seine Rückkehradresse hat bereits einen #-Teil.',
   'app.intake.err.badState': 'Sein Sicherheitswert (state) fehlt oder ist fehlerhaft.',
   'app.backup.fromFileAdded': 'Aus der Datei selbst wiederhergestellte Datensätze: {n}.',
+  'app.filebundle.open': 'Nachweispaket aus einer Sicherungsdatei erstellen',
+  'app.filebundle.what':
+    'Dafür werden die Datumsnachweise in Ihrer Sicherungsdatei verwendet, es geht also auch, wenn VeilCore nicht erreichbar ist. Nichts aus der Datei wird hier aufbewahrt, und im Paket steht, dass es aus Ihrer Sicherungsdatei stammt und nicht mit VeilCore geprüft ist.',
+  'app.filebundle.offline':
+    'VeilCore ist gerade nicht erreichbar. Sie können das Paket stattdessen aus Ihrer Sicherungsdatei erstellen.',
+  'app.filebundle.keptCopy':
+    'VeilCore ist gerade nicht erreichbar, daher wurde dieses Paket aus der in diesem Browser gespeicherten Kopie erstellt. Sie können es auch aus Ihrer Sicherungsdatei erstellen.',
+  'app.filebundle.pick': 'Sicherungsdatei wählen',
+  'app.filebundle.which': 'Datensatz',
+  'app.filebundle.make': 'Paket erstellen',
+  'app.filebundle.makeFor': 'Paket für {name} erstellen',
+  'app.filebundle.noneForRecord':
+    'Diese Sicherungsdatei hat keine Datumsnachweise für diesen Datensatz. Versuchen Sie eine neuere Sicherungsdatei.',
+  'app.filebundle.noneHere':
+    'Keiner der Datensätze in dieser Datei ist schon auf diesem Gerät. Stellen Sie die Datei zuerst wieder her und erstellen Sie dann hier das Paket.',
+  'app.backup.fileIsLasting':
+    'Ihre Sicherungsdatei auf Ihrem eigenen Gerät wird durch das Wiederherstellen nie verändert; bewahren Sie sie auf – sie ist die dauerhafte Kopie.',
+  'app.backup.rootChanged':
+    'Der Server von VeilCore hat für {n} Ihrer Datensätze einen anderen Datumsnachweis geliefert als zuvor. Das darf nie vorkommen. Der erste bleibt erhalten, und bis zu vier spätere je Datensatz sind in dieser Sicherung. Bewahren Sie diese Datei auf und wenden Sie sich an VeilCore.',
   'app.backup.fromFileProblem':
     'Die Datensätze in der Datei konnten nicht wiederhergestellt werden: {why} Ihre Schlüssel sind wiederhergestellt.',
   'app.backup.passkey.err.busy':

@@ -178,6 +178,25 @@ export const backup = {
   'app.intake.err.hasHash': 'Son adresse de retour a déjà une partie #.',
   'app.intake.err.badState': 'Sa valeur de sécurité (state) est absente ou invalide.',
   'app.backup.fromFileAdded': 'Enregistrements récupérés depuis le fichier lui-même : {n}.',
+  'app.filebundle.open': 'Créer un dossier de preuve à partir d’un fichier de sauvegarde',
+  'app.filebundle.what':
+    'Cela utilise les preuves de date contenues dans votre fichier de sauvegarde, donc cela marche même quand VeilCore est injoignable. Rien du fichier n’est gardé ici, et le dossier indique qu’il vient de votre fichier de sauvegarde, sans vérification par VeilCore.',
+  'app.filebundle.offline':
+    'VeilCore est injoignable pour le moment. Vous pouvez créer le dossier à partir de votre fichier de sauvegarde.',
+  'app.filebundle.keptCopy':
+    'VeilCore est injoignable pour le moment : ce dossier a donc été créé à partir de la copie conservée dans ce navigateur. Vous pouvez aussi le créer à partir de votre fichier de sauvegarde.',
+  'app.filebundle.pick': 'Choisir le fichier de sauvegarde',
+  'app.filebundle.which': 'Enregistrement',
+  'app.filebundle.make': 'Créer le dossier',
+  'app.filebundle.makeFor': 'Créer le dossier de {name}',
+  'app.filebundle.noneForRecord':
+    'Ce fichier de sauvegarde n’a pas de preuves de date pour cet enregistrement. Essayez un fichier plus récent.',
+  'app.filebundle.noneHere':
+    'Aucun des enregistrements de ce fichier n’est encore sur cet appareil. Restaurez d’abord le fichier, puis créez le dossier ici.',
+  'app.backup.fileIsLasting':
+    'La restauration ne modifie jamais votre fichier de sauvegarde sur votre propre appareil ; gardez-le : c’est la copie durable.',
+  'app.backup.rootChanged':
+    'Le serveur de VeilCore a donné pour {n} de vos enregistrements une preuve de date différente de celle donnée avant. Cela ne devrait jamais arriver. La première est gardée, et jusqu’à quatre suivantes par enregistrement sont dans cette sauvegarde. Gardez ce fichier et contactez VeilCore.',
   'app.backup.fromFileProblem':
     'Les enregistrements du fichier n’ont pas pu être récupérés : {why} Vos clés sont restaurées.',
   'app.backup.passkey.err.busy': 'Votre autre appareil a sauvegardé au même moment. Cela sera réessayé tout seul.',

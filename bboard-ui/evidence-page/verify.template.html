@@ -85,7 +85,7 @@
       <li>Who holds the <span class="vc-subject">plant</span> or the record now.</li>
       <li>That a signing key belongs to the lab it names. VeilCore doesn’t vouch for anyone, and neither does this page.</li>
       <li>What a lab’s sample was. The lab tested the sample it received under this record. This result doesn’t show who took the sample or that it came from this record’s material, and it applies only to the portion tested.</li>
-      <li>Any date at all, until you find the batch root in the transaction named above (or the Bitcoin stamp checks). Until then the files only agree with each other.</li>
+      <li id="no-date-yet">Any date at all, until a date in this bundle checks: the Midnight transaction, the Bitcoin stamp or the RFC 3161 token. Until then the files only agree with each other.</li>
       <li>That Bitcoin’s network agrees today: this page reaches no network. When this bundle carries the stamped block’s header (<code>proof/bitcoin-headers.json</code>), the page checks the block holds the value the stamp file names, has Bitcoin’s proof of work, and links to a block this page pins; without it, the page only reads the stamp file.</li>
       <li class="vc-not-document">When a lab report was saved to the <span class="vc-subject">plant</span>. That came after sealing and isn’t inside the record’s proof code, so the batch doesn’t date it.</li>
     </ul>
@@ -95,7 +95,7 @@
   <p id="other-files"><code>README.txt</code> explains every file. <code>EXAMINER-SUMMARY.html</code> is a printable summary for a lawyer or examiner: open it and print it to PDF. It checks nothing itself; this page does the checks. <code>DECLARATION-TEMPLATE.txt</code> is sample text for a written declaration about this record and bundle. It is not legal advice: have a lawyer where you are adapt it.</p>
 
   <h2>Check other files</h2>
-  <p>To check the files themselves rather than the copy inside this page, choose them here: <code>evidence.json</code>, or any of <code>record/sealed-fields.json</code>, <code>record/sealed-fields.canonical.json</code>, <code>record/proof-code.txt</code>, <code>proof/inclusion-proof.json</code>, <code>proof/batch-root.txt</code>, <code>proof/root.bin</code>, <code>proof/root.bin.ots</code>, <code>key/key-binding.json</code>, <code>lab/signatures.json</code>, the lab report file, or, for a document record, the document’s own file: this page says whether it is byte for byte one the record seals. Nothing is sent anywhere.</p>
+  <p>To check the files themselves rather than the copy inside this page, choose them here: <code>evidence.json</code>, or any of <code>record/sealed-fields.json</code>, <code>record/sealed-fields.canonical.json</code>, <code>record/proof-code.txt</code>, <span id="other-proof-files"><code>proof/inclusion-proof.json</code>, <code>proof/batch-root.txt</code>, <code>proof/root.bin</code>, <code>proof/root.bin.ots</code></span>, <code>key/key-binding.json</code>, <code>lab/signatures.json</code>, the lab report file, or, for a document record, the document’s own file: this page says whether it is byte for byte one the record seals. Nothing is sent anywhere.</p>
   <input type="file" id="files" multiple aria-label="Choose files to check">
   <div id="filechecks"></div>
 </main>
@@ -385,6 +385,11 @@ return canonicalise;
   // by render, read by the file checks.
   var SUBJECT = 'plant';
 
+  // Whether the bundle names a Midnight transaction of its own (not from a backup file's folders).
+  function L0tx(LK) {
+    return !!(LK.midnight && LK.midnight.some(function (a) { return a.txHash; }));
+  }
+
   function render(ev, report) {
     var rec = ev && ev.record ? ev.record : {};
     var sf = rec.sealedFields && typeof rec.sealedFields === 'object' ? rec.sealedFields : {};
@@ -401,10 +406,92 @@ return canonicalise;
     document.title = 'Check ' + title + ' (offline)';
     var summary = clear('summary');
     summary.appendChild(para(['Record: ', el('strong', null, title)]));
+    var LK = report.lookups || {};
+    if (LK.fromBackupFile) {
+      summary.appendChild(result('bad', 'From the holder’s backup file, not confirmed', [
+        para(['The batch root, the proof that leads to it and its stamps come from the holder’s backup file, not confirmed with VeilCore’s registry. This page checks the files against each other, not that this is the root VeilCore recorded: check the batch root yourself (on Midnight, or with its Bitcoin stamp or timestamp token) before relying on any date here.']),
+      ], 'unconfirmed'));
+    }
+    // Each root the backup file gives (registry.fileRoots): all of them, side by side, none first.
+    var FR = report.fileRoots || [];
+    if (LK.fileRoots && LK.fileRoots.length) {
+      var cards = [para(['From the holder’s backup file, not confirmed with VeilCore’s registry. Each root is in its own folder with all its files; none is ranked first. The Midnight transaction, the Bitcoin stamp or the RFC 3161 token in a folder each dates that folder’s batch root once you check it yourself; nothing here is checked for you.'])];
+      for (var ci = 0; ci < LK.fileRoots.length; ci++) {
+        var cc = LK.fileRoots[ci];
+        var ck = FR[ci] || {};
+        var lines = [
+          'Batch ' + cc.batchId + ', batch root ' + cc.root + ' (' + cc.folder + ')' + (cc.otherTransaction ? ': the same batch root as another folder, with another Midnight transaction VeilCore’s registry gave later (a second date record for this root)' : cc.later ? ': VeilCore’s registry gave this root later, after giving another for the same batch' : '') + '.',
+          ck.proof && ck.proof.status === 'ok' ? 'Its proof leads from this record’s proof code to that root.' : 'Its proof does not check: ' + ((ck.proof && ck.proof.reason) || 'none') + '.',
+          ck.stamp && ck.stamp.status === 'bitcoin' ? 'Its Bitcoin stamp file starts from that root and names block ' + ck.stamp.bitcoin.map(function (x) { return x.height; }).join(', ') + '; check it against Bitcoin (ots verify root.bin.ots in that folder).' : ck.stamp && ck.stamp.status === 'pending' ? 'Its Bitcoin stamp file starts from that root but holds only a promise, not yet a Bitcoin block (in that folder, run ots upgrade root.bin.ots first, which needs the internet once, then ots verify root.bin.ots).' : 'No Bitcoin stamp file that starts from that root.',
+          (ck.tokens ? ck.tokens + ' RFC 3161 token' + (ck.tokens === 1 ? '' : 's') + ' in that folder (openssl ts -verify).' : 'No RFC 3161 token.'),
+        ];
+        if (cc.midnight && cc.midnight.txHash && cc.midnight.testNetwork) lines.push('Its transaction is on a test network. A test network can be reset and its dates carry no weight: treat that transaction as practice data.');
+        if (cc.midnight && cc.midnight.txHash) lines = lines.concat(VeilcoreVerify.midnightSteps(cc.midnight));
+        else lines.push('The backup file names no Midnight transaction for it.');
+        cards.push(el('h3', null, 'From the backup file: ' + cc.folder));
+        cards.push(list(lines));
+      }
+      summary.appendChild(result('info', 'From the holder’s backup file', cards, 'from-file'));
+    }
+    if (LK.disagree) {
+      summary.appendChild(result('bad', 'More than one batch root', [
+        para(['The holder’s backup file gives more than one batch root for this record, and all of them are in this bundle, none ranked first. Check each one yourself (on Midnight, or with its Bitcoin stamp or timestamp token); rely only on a root that a check you make yourself dates.']),
+        list((LK.registryRoots || []).map(function (r) { return 'VeilCore’s registry gave the holder’s browser another root for this batch: ' + r + '.'; })),
+      ], 'disagree'));
+    }
+    // More than one Midnight transaction for one root (review 10 of PR #233): each named, none
+    // ranked first; each folder's look-up steps are in its card above.
+    var TT = LK.twoTx || [];
+    for (var ti = 0; ti < TT.length; ti++) {
+      summary.appendChild(result('bad', 'Two different date records for one batch root', [
+        para(['VeilCore’s registry gave two different date records for the same batch root, which should never happen: the holder’s backup file names more than one Midnight transaction for batch root ' + TT[ti].root + '. Each is in its own folder, none ranked first, and this page does not say which is genuine. Look up each one, with the steps in its folder’s card above; rely only on one that you check yourself wrote this batch root.']),
+        list(TT[ti].folders.map(function (x) { return x.folder + ': transaction ' + x.midnight.txHash + ' on ' + networkName(x.midnight.network) + (x.otherTransaction ? ', given later' : ', given first') + '.'; })),
+      ], 'two-transactions'));
+    }
+    if (LK.registryOther && LK.registryOther.length && LK.midnight.length) {
+      summary.appendChild(result('bad', 'VeilCore’s registry named something else since', [
+        para(['This bundle describes transaction ' + LK.midnight[0].txHash + ' on ' + networkName(LK.midnight[0].network) + ', the first main-network transaction VeilCore’s registry gave the holder’s browser for this batch root. The registry ' + LK.registryOther.join(', and ') + ' for it, which an honest registry never does. Rely only on a transaction that you check yourself wrote this batch root.']),
+      ], 'registry-since'));
+    }
+    if (LK.registryRoot) summary.appendChild(result('bad', 'VeilCore’s registry gives another root now', [para([LK.registryRoot])], 'registry-root'));
+    // What this does not show: no date until one of the bundle's own dates checks (polish 1).
+    var FRall = report.fileRoots || [];
+    var fileTx = (LK.fileRoots || []).some(function (x) { return x.midnight && x.midnight.txHash; });
+    var anyTx = L0tx(LK) || fileTx;
+    var anyBtc = !!LK.bitcoin || FRall.some(function (x) { return x.stamp && (x.stamp.status === 'bitcoin' || x.stamp.status === 'pending'); });
+    var anyTok = !!(ev.batch && ev.batch.rfc3161 && ev.batch.rfc3161.available) || FRall.some(function (x) { return x.tokens > 0; });
+    var fromFolders = (LK.fileRoots || []).length > 0;
+    var until = [
+      anyTx ? (fromFolders ? 'you find a folder’s batch root in the Midnight transaction that folder names' : 'you find the batch root in the Midnight transaction named above') : null,
+      anyBtc ? (fromFolders ? 'a folder’s Bitcoin stamp checks' : 'the Bitcoin stamp checks') : null,
+      anyTok ? (fromFolders ? 'a folder’s RFC 3161 token checks' : 'the RFC 3161 token checks') : null,
+    ].filter(Boolean);
+    document.getElementById('no-date-yet').textContent = until.length
+      ? 'Any date at all, until ' + until.join(', or ') + '. Until then the files only agree with each other.'
+      : 'Any date at all: nothing in this bundle dates the record yet (no Midnight transaction, Bitcoin stamp or RFC 3161 token). The files only agree with each other.';
+    // Check other files: a bundle made from a backup file keeps the proof files in each folder (polish 2).
+    var pf = clear('other-proof-files');
+    var names = ['inclusion-proof.json', 'batch-root.txt', 'root.bin', 'root.bin.ots'];
+    for (var ni = 0; ni < names.length; ni++) {
+      if (ni) pf.appendChild(document.createTextNode(fromFolders && ni === names.length - 1 ? ' or ' : ', '));
+      pf.appendChild(el('code', null, (fromFolders ? '' : 'proof/') + names[ni]));
+    }
+    if (fromFolders) {
+      pf.appendChild(document.createTextNode(' (in '));
+      for (var fi = 0; fi < LK.fileRoots.length; fi++) {
+        if (fi) pf.appendChild(document.createTextNode(fi === LK.fileRoots.length - 1 ? ' or ' : ', '));
+        pf.appendChild(el('code', null, LK.fileRoots[fi].folder + '/'));
+      }
+      pf.appendChild(document.createTextNode(')'));
+    }
     var D = report.datable;
     if (D.failed.length) {
       summary.appendChild(result('bad', 'Don’t use this to date the record', [
         para(['These files don’t agree with each other: ' + D.failed.join('; ') + '. Whatever date a transaction or stamp shows, it isn’t this record’s. Ask whoever gave you the bundle for an unchanged copy.']),
+      ], 'result'));
+    } else if (D.notBatched && report.lookups && report.lookups.fileRoots && report.lookups.fileRoots.length) {
+      summary.appendChild(result('info', 'The record checks; only the holder’s backup file dates it', [
+        para(['Its proof code matches the sealed fields. What dates it here comes from the holder’s backup file and isn’t confirmed: each root is shown above, with its own look-up.']),
       ], 'result'));
     } else if (D.notBatched) {
       summary.appendChild(result('info', 'The record checks, but nothing dates it yet', [
@@ -454,6 +541,11 @@ return canonicalise;
           ? 'The record’s proof code is in batch ' + (p.batchId || '(unnamed)') + '. It is the batch’s only record, so its proof code is the batch root itself.'
           : 'The record’s proof code is in batch ' + (p.batchId || '(unnamed)') + ': the proof’s ' + p.depth + ' step' + (p.depth === 1 ? '' : 's') + ' lead' + (p.depth === 1 ? 's' : '') + ' from it to the batch root, one code that stands for every record in the batch.']),
         facts([['Batch root', hex(p.root)]]),
+      ], 'proof'));
+    } else if (p.status === 'none' && report.lookups && report.lookups.fileRoots && report.lookups.fileRoots.length) {
+      // Made from a backup file: each folder's proof is checked above, under "From the holder’s backup file".
+      checks.appendChild(result('info', 'Proofs from the holder’s backup file', [
+        para(['Each proof the holder’s backup file gives is in its own proof/backup-file-* folder, checked above under “From the holder’s backup file”.']),
       ], 'proof'));
     } else if (p.status === 'none') {
       checks.appendChild(result('info', 'Not in a batch yet', [
@@ -512,6 +604,8 @@ return canonicalise;
       lk.appendChild(result('bad', 'Don’t use this to date the record: ' + D.failed.join('; '), [
         para(['The steps to look the date up are not shown, because the files in this bundle don’t agree with each other.']),
       ], 'lookups-withheld'));
+    } else if ((!L.root || D.notBatched) && L.fileRoots && L.fileRoots.length) {
+      lk.appendChild(para(['What to look up for each root from the holder’s backup file is above, under “From the holder’s backup file”.']));
     } else if (!L.root || D.notBatched) {
       lk.appendChild(para(['Nothing to look up yet: the record isn’t in a batch.']));
     } else {
@@ -527,7 +621,9 @@ return canonicalise;
         }
         var extra = [];
         if (a.testNetwork) extra.push(para(['This is a test network. It can be reset, and its dates carry no weight: treat this record as practice data.']));
-        extra.push(para(['VeilCore’s registry reported this transaction. Nobody has checked it on the chain for you: that is what these steps are for.']));
+        extra.push(para([L.fromBackupFile
+          ? 'Only the holder’s backup file names this transaction: it is not confirmed with VeilCore’s registry or Midnight. Nobody has checked it on the chain for you: that is what these steps are for.'
+          : 'VeilCore’s registry reported this transaction. Nobody has checked it on the chain for you: that is what these steps are for.']));
         lk.appendChild(result('info', head, [list(VeilcoreVerify.midnightSteps(a))].concat(extra), 'lookup-midnight'));
       }
       if (L.bitcoin || report.stamp) {
@@ -551,11 +647,11 @@ return canonicalise;
           shows = 'The stamp file is not about this batch root: ' + st.reason + '. It dates nothing here.';
         } else {
           shows = (st ? 'This page couldn’t read the stamp file (' + st.reason + '). ' : 'This page hasn’t read the stamp file: choose proof/root.bin.ots below to read it. ') +
-            'VeilCore’s registry reported the stamp as ' + (b.status === 'bitcoin' ? 'in Bitcoin block ' + (b.bitcoinBlockHeight || '(not given)') : 'pending, not yet in a Bitcoin block') + ' when the bundle was made.';
+            (L.fromBackupFile ? 'The holder’s backup file says the stamp is ' : 'VeilCore’s registry reported the stamp as ') + (b.status === 'bitcoin' ? 'in Bitcoin block ' + (b.bitcoinBlockHeight || '(not given)') : 'pending, not yet in a Bitcoin block') + ' when the bundle was made.';
         }
         if (st && (st.status === 'bitcoin' || st.status === 'pending') && b.status === 'bitcoin' && b.bitcoinBlockHeight &&
             !(st.bitcoin || []).some(function (x) { return x.height === b.bitcoinBlockHeight; })) {
-          shows += ' VeilCore’s registry reported block ' + b.bitcoinBlockHeight + ', which the file doesn’t name; go by the file.';
+          shows += (L.fromBackupFile ? ' The holder’s backup file says block ' : ' VeilCore’s registry reported block ') + b.bitcoinBlockHeight + ', which the file doesn’t name; go by the file.';
         }
         var pendingSteps = !(st && st.status === 'bitcoin');
         lk.appendChild(result(kind, 'Bitcoin stamp file', [list(VeilcoreVerify.bitcoinSteps(pendingSteps)), stepPara(shows)], 'lookup-bitcoin'));
@@ -712,7 +808,7 @@ return canonicalise;
             : st.reason ? 'It ' + (st.status === 'other-root' ? 'is not about this batch root: ' : 'couldn’t be read: ') + st.reason + '.' : 'It couldn’t be read.';
         out.appendChild(result(f.ok ? 'ok' : 'bad', f.ok ? f.name + ' is a stamp file for this batch root' : f.name + ' is not a stamp file for this batch root', [para([words])], 'file'));
       } else if (f.is === 'root.bin') {
-        out.appendChild(result(f.ok ? 'ok' : 'bad', f.ok ? 'root.bin is the batch root' : 'root.bin is not the batch root', [para(['SHA-256 of the file: ', hex(f.sha256)])], 'file'));
+        out.appendChild(result(f.ok ? 'ok' : 'bad', f.ok ? 'root.bin is the batch root' + (f.folders && f.folders.length ? ' in ' + f.folders.join(' and ') : '') : 'root.bin is not the batch root', [para(['SHA-256 of the file: ', hex(f.sha256)])], 'file'));
       } else if (f.is === 'sealed file') {
         out.appendChild(result(f.ok ? 'ok' : 'bad', f.ok ? f.name + ' is byte for byte ' + (f.sealedName ? '“' + plain(f.sealedName) + '”' : 'a file') + ', sealed in this record' : f.name + ' doesn’t match any file sealed in this record. A match needs every byte to be the same.', [para(['Its SHA-256: ', hex(f.sha256)])], 'file'));
       } else if (f.is === 'lab report?') {

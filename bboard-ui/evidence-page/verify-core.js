@@ -685,7 +685,7 @@ var VeilcoreVerify = (function () {
     return out;
   }
 
-  function anchorLookup(a, root, current, contracts) {
+  function anchorLookup(a, root, current, contracts, fromBackupFile) {
     if (!isObject(a)) return null;
     var network = typeof a.network === 'string' ? a.network : 'unknown';
     var pinned = pinnedOn(contracts, network);
@@ -710,7 +710,33 @@ var VeilcoreVerify = (function () {
       onList: pinned && address ? entry !== null : null,
       contractVersion: entry ? entry.version : null,
       pinned: pinned || [],
+      // The bundle's batch data came only from the holder's backup file (registry.source
+      // 'backup-file'): never said to be VeilCore's registry's report.
+      fromBackupFile: fromBackupFile === true ? true : undefined,
     };
+  }
+
+  /** "transaction … on Midnight's main network", or "no Midnight transaction" (bundle.ts txWords). */
+  function txWords(a) {
+    return isObject(a) && isHex64(a.txHash) ? 'transaction ' + a.txHash + ' on ' + networkWords(a.network) : 'no Midnight transaction';
+  }
+
+  /**
+   * Rule A (bundle.ts registryOtherWords): the bundle describes the main-network transaction the
+   * holder's browser kept first for this root; what VeilCore's registry named for it since.
+   */
+  function registryOther(registry) {
+    var out = [];
+    var later = Array.isArray(registry.laterAnchors) ? registry.laterAnchors.filter(isObject) : [];
+    if (later.length) out.push('later gave the holder’s browser ' + later.map(txWords).join(', and '));
+    if (Object.prototype.hasOwnProperty.call(registry, 'registryNow')) out.push('now names ' + txWords(registry.registryNow));
+    return out;
+  }
+
+  /** Rule A for roots (bundle.ts otherRootLine): another batch root the registry gives now, or null. */
+  function registryRoot(registry) {
+    var o = isObject(registry.registryRoot) && isHex64(registry.registryRoot.root) ? registry.registryRoot : null;
+    return o ? 'VeilCore’s registry now gives another batch root, ' + o.root + ' (' + txWords(o.anchor) + '), for this record; this bundle describes the first it gave the holder’s browser. An honest registry never does this.' : null;
   }
 
   function lookups(ev, contracts) {
@@ -718,17 +744,84 @@ var VeilcoreVerify = (function () {
     var proof = isObject(ev.proof) ? ev.proof : null;
     var root = batch && isHex64(batch.root) ? batch.root : proof && isHex64(proof.root) ? proof.root : null;
     var midnight = [];
+    var registry = isObject(ev.registry) ? ev.registry : {};
+    var source = typeof registry.source === 'string' ? registry.source : null;
+    var fromFile = source === 'backup-file';
     var current = (batch && batch.anchor) || (proof && proof.anchor) || null;
-    var c = anchorLookup(current, root, true, contracts);
+    var c = anchorLookup(current, root, true, contracts, fromFile);
     if (c && c.txHash) midnight.push(c);
     var earlier = batch && Array.isArray(batch.earlierAnchors) ? batch.earlierAnchors : [];
     for (var i = 0; i < earlier.length; i++) {
-      var e = anchorLookup(earlier[i], root, false, contracts);
+      var e = anchorLookup(earlier[i], root, false, contracts, fromFile);
       if (e && e.txHash) midnight.push(e);
     }
     var ots = batch && isObject(batch.opentimestamps) ? batch.opentimestamps : null;
+    // Each root the holder's backup file gives for the record (registry.fileRoots), each looked
+    // up the same way, none ranked first.
+    var fileRoots = [];
+    var secs = fromFile && Array.isArray(registry.fileRoots) ? registry.fileRoots : [];
+    for (var j = 0; j < secs.length && j < 16; j++) {
+      var x = secs[j];
+      if (!isObject(x) || !isHex64(x.root)) continue;
+      var folder = typeof x.folder === 'string' ? x.folder : '';
+      var files = Array.isArray(x.files) ? x.files.filter(function (f) { return typeof f === 'string'; }) : [];
+      var m = anchorLookup(x.anchor, x.root, true, contracts, true);
+      // The script that reads this root from Midnight is in the root's own folder, and is
+      // written only for a network it can read (bundle.ts inFolder says the same in README.txt).
+      if (m) m.script = files.indexOf(folder + '/check-on-midnight.mjs') >= 0 ? folder + '/check-on-midnight.mjs' : false;
+      fileRoots.push({
+        index: j,
+        folder: folder,
+        batchId: typeof x.batchId === 'string' ? x.batchId : '',
+        root: x.root,
+        files: files,
+        // A root the registry gave later, after giving another for the same batch.
+        later: x.later === true,
+        // The same root as an earlier folder, with another Midnight transaction the registry gave later.
+        otherTransaction: x.otherTransaction === true,
+        midnight: m,
+      });
+    }
+    // Each root the file names more than one Midnight transaction for (review 10 of PR #233):
+    // every one is named, none ranked first.
+    var txByRoot = {};
+    var txOrder = [];
+    for (var t = 0; t < fileRoots.length; t++) {
+      var fr = fileRoots[t];
+      if (!fr.midnight || !fr.midnight.txHash) continue;
+      var key = fr.batchId + ' ' + fr.root;
+      if (!txByRoot[key]) {
+        txByRoot[key] = [];
+        txOrder.push(key);
+      }
+      txByRoot[key].push(fr);
+    }
+    var twoTx = [];
+    for (var u = 0; u < txOrder.length; u++) {
+      var group = txByRoot[txOrder[u]];
+      var seen = {};
+      for (var v = 0; v < group.length; v++) seen[group[v].midnight.txHash] = true;
+      if (Object.keys(seen).length > 1) twoTx.push({ root: group[0].root, folders: group });
+    }
+    var distinct = {};
+    for (var q = 0; q < fileRoots.length; q++) distinct[fileRoots[q].batchId + ' ' + fileRoots[q].root] = true;
+    var registryRoots = Array.isArray(registry.registryRoots) ? registry.registryRoots.filter(isHex64) : [];
+    for (var r = 0; r < registryRoots.length; r++) distinct['registry ' + registryRoots[r]] = true;
     return {
       root: root,
+      // Where the batch data came from (evidence.json registry.source): 'backup-file' means only
+      // the holder's backup file says it, not confirmed with VeilCore's registry or Midnight.
+      source: source,
+      fromBackupFile: fromFile,
+      fileRoots: fileRoots,
+      registryRoots: registryRoots,
+      // More than one root from the backup file (and the registry's).
+      disagree: Object.keys(distinct).length > 1,
+      // More than one Midnight transaction for one root from the backup file.
+      twoTx: twoTx,
+      // What VeilCore's registry named for this root since the transaction described here (rule A).
+      registryOther: fromFile ? [] : registryOther(registry),
+      registryRoot: fromFile ? null : registryRoot(registry),
       midnight: midnight,
       // The registry's report of the stamp, named as such; what the file itself shows is readStamp's.
       bitcoin: ots && ots.available ? { status: ots.status === 'bitcoin' ? 'bitcoin' : 'pending', file: ots.file || 'proof/root.bin.ots', bitcoinBlockHeight: typeof ots.bitcoinBlockHeight === 'number' ? ots.bitcoinBlockHeight : null } : null,
@@ -773,7 +866,7 @@ var VeilcoreVerify = (function () {
       ? 'Open the Midnight explorer for ' + networkWords(a.network) + ': ' + a.explorer + ' (type the address in yourself).'
       : 'Open a Midnight explorer for ' + networkWords(a.network) + '.');
     out.push('Search for transaction ' + a.txHash + '.' + (a.blockHeight !== null || when
-      ? ' VeilCore’s registry reports it is' + (a.blockHeight !== null ? ' in block ' + a.blockHeight : '') + (when ? (a.blockHeight !== null ? ',' : '') + ' at ' + when : '') + '; the explorer’s own block and time are the ones to rely on.'
+      ? ' ' + (a.fromBackupFile ? 'The holder’s backup file says' : 'VeilCore’s registry reported') + ' it is' + (a.blockHeight !== null ? ' in block ' + a.blockHeight : '') + (when ? (a.blockHeight !== null ? ',' : '') + ' at ' + when : '') + '; the explorer’s own block and time are the ones to rely on.'
       : ''));
     var listed = a.pinned.length ? ' (VeilCore’s contracts on ' + networkWords(a.network) + ': ' + pinnedWords(a) + ')' : '';
     if (a.onList)
@@ -787,7 +880,12 @@ var VeilcoreVerify = (function () {
     if (v2 && a.network === 'mainnet')
       out.push((a.onList ? '' : 'If it called version 2: ') + 'VeilCore contract version 2 is deployed on mainnet for testing by VeilCore. It is not yet independently reviewed and not for your records.');
     out.push('Check that it wrote this batch root: ' + a.root + '. The batch root is one code that stands for every record in the batch; this record’s proof leads to it.');
-    out.push('We haven’t confirmed that any Midnight explorer shows the batch root: it sits inside the contract’s state after the call, not in plain text. If yours doesn’t show it, we know of no way to see it without running a command. A technical person can run proof/check-on-midnight.mjs (README.txt, “For technical readers”, says how): it asks a Midnight indexer directly, with no VeilCore server involved, though the code it runs is VeilCore’s published code. This record’s check page on VeilCore’s site does the same look-up in your browser, but that page is VeilCore’s too.');
+    // a.script: a root from a backup file names its own folder's script, or false where none is
+    // written for its network (bundle.ts inFolder); otherwise the bundle's proof/ script.
+    var script = a.script === false
+      ? 'This bundle has no script that reads it for this network.'
+      : 'A technical person can run ' + (typeof a.script === 'string' ? a.script : 'proof/check-on-midnight.mjs') + ' (README.txt, “For technical readers”, says how): it asks a Midnight indexer directly, with no VeilCore server involved, though the code it runs is VeilCore’s published code.';
+    out.push('We haven’t confirmed that any Midnight explorer shows the batch root: it sits inside the contract’s state after the call, not in plain text. If yours doesn’t show it, we know of no way to see it without running a command. ' + script + ' This record’s check page on VeilCore’s site does the same look-up in your browser, but that page is VeilCore’s too.');
     out.push('If the transaction succeeded, called that contract and wrote that root, this record existed, unchanged, by that transaction’s time: whoever had it sealed held this record by then. If any of it doesn’t match, nothing here dates the record.');
     return out;
   }
@@ -850,17 +948,49 @@ var VeilcoreVerify = (function () {
     out.datable = datable(out);
     var embeddedOts = opts && opts.ots instanceof Uint8Array ? opts.ots : null;
     if (embeddedOts) out.stamp = await readStamp(embeddedOts, out.lookups.root);
+    // Each root's own checks: its proof leads from this record to its root, and its stamp file
+    // (in evidence.json) starts from that root.
+    out.fileRoots = [];
+    var cs = out.lookups.fileRoots;
+    var raw = isObject(ev.registry) && Array.isArray(ev.registry.fileRoots) ? ev.registry.fileRoots : [];
+    for (var ci = 0; ci < cs.length; ci++) {
+      var src = raw[cs[ci].index] || {};
+      var otsBytes = null;
+      if (typeof src.ots === 'string') {
+        try {
+          otsBytes = Uint8Array.from(atob(src.ots), function (ch) { return ch.charCodeAt(0); });
+        } catch (e) {
+          otsBytes = null;
+        }
+      }
+      out.fileRoots.push({
+        proof: await checkProof(src.proof, fingerprint, cs[ci].root),
+        stamp: otsBytes ? await readStamp(otsBytes, cs[ci].root) : null,
+        tokens: typeof src.tokens === 'number' ? src.tokens : 0,
+      });
+    }
     var list = Array.isArray(files) ? files : [];
+    // The batch roots a chosen root.bin or stamp file may be about: the bundle's, then each folder's.
+    var knownRoots = [];
+    if (out.lookups.root) knownRoots.push(out.lookups.root);
+    for (var kf = 0; kf < cs.length; kf++) if (knownRoots.indexOf(cs[kf].root) < 0) knownRoots.push(cs[kf].root);
     for (var k = 0; k < list.length; k++) {
       var f = list[k];
       var sha = await sha256Hex(f.bytes);
       var entry = { name: f.name, sha256: sha, is: 'other' };
       if (/(^|\/)root\.bin$/.test(f.name)) {
         entry.is = 'root.bin';
-        entry.ok = out.lookups.root !== null && f.bytes.length === 32 && toHex(f.bytes) === out.lookups.root;
+        entry.ok = f.bytes.length === 32 && knownRoots.indexOf(toHex(f.bytes)) >= 0;
+        // Which folders' batch root it is, for a bundle made from a backup file (review 11, polish 3).
+        entry.folders = entry.ok ? cs.filter(function (x) { return x.root === toHex(f.bytes); }).map(function (x) { return x.folder; }) : [];
       } else if (/(^|\/)root\.bin\.ots$/.test(f.name)) {
         entry.is = 'root.bin.ots';
-        entry.stamp = await readStamp(f.bytes, out.lookups.root);
+        // The bundle's root, or (a bundle made from a backup file) any folder's root.
+        entry.stamp = await readStamp(f.bytes, knownRoots[0] || null);
+        for (var kr = 1; kr < knownRoots.length && !(entry.stamp.status === 'bitcoin' || entry.stamp.status === 'pending'); kr++) {
+          var again = await readStamp(f.bytes, knownRoots[kr]);
+          if (again.status === 'bitcoin' || again.status === 'pending') entry.stamp = again;
+        }
         entry.ok = entry.stamp.status === 'bitcoin' || entry.stamp.status === 'pending';
         if (!out.stamp) out.stamp = entry.stamp;
       } else if (record && isObject(record.sealedFields) && Array.isArray(record.sealedFields.files)) {

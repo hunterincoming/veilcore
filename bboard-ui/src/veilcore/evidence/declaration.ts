@@ -10,7 +10,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { isNumber, isString } from '../json';
-import type { Evidence, SignatureLine } from './bundle';
+import {
+  fileDating,
+  fileDatingNote,
+  fileRootAnchor,
+  fileRootGiven,
+  fileRootsDisagree,
+  fileTxConflicts,
+  registryOtherWords,
+  otherRootLine,
+  type Evidence,
+  type SignatureLine,
+} from './bundle';
 import { networkWords, oneLine, sealedNameOf, subjectOf, utcWords, wrap } from './words';
 import { CUSTODY_LABELS, SEAL_WORDS } from './examiner';
 
@@ -23,6 +34,16 @@ const hexOf = (b: Uint8Array): string => Array.from(b, (x) => x.toString(16).pad
 const sha256Hex = async (bytes: Uint8Array): Promise<string> =>
   hexOf(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes as unknown as BufferSource)));
 
+/**
+ * The eIDAS note's last part: only the Midnight transaction and the Bitcoin stamp this bundle
+ * has are named (review 9 of PR #233: a bundle without one named it anyway).
+ */
+const notQualified = (tx: boolean, ots: boolean): string => {
+  const has = [tx ? 'Midnight transaction' : null, ots ? 'Bitcoin stamp' : null].filter((x): x is string => !!x);
+  if (!has.length) return '';
+  const one = has.length === 1;
+  return ` The ${has.join(' and the ')} in this bundle ${one ? 'is not a qualified time stamp' : 'are not qualified time stamps'}. A court may still accept ${one ? 'it' : 'them'}, and weighs ${one ? 'it' : 'them'} case by case with the rest of the evidence.`;
+};
 /**
  * The template. `files` are the bundle's other files, by their path inside the bundle
  * folder (not this one): Schedule A lists each with its SHA-256.
@@ -47,6 +68,13 @@ export const declarationText = async (
   const made = utcWords(ev.createdAt) ?? ev.createdAt;
   const okSigs = sigs.filter((s) => s.ok);
   const custody = ev.custody ?? [];
+  // Made from the holder's backup file (review 8 of PR #233): what dates the record is in the
+  // roots the file gives, each in its own folder, not in a batch the registry confirmed.
+  const fd = fileDating(ev);
+  const fileRoots = fd.roots;
+  const distinctRoots = new Set(fileRoots.map((c) => `${c.batchId} ${c.root}`)).size;
+  const tstFiles = (n: number): string[] =>
+    n === 1 ? ['root.tst'] : Array.from({ length: n }, (_, i) => `root-${i + 1}.tst`);
 
   const schedule: string[] = [];
   for (const path of Object.keys(files).sort()) {
@@ -120,7 +148,14 @@ export const declarationText = async (
     '',
     'Courts and agencies differ on what form a declaration takes: a declaration under penalty of perjury, a sworn affidavit before a notary, a statutory declaration, or a form of their own. The closing wording below is the US federal form (28 U.S.C. 1746). The notes at the end say where the structure comes from. VeilCore does not vouch for the record, the signer, or any lab.',
   );
-  if (test) {
+  if (fileRoots.length) {
+    add(
+      '',
+      "NOTE: this bundle was made from the holder's backup file. Its batch roots, proofs and stamps come from that file and are not confirmed with VeilCore's registry.",
+    );
+    const note = fileDatingNote(ev);
+    if (note) add(`NOTE: ${t(note).replace(/^The holder’s/, "the holder's")}`);
+  } else if (test) {
     add(
       '',
       anchor
@@ -173,6 +208,21 @@ export const declarationText = async (
         `   ${tx}`,
         '   [On [date] I / ___ looked that transaction up on [explorer or indexer] and saw that it succeeded, that it called contract [address], and that it was in block [number] at [time]. / I have not looked it up myself.]',
       );
+      const other = registryOtherWords(ev, 'my browser');
+      if (other)
+        add(
+          `   That is the first main-network transaction VeilCore's registry gave my browser for this batch root. The registry ${t(other)} for it, which an honest registry never does.`,
+        );
+      const root = otherRootLine(ev, true);
+      if (root) add(`   ${t(root)}`);
+      if (
+        isString(ev.registry.registryNow?.txHash) ||
+        ev.registry.laterAnchors?.length ||
+        isString(ev.registry.registryRoot?.anchor?.txHash)
+      )
+        add(
+          '   [On [date] I / ___ looked up each other transaction named here on [explorer or indexer]. Result for each: ___. / I have not looked them up myself.]',
+        );
     } else {
       add('   The batch had not been recorded on a network when this bundle was made.');
     }
@@ -182,6 +232,44 @@ export const declarationText = async (
       );
     }
     add('');
+  } else if (fileRoots.length) {
+    add(
+      `3. How the record was dated. This bundle was made from my backup file of the record, not with VeilCore's registry. [I made that backup file on the VeilCore website on [date], in [browser] on [device], and have kept it [where].] The backup file gives ${distinctRoots === fileRoots.length ? `${fileRoots.length === 1 ? 'one batch root' : `${fileRoots.length} batch roots`} for the record's proof code, ${fileRoots.length === 1 ? 'in its own folder' : 'each in its own folder'} of the bundle.` : `${distinctRoots === 1 ? 'one batch root' : `${distinctRoots} batch roots`} for the record's proof code, in ${fileRoots.length} folders of the bundle: one for each Midnight transaction it names for a root.`} The website checked in my browser that the proof in ${fileRoots.length === 1 ? 'that folder leads from the proof code to its' : "each folder leads from the proof code to that folder's"} batch root. None of this has been confirmed with VeilCore's registry.`,
+    );
+    for (const c of fileRoots) {
+      const a = fileRootAnchor(c);
+      add(`   - ${t(c.folder)}: batch ${t(c.batchId)}${fileRootGiven(c)}. Its batch root is:`, `     ${t(c.root)}`);
+      if (a)
+        add(
+          `     The backup file says this batch root was recorded on ${t(networkWords(a.network))}${isNumber(a.blockHeight) ? `, in block ${a.blockHeight}` : ''}${utcWords(a.anchoredAt) ? `, at ${utcWords(a.anchoredAt)}` : ''}, in transaction:`,
+          `     ${t(a.txHash)}`,
+          '     [On [date] I / ___ looked that transaction up on [explorer or indexer] and saw that it succeeded, that it called contract [address], and that it was in block [number] at [time]. / I have not looked it up myself.]',
+        );
+      else add('     The backup file names no Midnight transaction for this batch root.');
+      if (c.opentimestamps.available)
+        add(
+          `     The backup file has a Bitcoin stamp file (OpenTimestamps) for this batch root (${t(c.folder)}/root.bin.ots). When the bundle was made, that file ${c.opentimestamps.status === 'bitcoin' ? `named Bitcoin block ${isNumber(c.opentimestamps.bitcoinBlockHeight) ? c.opentimestamps.bitcoinBlockHeight : '[not given]'}` : 'was pending, not yet in a Bitcoin block'}. [Result of checking it, if done: ___]`,
+        );
+      if (c.tokens)
+        add(
+          `     The backup file has ${c.tokens === 1 ? 'an RFC 3161 time stamp token' : `${c.tokens} RFC 3161 time stamp tokens`} over this batch root (${tstFiles(
+            c.tokens,
+          )
+            .map((f) => `${t(c.folder)}/${f}`)
+            .join(
+              ', ',
+            )}). The website checked in my browser that ${c.tokens === 1 ? 'it' : 'each'} matches this batch root and is signed by a timestamp authority the website pins. [Result of checking it with OpenSSL, if done: ___]`,
+        );
+    }
+    if (fileRootsDisagree(ev))
+      add(
+        "   My backup file gives more than one batch root for this record: VeilCore's registry gave another one later, which an honest registry never does. Each is in its own folder of the bundle, listed above.",
+      );
+    for (const l of fileTxConflicts(ev))
+      add(
+        `   My backup file names ${l.length} Midnight transactions for batch root ${t(l[0].root)} (${l.map((c) => `${t(c.folder)}: transaction ${t(String(fileRootAnchor(c)?.txHash))}`).join('; ')}). VeilCore's registry gave ${l.length === 2 ? 'both' : 'all of them'} for this one batch root, which an honest registry never does. Each is listed above with what I found when I looked it up.`,
+      );
+    add('');
   } else {
     add(
       '3. How the record was dated. When this bundle was made the record was not yet in a batch, so nothing in the bundle dates it.',
@@ -189,7 +277,13 @@ export const declarationText = async (
     );
   }
   add(
-    `4. How the files in the bundle were made. On ${made}, I [or: ___] downloaded this bundle, the folder ${t(ev.record.id)}-evidence, from the VeilCore website's page for this record, in [browser] on [device]. The website made the files from my browser's copy of the record and from what VeilCore's registry returned. It checked that the record's proof code matches its contents before making them.`,
+    `4. How the files in the bundle were made. On ${made}, I [or: ___] downloaded this bundle, the folder ${t(ev.record.id)}-evidence, from the VeilCore website's page for this record, in [browser] on [device]. ${
+      fileRoots.length
+        ? "The website made the files from my browser's copy of the record and from my backup file, read in my browser; it did not get the batch roots, proofs or stamps from VeilCore's registry. It checked"
+        : ev.registry.source === 'this-device'
+          ? "VeilCore's registry could not be reached, so the website made the files from my browser's copy of the record and from what VeilCore's registry had returned to that browser before, kept there. It checked"
+          : "The website made the files from my browser's copy of the record and from what VeilCore's registry returned. It checked"
+    } that the record's proof code matches its contents before making them.`,
   );
   if (ev.labReport?.fileIncluded)
     add(
@@ -247,7 +341,27 @@ export const declarationText = async (
     '   a. I computed the SHA-256 of each file with [tool and version]. [They match / do not match] Schedule A.',
     '   b. I opened verify.html with the network off in [browser and version]. It showed: [for example "The files agree with each other", "Proof code matches", "Proof leads to the batch root"; list every result shown].',
   );
-  if (tx && anchor) {
+  if (fileRoots.length) {
+    let letter = 2;
+    const step = (): string => String.fromCharCode(97 + letter++);
+    const looked = fileRoots.filter((c) => fileRootAnchor(c));
+    if (looked.length)
+      for (const c of looked) {
+        const a = fileRootAnchor(c)!;
+        add(
+          `   ${step()}. On [date] I looked up transaction ${t(a.txHash)} on ${t(networkWords(a.network))} using [explorer or indexer, and its address]. It [succeeded / did not], called contract [address], was in block [number] at [time], and [did / did not] write the batch root in ${t(c.folder)}.`,
+        );
+      }
+    else add(`   ${step()}. [The look-up of the network transaction, once there is one.]`);
+    for (const c of fileRoots.filter((x) => x.opentimestamps.available))
+      add(
+        `   ${step()}. I ran [ots verify ${t(c.folder)}/root.bin.ots, OpenTimestamps client version ___ / opentimestamps.org] on [date]. Result: [___].`,
+      );
+    for (const c of fileRoots.filter((x) => x.tokens))
+      add(
+        `   ${step()}. I ran [openssl ts -verify -data ${t(c.folder)}/root.bin -in ${t(c.folder)}/${tstFiles(c.tokens)[0]} -token_in -CAfile ___, OpenSSL version ___] on [date]. Result: [___].`,
+      );
+  } else if (tx && anchor) {
     add(
       `   c. On [date] I looked up transaction ${tx} on ${t(networkWords(anchor.network))} using [explorer or indexer, and its address]. It [succeeded / did not], called contract [address], was in block [number] at [time], and [did / did not] write the batch root above.`,
     );
@@ -287,14 +401,18 @@ export const declarationText = async (
     '',
     '- US federal courts: Federal Rules of Evidence 902(13) and 902(14) let a record made by an electronic process, or data copied from a device or file and identified by its hash, be authenticated by a written certification of a qualified person instead of live testimony. The certification must meet Rule 902(11) or 902(12), and the other side must get reasonable written notice before the trial or hearing. It goes only to authenticity: the other side can still object on other grounds, such as hearsay or relevance. 28 U.S.C. 1746 gives the "under penalty of perjury" wording used above.',
     '- Vermont, 12 V.S.A. 1913: a record registered in a blockchain is self-authenticating with a written declaration, made under oath, of a qualified person stating their qualification, when the record entered the blockchain, when it was received from it, and that it was kept and made as a regular practice. The presumptions it gives do not cover whether the contents of the record are true.',
-    '- European Union: under eIDAS (Regulation 910/2014, Article 41) only a qualified electronic time stamp, from a qualified trust service provider, is presumed accurate. The Midnight transaction and the Bitcoin stamp in this bundle are not qualified time stamps. A court may still accept them, and weighs them case by case with the rest of the evidence.',
+    `- European Union: under eIDAS (Regulation 910/2014, Article 41) only a qualified electronic time stamp, from a qualified trust service provider, is presumed accurate.${notQualified(!!tx || fd.tx, !!ots || fd.ots)}`,
     ...(ev.batch?.rfc3161?.available
       ? [
           ev.batch.rfc3161.qualified
             ? `- The bundle also has an RFC 3161 time stamp token (proof/root.tst) from an authority VeilCore's registry stated is qualified under ${t(ev.batch.rfc3161.qualified.scheme)}. Check the trusted list yourself for the token's date before relying on that; only then does the presumption apply.`
             : '- The bundle also has an RFC 3161 time stamp token (proof/root.tst). VeilCore does not state its authority is qualified, so it carries no presumption: it is weighed like the other dates.',
         ]
-      : []),
+      : fd.tokens
+        ? [
+            "- The bundle also has RFC 3161 time stamp tokens from the holder's backup file (proof/backup-file-*/). VeilCore does not state their authority is qualified, so they carry no presumption: they are weighed like the other dates.",
+          ]
+        : []),
     '- Courts look closely at how a sample or document was taken, sealed and kept (its chain of custody). Say who took and sealed the sample, and who saw it, if anyone did.',
     '- Sources and plain-English background: docs/evidence-in-practice.md in the VeilCore repository.',
     '',

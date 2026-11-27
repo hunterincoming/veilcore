@@ -47,6 +47,7 @@ import type { AppKey } from '../../i18n/app/en';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { CODE_FONT } from '../../config/theme';
+import { BundleFromBackupFile } from '../BundleFromBackupFile';
 
 /** "2 lab deliveries and 1 lab code": what else the file brought back, or '' for nothing. */
 export const labWork = (r: RestoreResult, tr: Translator = enT): string => {
@@ -61,6 +62,7 @@ export const RestorePage: React.FC = () => {
   const [done, setDone] = useState<RestoreResult>();
   const [problem, setProblem] = useState<string>();
   const [typing, setTyping] = useState(false);
+  const [tech, setTech] = useState(false);
   const [typed, setTyped] = useState('');
   const keyBoxId = useId();
   const doneRef = useRef<HTMLHeadingElement>(null);
@@ -261,6 +263,11 @@ export const RestorePage: React.FC = () => {
                   {t('app.backup.fromFileProblem', { why: done.fromFile.error })}
                 </Alert>
               )}
+              {!fromAccount && (
+                <Typography variant="body2" color="text.secondary" data-restore-file-lasting="">
+                  {t('app.backup.fileIsLasting')}
+                </Typography>
+              )}
               {done.fromFile && 'added' in done.fromFile && done.fromFile.added > 0 && (
                 <Typography variant="body2" color="text.secondary" data-from-file="added">
                   {t('app.backup.fromFileAdded', { n: tr.num(done.fromFile.added) })}
@@ -331,6 +338,26 @@ export const RestorePage: React.FC = () => {
               >
                 {t('app.backup.seeMyPlants')}
               </Button>
+              {/* Technical details: an evidence bundle made straight from a backup file, for when
+                  VeilCore can't be reached (restoring doesn't bring a file's date proofs here). */}
+              <Box>
+                <Button
+                  color="inherit"
+                  onClick={() => setTech(!tech)}
+                  aria-expanded={tech}
+                  endIcon={tech ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  sx={{ minHeight: 44, px: 0 }}
+                  data-restore-tech=""
+                >
+                  {t('app.plant.technicalDetails')}
+                </Button>
+                <Collapse in={tech}>
+                  <Stack spacing={1} sx={{ pt: 1 }}>
+                    <Typography variant="subtitle2">{t('app.filebundle.open')}</Typography>
+                    <BundleFromBackupFile />
+                  </Stack>
+                </Collapse>
+              </Box>
             </Stack>
           ) : (
             <>

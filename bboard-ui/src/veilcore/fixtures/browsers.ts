@@ -67,6 +67,8 @@ const MODULES = {
   attester: () => import('../attester-keys'),
   seal: () => import('../seal-record'),
   keyBinding: () => import('../key-binding'),
+  stamps: () => import('../stamps'),
+  bundle: () => import('../evidence/bundle'),
 };
 type Mods = { [K in keyof typeof MODULES]: Awaited<ReturnType<(typeof MODULES)[K]>> };
 
