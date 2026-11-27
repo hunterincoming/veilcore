@@ -722,6 +722,10 @@ export const keptFirst = (
   readonly now?: Record<string, unknown> | null;
   readonly later: readonly Record<string, unknown>[];
   readonly otherRoot?: { readonly root: string; readonly anchor: Record<string, unknown> | null };
+  /** Other roots set aside before, each with its transaction, not the registry's answer now (review 13, polish 4). */
+  readonly asideRoots?: readonly { readonly root: string; readonly anchor: Record<string, unknown> | null }[];
+  /** Another contract the registry reports now for the kept transaction (review 12, polish 1). */
+  readonly nowContract?: string;
 } | null => {
   if (!HEX64.test(fp)) return null;
   const own = load();
@@ -737,7 +741,24 @@ export const keptFirst = (
     .filter((c) => sameBatch(c, p))
     .map(anchorOf)
     .filter((a): a is Record<string, unknown> => !!a && !sameAnchor(a, kept) && !sameAnchor(a, now ?? undefined));
+  const asideRoots = (own.changed[fp] ?? [])
+    .filter(
+      (c) => !sameBatch(c, p) && !(!same && sameBatch(c, proof) && txKey(anchorOf(c)) === txKey(now ?? undefined)),
+    )
+    .map((c) => ({ root: c.root, anchor: anchorOf(c) ?? null }));
+  const nowContract =
+    same &&
+    raw &&
+    sameAnchor(raw, kept) &&
+    isString(kept.contractAddress) &&
+    isString(raw.contractAddress) &&
+    HEX64.test(raw.contractAddress) &&
+    raw.contractAddress !== kept.contractAddress
+      ? raw.contractAddress
+      : undefined;
   return {
+    ...(asideRoots.length ? { asideRoots } : {}),
+    ...(nowContract ? { nowContract } : {}),
     proof: same ? (withAnchor(proof, kept) as unknown as InclusionProof) : p,
     anchor: kept,
     ...(!same

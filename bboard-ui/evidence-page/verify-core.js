@@ -739,6 +739,21 @@ var VeilcoreVerify = (function () {
     return o ? 'VeilCore’s registry now gives another batch root, ' + o.root + ' (' + txWords(o.anchor) + '), for this record; this bundle describes the first it gave the holder’s browser. An honest registry never does this.' : null;
   }
 
+  /** Other roots set aside before (bundle.ts asideRootsLine), or null. */
+  function asideRoots(registry) {
+    var l = Array.isArray(registry.asideRoots) ? registry.asideRoots.filter(function (o) { return isObject(o) && isHex64(o.root); }) : [];
+    if (!l.length) return null;
+    return 'After the first, VeilCore’s registry also gave the holder’s browser ' + (l.length === 1 ? 'another batch root' : 'other batch roots') + ' for this record, set aside there: ' +
+      l.map(function (o) { return o.root + ' (' + txWords(o.anchor) + ')'; }).join(', and ') + '. This bundle describes the first. An honest registry never does this.';
+  }
+
+  /** Another contract the registry reports now for the transaction described (bundle.ts otherContractLine), or null. */
+  function otherContract(registry, a) {
+    var c = registry.nowContract;
+    if (typeof c !== 'string' || !/^[0-9a-f]{64}$/.test(c) || !isObject(a) || typeof a.contractAddress !== 'string') return null;
+    return 'VeilCore’s registry now reports contract ' + c + ' for ' + txWords(a) + '; this bundle names contract ' + a.contractAddress + ', the one it reported first. The transaction itself shows which contract it called: go by that.';
+  }
+
   function lookups(ev, contracts) {
     var batch = isObject(ev.batch) ? ev.batch : null;
     var proof = isObject(ev.proof) ? ev.proof : null;
@@ -826,6 +841,8 @@ var VeilcoreVerify = (function () {
       // What VeilCore's registry named for this root since the transaction described here (rule A).
       registryOther: fromFile ? [] : registryOther(registry),
       registryRoot: fromFile ? null : registryRoot(registry),
+      asideRoots: fromFile ? null : asideRoots(registry),
+      otherContract: fromFile ? null : otherContract(registry, current),
       midnight: midnight,
       // The registry's report of the stamp, named as such; what the file itself shows is readStamp's.
       bitcoin: ots && ots.available ? { status: ots.status === 'bitcoin' ? 'bitcoin' : 'pending', file: ots.file || 'proof/root.bin.ots', bitcoinBlockHeight: typeof ots.bitcoinBlockHeight === 'number' ? ots.bitcoinBlockHeight : null } : null,

@@ -20,6 +20,8 @@ import {
   registryOtherWords,
   otherRootLine,
   keptCopy,
+  asideRootsLine,
+  otherContractLine,
   type Evidence,
   type SignatureLine,
 } from './bundle';
@@ -214,9 +216,14 @@ export const declarationText = async (
         add(
           `   That is the first main-network transaction VeilCore's registry gave my browser for this batch root. The registry ${t(other)} for it, which an honest registry never does.`,
         );
+      const contract = otherContractLine(ev);
+      if (contract) add(`   ${t(contract)}`);
       const root = otherRootLine(ev, true);
       if (root) add(`   ${t(root)}`);
+      const aside = asideRootsLine(ev, true);
+      if (aside) add(`   ${t(aside)}`);
       if (
+        ev.registry.asideRoots?.some((o) => isString(o.anchor?.txHash)) ||
         isString(ev.registry.registryNow?.txHash) ||
         ev.registry.laterAnchors?.length ||
         isString(ev.registry.registryRoot?.anchor?.txHash)
@@ -284,7 +291,7 @@ export const declarationText = async (
         : ev.registry.source === 'this-device'
           ? "VeilCore's registry could not be reached, so the website made the files from my browser's copy of the record and from what VeilCore's registry had returned to that browser before, kept there. It checked"
           : ev.registry.registryRoot
-            ? "VeilCore's registry now gives another batch root (section 3), so the website made the files from my browser's copy of the record and from what VeilCore's registry had returned to that browser before, kept there, with the lab signatures and first-seen time the registry returned now. It checked"
+            ? "VeilCore's registry now gives another batch root (section 3), so the website made the files from my browser's copy of the record and from what VeilCore's registry had returned to that browser before, kept there; any lab signatures and first-seen time in the bundle are as the registry returned them now. It checked"
             : "The website made the files from my browser's copy of the record and from what VeilCore's registry returned. It checked"
     } that the record's proof code matches its contents before making them.`,
   );

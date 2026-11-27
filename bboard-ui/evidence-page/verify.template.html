@@ -453,7 +453,9 @@ return canonicalise;
         para(['This bundle describes transaction ' + LK.midnight[0].txHash + ' on ' + networkName(LK.midnight[0].network) + ', the first main-network transaction VeilCore’s registry gave the holder’s browser for this batch root. The registry ' + LK.registryOther.join(', and ') + ' for it, which an honest registry never does. Rely only on a transaction that you check yourself wrote this batch root.']),
       ], 'registry-since'));
     }
+    if (LK.otherContract) summary.appendChild(result('bad', 'VeilCore’s registry reports another contract now', [para([LK.otherContract])], 'registry-contract'));
     if (LK.registryRoot) summary.appendChild(result('bad', 'VeilCore’s registry gives another root now', [para([LK.registryRoot])], 'registry-root'));
+    if (LK.asideRoots) summary.appendChild(result('bad', 'VeilCore’s registry gave other roots after the first', [para([LK.asideRoots])], 'registry-aside-roots'));
     // What this does not show: no date until one of the bundle's own dates checks (polish 1).
     var FRall = report.fileRoots || [];
     var fileTx = (LK.fileRoots || []).some(function (x) { return x.midnight && x.midnight.txHash; });

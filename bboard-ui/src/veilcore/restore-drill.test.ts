@@ -2275,6 +2275,7 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
       ['other root', other],
       ['this device', device],
     ] as const) {
+      dumpTo(`r13-polish-1-${name.replace(/ /g, '-')}`, got.file);
       const p = await pagesOf(got.file);
       expect(flat(p.readme), name).toContain(
         "the stamp as pending, not yet in a Bitcoin block when the holder's browser kept it (at its last backup).",
@@ -2285,7 +2286,8 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
       expect(flat(p.examiner), name).toContain(
         "Status the registry reported when the holder's browser kept it (at its last backup)",
       );
-      for (const [f, v] of Object.entries(p)) expect(flat(v), `${name} ${f}`).not.toMatch(/stamp as [^.]* when the bundle was made/);
+      for (const [f, v] of Object.entries(p))
+        expect(flat(v), `${name} ${f}`).not.toMatch(/stamp as [^.]* when the bundle was made/);
       // Declaration line 4 says the files come from the kept copy (polish 2).
       expect(flat(p.declaration), name).toContain(
         "from what VeilCore's registry had returned to that browser before, kept there",
@@ -2297,7 +2299,10 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     const lk = (VeilcoreVerify as unknown as { lookups: (ev: unknown, c: unknown) => { keptCopy: boolean } }).lookups;
     expect(lk(other.ev, null).keptCopy).toBe(true);
     expect(lk(device.ev, null).keptCopy).toBe(true);
-    expect(lk({ ...other.ev, registry: { ...other.ev.registry, registryRoot: undefined, source: 'evidence-route' } }, null).keptCopy).toBe(false);
+    expect(
+      lk({ ...other.ev, registry: { ...other.ev.registry, registryRoot: undefined, source: 'evidence-route' } }, null)
+        .keptCopy,
+    ).toBe(false);
   });
 
   it('the same transaction hash on the main network and on Preview for one root gets the two-transactions box on every page (review 13, polish 3)', async () => {
@@ -2324,12 +2329,84 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     expect(flat(p.readme)).toContain(`transaction ${THIRD.txHash} on Midnight's main network`);
     expect(flat(p.readme)).toContain(`transaction ${THIRD.txHash} on Midnight Preview (a test network)`);
     expect(textOf(got.file('EXAMINER-SUMMARY.html'))).toContain('data-two-transactions="yes"');
-    expect(flat(p.declaration)).toContain(
-      `My backup file names 2 Midnight transactions for batch root ${r2} (`,
-    );
+    expect(flat(p.declaration)).toContain(`My backup file names 2 Midnight transactions for batch root ${r2} (`);
     expect(flat(p.declaration)).toContain(`transaction ${THIRD.txHash} on Midnight Preview (a test network))`);
     expect(p.verify).toContain('Two different date records for one batch root');
     expect(p.verify).toContain(`for batch root ${r2}`);
+  });
+
+  it('other roots set aside before are named on every page of online and this-device bundles, once each, the registry’s root now not among them (review 13, polish 4)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    const THIRD = { ...MAINNET, txHash: '3c'.repeat(32), blockHeight: 13000, anchoredAt: '2027-04-01T12:00:00.000Z' };
+    w.upgrade();
+    serveFolded(MAINNET); // R1/A: kept
+    await backUp(A);
+    const r2 = await serveOtherRoot(fp, '31', OTHER_TX); // R2/B: set aside
+    await backUp(A);
+    const r3 = await serveOtherRoot(fp, '41', THIRD); // R3/C: the registry's root now, also set aside
+    await backUp(A);
+    const aside = `After the first, VeilCore's registry also gave the holder's browser another batch root for this record, set aside there: ${r2} (transaction ${OTHER_TX.txHash} on Midnight's main network). This bundle describes the first.`;
+    const online = await bundleOf(A, made.plant);
+    dumpTo('r13-polish-4-online', online.file);
+    expect(online.ev.registry.asideRoots?.map((o) => o.root)).toEqual([r2]);
+    for (const [f, p] of Object.entries(await pagesOf(online.file))) {
+      const v = flat(p);
+      expect(v, `online ${f}`).toContain(
+        f === 'declaration'
+          ? aside
+              .replace("the holder's browser", 'my browser')
+              .replace('this record', 'my record')
+              .replace('This bundle', 'This declaration')
+          : aside,
+      );
+      expect(v.split(r2).length - 1, `online ${f}: R2 once`).toBe(1);
+      expect(v.split(r3).length - 1, `online ${f}: R3 once`).toBe(1);
+      expect(v, `online ${f}`).toContain(MAINNET.txHash);
+    }
+    w.goDown();
+    const device = await bundleOf(A, made.plant);
+    dumpTo('r13-polish-4-device', device.file);
+    expect(device.ev.registry.source).toBe('this-device');
+    expect(device.ev.registry.asideRoots?.map((o) => o.root)).toEqual([r2, r3]);
+    for (const [f, p] of Object.entries(await pagesOf(device.file))) {
+      const v = flat(p);
+      expect(v, `device ${f}`).toContain(
+        `${r2} (transaction ${OTHER_TX.txHash} on Midnight's main network), and ${r3} (transaction ${THIRD.txHash}`,
+      );
+      expect(v, `device ${f}`).toContain('other batch roots for');
+    }
+  });
+
+  it('the registry reporting another contract for the kept transaction is named on every page (review 12, polish 1)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    w.upgrade();
+    serveFolded(MAINNET); // A, VeilCore's contract: kept
+    await backUp(A);
+    const plain = await pagesOf((await bundleOf(A, made.plant)).file);
+    for (const [f, p] of Object.entries(plain)) {
+      expect(flat(p), f).not.toContain('reports contract');
+      expect(flat(p), f).not.toContain('registry also gave');
+    }
+    const ODD = 'ee'.repeat(32);
+    serveFolded({ ...MAINNET, contractAddress: ODD }); // the same transaction, another contract
+    const got = await bundleOf(A, made.plant);
+    dumpTo('r12-polish-1-contract', got.file);
+    expect(got.ev.batch?.anchor).toMatchObject({ txHash: MAINNET.txHash, contractAddress: MAINNET.contractAddress });
+    expect(got.ev.registry.nowContract).toBe(ODD);
+    for (const [f, p] of Object.entries(await pagesOf(got.file))) {
+      const v = flat(p);
+      expect(v, f).toContain(
+        `VeilCore's registry now reports contract ${ODD} for transaction ${MAINNET.txHash} on Midnight's main network; this bundle names contract ${MAINNET.contractAddress}, the one it reported first.`,
+      );
+      for (const bad of RULE_A_BAD) expect(v, `${f}: ${bad}`).not.toMatch(bad);
+    }
   });
 });
 

@@ -155,6 +155,10 @@ export type Gathered = {
   readonly laterAnchors?: readonly Record<string, unknown>[];
   /** Rule A for roots: the registry now gives another root for the record (and this transaction, null: none). */
   readonly registryRoot?: { readonly root: string; readonly anchor: Record<string, unknown> | null };
+  /** Other roots the registry gave this browser for the record before, set aside (stamps.ts keptFirst). */
+  readonly asideRoots?: readonly { readonly root: string; readonly anchor: Record<string, unknown> | null }[];
+  /** Another contract the registry reports now for the kept transaction (stamps.ts keptFirst). */
+  readonly nowContract?: string;
 };
 
 const base64ToBytes = (b64: string): Uint8Array | null => {
@@ -335,8 +339,13 @@ const fromThisDevice = async (fingerprint: string, online?: Gathered): Promise<G
       registryFirstSeen: online?.registryFirstSeen,
       attestations: online?.attestations ?? [],
     });
-    const later = g.proof ? (stamps.keptFirst(fingerprint, g.proof)?.later ?? []) : [];
-    return g.proof ? { ...g, ...(later.length ? { laterAnchors: later } : {}) } : null;
+    const k = g.proof ? stamps.keptFirst(fingerprint, g.proof) : null;
+    const later = k?.later ?? [];
+    // With `online`, the caller names the roots set aside (they leave out the registry's answer now).
+    const aside = online ? [] : (k?.asideRoots ?? []);
+    return g.proof
+      ? { ...g, ...(later.length ? { laterAnchors: later } : {}), ...(aside.length ? { asideRoots: aside } : {}) }
+      : null;
   } catch {
     return null;
   }
@@ -382,7 +391,7 @@ export const gatherEvidence = async (
     const k = (await import('../stamps')).keptFirst(record.recordFingerprint, got.proof, got.batch);
     if (k?.otherRoot) {
       const g = await fromThisDevice(record.recordFingerprint, got);
-      return g ? { ...g, registryRoot: k.otherRoot } : got;
+      return g ? { ...g, registryRoot: k.otherRoot, ...(k.asideRoots ? { asideRoots: k.asideRoots } : {}) } : got;
     }
     if (k)
       return {
@@ -391,6 +400,8 @@ export const gatherEvidence = async (
         batch: { ...got.batch, anchor: k.anchor },
         ...(k.now !== undefined ? { registryNow: k.now } : {}),
         ...(k.later.length ? { laterAnchors: k.later } : {}),
+        ...(k.asideRoots ? { asideRoots: k.asideRoots } : {}),
+        ...(k.nowContract ? { nowContract: k.nowContract } : {}),
       };
   }
   return got;
@@ -599,6 +610,10 @@ export type Evidence = {
     readonly laterAnchors?: readonly Record<string, unknown>[];
     /** Gathered.registryRoot: another root the registry gives for the record now (rule A). */
     readonly registryRoot?: { readonly root: string; readonly anchor: Record<string, unknown> | null };
+    /** Gathered.asideRoots: other roots the registry gave the holder's browser before, set aside. */
+    readonly asideRoots?: readonly { readonly root: string; readonly anchor: Record<string, unknown> | null }[];
+    /** Gathered.nowContract: another contract the registry reports now for the transaction described. */
+    readonly nowContract?: string;
   };
   readonly proof: InclusionProof | null;
   readonly batch: BatchFacts | null;
@@ -999,6 +1014,24 @@ export const otherRootLine = (ev: Evidence, mine = false): string | null => {
   return `VeilCore's registry now gives another batch root, ${o.root} (${txWords(o.anchor)}), for ${mine ? 'my' : 'this'} record; this ${mine ? 'declaration' : 'bundle'} describes the first it gave ${mine ? 'my' : "the holder's"} browser. An honest registry never does this.`;
 };
 
+/**
+ * Other batch roots the registry gave the holder's browser for the record before, set aside
+ * (review 13, polish 4): named, as the set-aside transactions of the same root are. Null for none.
+ */
+export const asideRootsLine = (ev: Evidence, mine = false): string | null => {
+  const l = ev.registry.asideRoots;
+  if (!l?.length) return null;
+  return `After the first, VeilCore's registry also gave ${mine ? 'my' : "the holder's"} browser ${l.length === 1 ? 'another batch root' : 'other batch roots'} for ${mine ? 'my' : 'this'} record, set aside there: ${l.map((o) => `${o.root} (${txWords(o.anchor)})`).join(', and ')}. This ${mine ? 'declaration' : 'bundle'} describes the first. An honest registry never does this.`;
+};
+
+/** The registry reports another contract now for the transaction described (review 12, polish 1), or null. */
+export const otherContractLine = (ev: Evidence): string | null => {
+  const c = ev.registry.nowContract;
+  const a = ev.batch?.anchor;
+  if (!c || !a || !isString(a.contractAddress)) return null;
+  return `VeilCore's registry now reports contract ${c} for ${txWords(a)}; this bundle names contract ${a.contractAddress}, the one it reported first. The transaction itself shows which contract it called: go by that.`;
+};
+
 /** What VeilCore's registry named for the batch root besides the kept transaction (rule A), or null. */
 export const registryOtherWords = (ev: Evidence, whose: string): string | null => {
   const r = ev.registry;
@@ -1165,6 +1198,8 @@ export const buildEvidence = async (
       ...(gathered.registryNow !== undefined ? { registryNow: gathered.registryNow } : {}),
       ...(gathered.laterAnchors?.length ? { laterAnchors: gathered.laterAnchors } : {}),
       ...(gathered.registryRoot ? { registryRoot: gathered.registryRoot } : {}),
+      ...(gathered.asideRoots?.length ? { asideRoots: gathered.asideRoots } : {}),
+      ...(gathered.nowContract ? { nowContract: gathered.nowContract } : {}),
     },
     proof: gathered.proof,
     batch: gathered.batch,
@@ -1619,7 +1654,7 @@ export const readmeText = (
       `${lockedParents} of this record's linked parents ${lockedParents === 1 ? 'is' : 'are'} the holder's own record${lockedParents === 1 ? '' : 's'}, locked in the browser this bundle was made in (sealed with a key it doesn't have), so ${lockedParents === 1 ? 'it is' : 'they are'} left out. The parents' names as sealed in this record are in it.`,
     );
   }
-  const since = [keptAnchorLine(ev), otherRootLine(ev)].filter(Boolean);
+  const since = [keptAnchorLine(ev), otherContractLine(ev), otherRootLine(ev), asideRootsLine(ev)].filter(Boolean);
   if (since.length) {
     L.push('');
     L.push(`WHAT THE REGISTRY NAMED SINCE: ${since.join(' ')}`);
