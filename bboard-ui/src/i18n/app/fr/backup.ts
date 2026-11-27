@@ -178,6 +178,10 @@ export const backup = {
   'app.intake.err.hasHash': 'Son adresse de retour a déjà une partie #.',
   'app.intake.err.badState': 'Sa valeur de sécurité (state) est absente ou invalide.',
   'app.backup.fromFileAdded': 'Enregistrements récupérés depuis le fichier lui-même : {n}.',
+  'app.backup.stampsDisagree':
+    'Vos fichiers de sauvegarde ne s’accordent pas sur la date de certains de vos enregistrements ({n}). Les deux versions sont gardées : rien n’est perdu. Avant de vous fier à ces dates, vérifiez-les sur Midnight : les détails techniques de l’enregistrement expliquent comment.',
+  'app.backup.rootChanged':
+    'Le serveur de VeilCore a donné pour {n} de vos enregistrements une preuve de date différente de celle donnée avant. Cela ne devrait jamais arriver. La première est gardée, et les deux sont dans cette sauvegarde. Gardez ce fichier et contactez VeilCore.',
   'app.backup.fromFileProblem':
     'Les enregistrements du fichier n’ont pas pu être récupérés : {why} Vos clés sont restaurées.',
   'app.backup.passkey.err.busy': 'Votre autre appareil a sauvegardé au même moment. Cela sera réessayé tout seul.',

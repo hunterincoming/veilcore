@@ -156,6 +156,10 @@ export const backup = {
   'app.intake.err.hasHash': '戻り先にすでに # の部分があります。',
   'app.intake.err.badState': 'セキュリティ値（state）がないか、形式が正しくありません。',
   'app.backup.fromFileAdded': 'ファイル自体から戻した記録：{n}件。',
+  'app.backup.stampsDisagree':
+    'バックアップファイルどうしで、一部の記録（{n}件）がいつ日付付けされたかが食い違っています。両方とも保管しているので、何も失われていません。その日付に頼る前に、Midnightで確かめてください。方法は記録の技術的な詳細にあります。',
+  'app.backup.rootChanged':
+    'VeilCoreのサーバーが、{n}件の記録について以前とは違う日付の証明を返しました。本来あってはならないことです。最初のものを保管し、両方をこのバックアップに入れました。このファイルを保管し、VeilCoreに連絡してください。',
   'app.backup.fromFileProblem': 'ファイル内の記録は戻せませんでした：{why} 鍵は復元されています。',
   'app.backup.passkey.err.busy': 'もう一台の端末が同時に保存していました。自動でもう一度試します。',
   'app.backup.neverAsks': 'VeilCoreがバックアップファイルやコードを求めることはありません。',

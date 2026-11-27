@@ -163,6 +163,10 @@ export const backup = {
   'app.intake.err.hasHash': 'Its return address already has a # part.',
   'app.intake.err.badState': 'Its security value (state) is missing or malformed.',
   'app.backup.fromFileAdded': 'Records put back from the file itself: {n}.',
+  'app.backup.stampsDisagree':
+    'Your backup files disagree about when some of your records were dated ({n}). Both versions are kept, so nothing is lost. Before you rely on those dates, check them on Midnight: the record’s Technical details say how.',
+  'app.backup.rootChanged':
+    'VeilCore’s server gave a different date record for {n} of your records than it gave before. That should never happen. The first one is kept, and both are in this backup. Keep this file, and contact VeilCore.',
   'app.backup.fromFileProblem': "The records inside the file couldn't be put back: {why} Your keys are restored.",
   'app.backup.passkey.err.busy': 'Your other device kept saving at the same moment. It tries again by itself.',
   // Summit 5b item 15: on the backup screen (BackupStep.tsx).

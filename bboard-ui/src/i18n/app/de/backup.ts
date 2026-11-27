@@ -173,6 +173,10 @@ export const backup = {
   'app.intake.err.hasHash': 'Seine Rückkehradresse hat bereits einen #-Teil.',
   'app.intake.err.badState': 'Sein Sicherheitswert (state) fehlt oder ist fehlerhaft.',
   'app.backup.fromFileAdded': 'Aus der Datei selbst wiederhergestellte Datensätze: {n}.',
+  'app.backup.stampsDisagree':
+    'Ihre Sicherungsdateien sind sich uneinig, wann einige Ihrer Datensätze datiert wurden ({n}). Beide Fassungen bleiben erhalten, es geht nichts verloren. Prüfen Sie diese Daten auf Midnight, bevor Sie sich darauf verlassen: Die technischen Details des Datensatzes sagen, wie.',
+  'app.backup.rootChanged':
+    'Der Server von VeilCore hat für {n} Ihrer Datensätze einen anderen Datumsnachweis geliefert als zuvor. Das darf nie vorkommen. Der erste bleibt erhalten, und beide sind in dieser Sicherung. Bewahren Sie diese Datei auf und wenden Sie sich an VeilCore.',
   'app.backup.fromFileProblem':
     'Die Datensätze in der Datei konnten nicht wiederhergestellt werden: {why} Ihre Schlüssel sind wiederhergestellt.',
   'app.backup.passkey.err.busy':

@@ -58,6 +58,8 @@ import {
   utcWords,
   wrap,
   UNCONFIRMED_WORDS,
+  DISAGREE_WORDS,
+  reporterWords,
 } from './words';
 import { enT, forKind } from '../../i18n/translate';
 import { isAnimal } from '../animal-profile';
@@ -138,6 +140,8 @@ export type Gathered = {
   readonly attestations: Record<string, unknown>[];
   /** The stamped block's headers, checked here (withBitcoinHeaders); none when they couldn't be. */
   readonly bitcoinHeaders?: BundleHeaders | null;
+  /** Other roots the holder's backup files give for this batch (source `backup-file` only, stamps.ts). */
+  readonly alternatives?: readonly import('../stamps').Alternative[];
 };
 
 const base64ToBytes = (b64: string): Uint8Array | null => {
@@ -306,13 +310,13 @@ const fromThisDevice = async (fingerprint: string): Promise<Gathered | null> => 
   try {
     const kept = await (await import('../stamps')).keptEvidence(fingerprint);
     if (!kept) return null;
-    const { confirmed, ...raw } = kept;
+    const { confirmed, alternatives, ...raw } = kept;
     const g = await reconcile(fingerprint, {
       source: confirmed ? 'this-device' : 'backup-file',
       ...raw,
       attestations: [],
     });
-    return g.proof ? g : null;
+    return g.proof ? { ...g, ...(alternatives.length ? { alternatives } : {}) } : null;
   } catch {
     return null;
   }
@@ -510,7 +514,20 @@ export type Evidence = {
     /** When the holder's device sealed it, by that device's clock: the holder's own statement. */
     readonly sealedAtDeviceClock: string;
   };
-  readonly registry: { readonly firstSeen: string | null; readonly source: Gathered['source']; readonly note: string };
+  readonly registry: {
+    readonly firstSeen: string | null;
+    readonly source: Gathered['source'];
+    readonly note: string;
+    /** Other batch roots the holder's backup files give for this batch, and where their files are. */
+    readonly alternatives?: readonly {
+      readonly batchId: string;
+      readonly root: string;
+      readonly anchor: unknown;
+      readonly files: readonly string[];
+      /** VeilCore's registry gave this root (for another of the holder's records). */
+      readonly fromRegistry?: true;
+    }[];
+  };
   readonly proof: InclusionProof | null;
   readonly batch: BatchFacts | null;
   readonly labReport: {
@@ -848,6 +865,21 @@ export const buildEvidence = async (
           : gathered.source === 'this-device'
             ? 'Made from the copy kept in the holder’s browser (from its backups): VeilCore’s registry could not be reached. The proof, the Bitcoin stamp file and the RFC 3161 token were each checked against the record or its batch root in that browser; the anchor is the transaction the registry operator reported when the copy was made; nobody has looked it up on the chain for you. Lab signatures the registry serves are not in this copy.'
             : 'firstSeen is VeilCore’s registry’s own clock, its word only. The anchor is the transaction the registry operator reported; nobody has looked it up on the chain for you.',
+      ...(gathered.alternatives?.length
+        ? {
+            alternatives: gathered.alternatives.map((a, i) => ({
+              batchId: a.batchId,
+              root: a.root,
+              anchor: a.anchor ?? null,
+              ...(a.fromRegistry ? { fromRegistry: true as const } : {}),
+              files: [
+                ...(a.proof ? [`proof/alternative-${i + 1}/inclusion-proof.json`] : []),
+                `proof/alternative-${i + 1}/root.bin`,
+                ...(a.ots ? [`proof/alternative-${i + 1}/root.bin.ots`] : []),
+              ],
+            })),
+          }
+        : {}),
     },
     proof: gathered.proof,
     batch: gathered.batch,
@@ -1091,7 +1123,10 @@ export const fileList = (ev: Evidence, hasOts: boolean): { path: string; what: s
       },
       { path: 'proof/batch-root.txt', what: 'the batch root, as text.' },
       { path: 'proof/root.bin', what: 'the batch root as 32 bytes: the file the Bitcoin stamp covers.' },
-      { path: 'proof/anchors.json', what: "where the batch root was recorded, as VeilCore's registry reported it." },
+      {
+        path: 'proof/anchors.json',
+        what: `where the batch root was recorded, as ${ev.registry.source === 'backup-file' ? "the holder's backup file says (not confirmed)" : "VeilCore's registry reported it"}.`,
+      },
     );
     if (hasOts) out.push({ path: 'proof/root.bin.ots', what: 'the Bitcoin stamp file (OpenTimestamps) for root.bin.' });
     if (hasOts && ev.batch.opentimestamps.headersFile === BITCOIN_HEADERS_FILE)
@@ -1252,6 +1287,14 @@ export const readmeText = (
     L.push('');
     L.push(`NOT CONFIRMED: ${UNCONFIRMED_WORDS}`);
   }
+  if (ev.registry.alternatives?.length) {
+    L.push('');
+    L.push(`BACKUP FILES DISAGREE: ${DISAGREE_WORDS}`);
+    for (const a of ev.registry.alternatives)
+      L.push(
+        `- Also given for batch ${a.batchId}${a.fromRegistry ? " (by VeilCore's registry, for another of the holder's records)" : ''}: batch root ${a.root} (${a.files.join(', ')}).`,
+      );
+  }
   const tsa = ev.batch?.rfc3161?.available ? ev.batch.rfc3161 : null;
   if (ev.batch && (bitcoin || tsa)) {
     L.push('');
@@ -1287,7 +1330,8 @@ export const readmeText = (
   L.push(
     '1. Open verify.html in Chrome or Firefox (double-click it). It works offline. It should say "The files agree with each other", "Proof code matches" and "Proof leads to the batch root". If it says "Don\'t use this to date the record", stop there: the files have been changed.',
   );
-  const lookup = ev.batch && anchor ? anchorLookup(anchor, ev.batch.root) : null;
+  const lookup =
+    ev.batch && anchor ? anchorLookup(anchor, ev.batch.root, undefined, ev.registry.source === 'backup-file') : null;
   if (ev.batch && tx && lookup) {
     L.push('2. Date it on Midnight. These are the same steps verify.html shows:');
     midnightSteps(lookup).forEach((step, i) => L.push(`   ${String.fromCharCode(97 + i)}. ${step}`));
@@ -1315,7 +1359,7 @@ export const readmeText = (
       L.push(`   ${String.fromCharCode(97 + i)}. ${step}`),
     );
     L.push(
-      `   VeilCore's registry reported the stamp as ${reported} when the bundle was made. verify.html reads the stamp file itself and says what it shows.`,
+      `   ${ev.registry.source === 'backup-file' ? "The holder's backup file says" : "VeilCore's registry reported"} the stamp as ${reported} when the bundle was made. verify.html reads the stamp file itself and says what it shows.`,
     );
     if (bitcoin.headersFile === BITCOIN_HEADERS_FILE)
       L.push(
@@ -1324,7 +1368,9 @@ export const readmeText = (
   }
   if (tsa) {
     L.push(`${bitcoin ? '4' : '3'}. A Time Stamping Authority (another separate date):`);
-    tsaSteps(tsa).forEach((step, i) => L.push(`   ${String.fromCharCode(97 + i)}. ${step}`));
+    tsaSteps({ ...tsa, fromBackupFile: ev.registry.source === 'backup-file' }).forEach((step, i) =>
+      L.push(`   ${String.fromCharCode(97 + i)}. ${step}`),
+    );
   }
   L.push('');
   L.push('WHAT EACH FILE IS');
@@ -1357,7 +1403,7 @@ export const readmeText = (
   L.push("- That a signing key belongs to the lab it names. VeilCore doesn't vouch for anyone.");
   if (sigs.some((s) => s.ok && s.type === 'laboratory-report')) L.push(`- What the sample was. ${LAB_SAMPLE}`);
   L.push(
-    `- Any date at all until you find the batch root in the named transaction${bitcoin ? ' (or the Bitcoin stamp checks)' : ''}. VeilCore's registry reported the transaction${anchor && utcWords(anchor.anchoredAt) ? `, and its time as ${utcWords(anchor.anchoredAt)}` : ''}; it has not been checked on the chain for you.`,
+    `- Any date at all until you find the batch root in the named transaction${bitcoin ? ' (or the Bitcoin stamp checks)' : ''}. ${ev.registry.source === 'backup-file' ? "The holder's backup file named" : "VeilCore's registry reported"} the transaction${anchor && utcWords(anchor.anchoredAt) ? `, and its time as ${utcWords(anchor.anchoredAt)}` : ''}; it has not been checked on the chain for you.`,
   );
   if (ev.labReport) {
     L.push(
@@ -1492,7 +1538,7 @@ export const bundleFiles = async (
     add(
       'proof/anchors.json',
       json({
-        note: 'As VeilCore’s registry reported them. Look each transaction up on the named network: find the batch root in it.',
+        note: `As ${reporterWords(ev.registry.source)} ${ev.registry.source === 'backup-file' ? 'says, not confirmed' : 'reported them'}. Look each transaction up on the named network: find the batch root in it.`,
         batchId: ev.batch.batchId,
         batchRoot: ev.batch.root,
         current: ev.batch.anchor,
@@ -1502,6 +1548,16 @@ export const bundleFiles = async (
       }),
     );
     if (ots) add('proof/root.bin.ots', ots);
+    // Another root the holder's backup files give for this batch: its files too, for the look-up.
+    (gathered.alternatives ?? []).forEach((a, i) => {
+      const at = `proof/alternative-${i + 1}`;
+      if (a.proof) add(`${at}/inclusion-proof.json`, json(a.proof));
+      add(
+        `${at}/root.bin`,
+        Uint8Array.from(a.root.match(/../g) ?? [], (x) => parseInt(x, 16)),
+      );
+      if (a.ots) add(`${at}/root.bin.ots`, a.ots);
+    });
     if (headers) add(BITCOIN_HEADERS_FILE, json(headers));
     if (gathered.tst && ev.batch.rfc3161?.available) add('proof/root.tst', gathered.tst);
     const script = checkScriptFor(ev);

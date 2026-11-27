@@ -261,6 +261,12 @@ export const RestorePage: React.FC = () => {
                   {t('app.backup.fromFileProblem', { why: done.fromFile.error })}
                 </Alert>
               )}
+              {/* Backup files that give two different date records for some records (stamps.ts). */}
+              {!!done.stampsDisagree && (
+                <Alert severity="warning" variant="outlined" data-restore-stamps-disagree="">
+                  {t('app.backup.stampsDisagree', { n: tr.num(done.stampsDisagree) })}
+                </Alert>
+              )}
               {done.fromFile && 'added' in done.fromFile && done.fromFile.added > 0 && (
                 <Typography variant="body2" color="text.secondary" data-from-file="added">
                   {t('app.backup.fromFileAdded', { n: tr.num(done.fromFile.added) })}

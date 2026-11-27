@@ -499,6 +499,17 @@ test('the backup restore drill: everything comes back from the file alone, and s
   await v.goto(`file://${path.join(top, 'verify.html')}`);
   await expect(v.locator('body')).toHaveAttribute('data-checked', 'yes');
   await expect(v.locator('[data-check="lookup-bitcoin"]')).toContainText(`names Bitcoin block ${STAMP_BLOCK}`);
+  // The examiner page reads where the batch data came from, and says so first.
+  await expect(v.locator('[data-check="unconfirmed"]')).toContainText(
+    'restored from a backup file, not yet confirmed with VeilCore’s registry or Midnight',
+  );
+  await expect(v.locator('[data-check="lookup-midnight"]')).toContainText(
+    'Only the holder’s backup file names this transaction',
+  );
+  await expect(v.locator('[data-check="lookup-midnight"]')).not.toContainText(
+    'VeilCore’s registry reported this transaction',
+  );
+  await expect(v.locator('[data-check="lookup-bitcoin"]')).not.toContainText('VeilCore’s registry reported');
   await offline.close();
 
   // ---- the file without the website ---------------------------------------------------------

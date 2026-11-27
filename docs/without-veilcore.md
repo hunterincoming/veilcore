@@ -36,7 +36,7 @@ Nobody outside VeilCore runs a witness yet.
 | The keys (record keys, vault key, holder key) | The browser and the backup file | ✅ In the file |
 | The inclusion proof (record → batch root) | Our registry; **and, from 23 Oct, in the backup file** (`proofs`), once the batch is sealed | ✅ In the file, for every record batched before the file was saved. A record saved after its last backup has to wait for the next one |
 | The batch root's date | On Midnight mainnet (public), in the anchor transaction. Every batch is also stamped on Bitcoin (OpenTimestamps) and, from 6 Nov, by an RFC 3161 time-stamping authority | ✅ Public. Any Midnight indexer can return it (`proof/check-on-midnight.mjs` asks one). We haven't confirmed that any explorer shows it: it sits inside the contract's state |
-| The batch roots and the files that check their dates (root, Bitcoin `.ots`, RFC 3161 token), and each record's own RFC 3161 tokens | Our registry; any copy made with `scripts/mirror` in [veilcore-api](https://github.com/hunterincoming/veilcore-api); **and, from 26 Nov, in the backup file** (`stamps`), for the holder's own records | ✅ For the holder's own records: in the file for every batch sealed before it was saved, as the registry served them then. A Bitcoin stamp still pending (only a calendar's promise) is kept, and the next backup takes the finished one once the registry has it. On restore each file goes back only once it checks against its batch root or proof code, and an evidence bundle made with the registry gone still carries `root.bin.ots` and `root.tst` (marked unconfirmed when the batch root came only from a backup file, until the registry confirms it). A record saved after its last backup has to wait for the next one. ⚠️ For everyone's batches: anyone can copy every batch and check it with Node alone. The copy is append-only and fetched again on every run: if our registry ever serves a changed root, anchor, token or proof, it keeps both and raises the alarm. Our own scheduled copy (a public repository GitHub updates) is ready but not switched on. A copy we run only shows what we served and when; it is independent only when someone else runs it, and nobody outside VeilCore does yet |
+| The batch roots and the files that check their dates (root, Bitcoin `.ots`, RFC 3161 token), and each record's own RFC 3161 tokens | Our registry; any copy made with `scripts/mirror` in [veilcore-api](https://github.com/hunterincoming/veilcore-api); **and, from 26 Nov, in the backup file** (`stamps`), for the holder's own records | ✅ For the holder's own records: in the file for every batch sealed before it was saved, as the registry served them then. A Bitcoin stamp still pending (only a calendar's promise) is kept, and the next backup takes the finished one once the registry has it. On restore each file goes back only once it checks against its batch root or proof code, and an evidence bundle made with the registry gone still carries `root.bin.ots` and `root.tst`. What came only from a backup file is kept apart, carried into every later backup, and labelled on every page of a bundle as not confirmed (below). A record saved after its last backup has to wait for the next one. ⚠️ For everyone's batches: anyone can copy every batch and check it with Node alone. The copy is append-only and fetched again on every run: if our registry ever serves a changed root, anchor, token or proof, it keeps both and raises the alarm. Our own scheduled copy (a public repository GitHub updates) is ready but not switched on. A copy we run only shows what we served and when; it is independent only when someone else runs it, and nobody outside VeilCore does yet |
 | Dates for lab signatures, withdrawals, key enrolments and RFC 3161 tokens (the evidence re-stamp) | **Built, not live** (25 Nov 2026): our registry would put one fingerprint of all of them on Bitcoin once a year, and publish the list (`/restamps`). Not switched on yet, so none exists | ⚠️ Once one exists: anyone with the item, its proof and the re-stamp's `manifest.json` and `.ots` checks it offline (`node scripts/restamp-check.mjs ... --root-bin root.bin` in veilcore-api, then `ots verify`). How, step by step: [restamp.md](restamp.md). The mirror doesn't copy re-stamps yet, so keep those files with the evidence |
 | Checking a record | `npx veilcore-records verify` (open source, on npm), the evidence bundle's `verify.html`, the SDK evidence package's `verify.py`, the Python and Rust implementations | ✅ No server, no account. Three implementations, all written by us so far. A test opens `verify.html` and runs `verify.py` with every VeilCore address cut off, on every change ([offline.md](offline.md), "If VeilCore is gone") |
 | The format itself | SPEC.md in veilcore-sdk, Apache-2.0 | ✅ Anyone can implement it from the text and the published conformance vectors. The numbers count different sets: 121 is the core set of SPEC section 10 (100 record-format, 1 report-pairing, 20 for records that name their own key), the one all three implementations pass; 181 adds the animal (30) and strain (30) profiles; `conformance/` in veilcore-sdk now also has vectors for documents, profile forms, lab results and choosing among several contracts, so the full published set is larger than either |
@@ -68,24 +68,36 @@ the code stands for. Now the file also carries:
 - `stamps` (from 26 Nov): for each batch the holder's records sit in, its root, its Bitcoin
   stamp file (OpenTimestamps `.ots`) and its RFC 3161 tokens; for each record, the RFC 3161
   tokens on its own proof code. Before, these were only on our registry, so a holder with a
-  perfect file and no registry kept only the Midnight date. The browser keeps a copy too, so a
-  backup made while the registry is out of reach still carries them (and the proofs). On
-  restore, each goes back only if it checks: a Bitcoin file must start from SHA-256 of the
-  batch root its record's proof leads to, and a token must verify against the root or the
-  proof code it stamps and be signed by a timestamp authority the site pins. A restore only
-  adds: nothing the browser already kept is replaced or removed.
-- **Confirmed and unconfirmed.** A proof code is public, so anyone can make a file that puts
-  your records under a batch root of their own. A proof (and the stamps on its root) that the
-  browser has only from a backup file is therefore kept as *unconfirmed* until VeilCore's
-  registry gives the same root for that batch, on a later backup made online. What is
-  unconfirmed never blocks or replaces a later file or the registry's answer: the registry's
-  answer always wins, and two files that disagree about a batch leave it unused until the
-  registry settles it. A backup carries unconfirmed proofs apart (`stamps.unconfirmedProofs`,
-  batches marked `unconfirmed`), never in `proofs`. An evidence bundle made from them says on
-  every page that the batch root was restored from a backup file and is not yet confirmed with
-  VeilCore's registry or Midnight. On a new device with the registry gone, everything restored
-  is unconfirmed: the Midnight lookup in the bundle is then the check that settles it. `npx veilcore-records backup` doesn't read `stamps` yet (a change
-  for veilcore-sdk); the files inside are the same `.ots` and `.tst` files the registry
+  perfect file and no registry kept only the Midnight date.
+- **Two stores, never mixed.** The browser keeps what *our registry* answered (each record's
+  proof, its batch's files and its own tokens, each checked against the record or the root).
+  Only that counts as VeilCore's answer, and only that goes in the file's `proofs` and in
+  `stamps.batches`/`stamps.records`. Anything that comes in from a restored backup file is
+  kept apart, *carried*, and goes into every later backup file as it came (`stamps.carried`),
+  so nothing a holder ever had is lost. It never changes what the registry gave, and it never
+  counts as confirmed. Proof codes are public, so anyone can make a file that puts your records
+  under a batch root of their own; that is why.
+- **What is checked about carried data.** Only its form, so junk stays out: each proof must lead
+  from one of your records to the root it names, a Bitcoin file must start from SHA-256 of that
+  root, and a token must verify against what it stamps and be signed by a timestamp authority
+  the site pins, within that certificate's dates. And it is capped: a Bitcoin file or token at
+  most 16 KB, four tokens per item, two roots per batch and two batches per record, and 512 KB
+  (compressed) in all. Over a cap, the item a file brought longest ago goes first; restoring a
+  file brings its items back to the front, so the file you restore last always gets in.
+- **When it is used.** Only for an evidence bundle when our registry can't be reached. Every page
+  of that bundle says so: README.txt, EXAMINER-SUMMARY.html, evidence.json and verify.html (which
+  reads `registry.source`) say the batch data was "restored from a backup file, not yet confirmed
+  with VeilCore's registry or Midnight", and say the holder's backup file, not our registry,
+  names the transaction. If your backup files give two roots for one batch, the bundle carries
+  both (`proof/alternative-*`) and says to look each up on Midnight; the restore page tells you
+  your backup files disagree. Midnight settles it: only one root is written there.
+- **If our registry ever gives another root for a sealed batch** (an honest registry never
+  does), the browser keeps the first root and its stamps (a finished Bitcoin stamp is never
+  deleted), carries the new answer without trusting it, and the backup page warns you.
+- What the browser keeps goes only when its record is deleted on that browser.
+  `npx veilcore-records backup` doesn't read `stamps` yet (a change for veilcore-sdk); the files
+  inside are the same `.ots` and `.tst` files the registry serves, base64, for `ots verify` and
+  `openssl ts -verify`.
   serves, base64, for `ots verify` and `openssl ts -verify`.
 
 **Opening a backup without the website:** `npx veilcore-records backup <file>` (veilcore-sdk,

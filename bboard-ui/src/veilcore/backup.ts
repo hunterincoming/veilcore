@@ -182,10 +182,12 @@ export type BackupContents = {
   /**
    * The files that check each record's dates on Bitcoin and with a Time Stamping Authority
    * (stamps.ts): per batch a record sits in, its root, its OpenTimestamps file (root.bin.ots) and
-   * its RFC 3161 tokens (root.tst); per record, the RFC 3161 tokens on its own proof code. Best
-   * effort, as `proofs`: what the registry gave, or what this browser kept before. A restore puts
-   * each back only once it checks against its batch root or proof code (foundation review,
-   * 26 Nov). Optional, like `revs`: an older file has none, and an older app passes over it.
+   * its RFC 3161 tokens (root.tst); per record, the RFC 3161 tokens on its own proof code: what
+   * VeilCore's registry gave the browser that made the file. `carried`: what that browser had only
+   * from earlier backup files, kept as it came and never confirmed. A restore keeps all of it apart
+   * from what the registry gives, checked for form only, and uses it only when the registry can't
+   * be reached, labelled so (stamps.ts). Optional, like `revs`: an older file has none, and an
+   * older app passes over it.
    */
   readonly stamps?: import('./stamps').StampsInFile;
 };
@@ -696,8 +698,10 @@ export type RestoreResult = {
   readonly evidence?: number;
   /** Licenses (held here, or the keys of ones given) added from the file. */
   readonly licenses?: number;
-  /** Bitcoin stamp files and RFC 3161 tokens put back from the file, each checked first. */
+  /** Bitcoin stamp files and RFC 3161 tokens the file brought (kept apart, stamps.ts). */
   readonly stamps?: number;
+  /** Batches of the records here that backup files give two different roots for (the page says so). */
+  readonly stampsDisagree?: number;
   /** The records the file carried (recordData): what was put back, or why none were. */
   readonly fromFile?: ImportResult | { readonly error: string };
 };
@@ -853,13 +857,17 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
   } catch {
     /* a record's evidence that can't be checked here stays out; the rest of the restore stands */
   }
-  // The files that check each record's dates on Bitcoin and with a TSA (stamps.ts), and its
-  // inclusion proof: kept on this browser for the records here, each checked first, so the
-  // evidence bundle has them with the registry gone.
+  // The files that check each record's dates on Bitcoin and with a TSA, and its inclusion proof:
+  // carried on this browser apart from what the registry gives (stamps.ts), so nothing the holder
+  // had is lost and an evidence bundle can still be made, labelled, with the registry gone.
   let stamps = 0;
+  let stampsDisagree = 0;
   try {
-    if (v.stamps !== undefined || v.proofs !== undefined)
-      stamps = await (await import('./stamps')).restoreStamps(v.stamps, v.proofs, allRecords());
+    if (v.stamps !== undefined || v.proofs !== undefined) {
+      const got = await (await import('./stamps')).restoreStamps(v.stamps, v.proofs, allRecords());
+      stamps = got.stamps;
+      stampsDisagree = got.disagree;
+    }
   } catch {
     /* what can't be checked here stays out; the rest of the restore stands */
   }
@@ -879,6 +887,7 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
     ...(licenses ? { licenses } : {}),
     ...(evidence ? { evidence } : {}),
     ...(stamps ? { stamps } : {}),
+    ...(stampsDisagree ? { stampsDisagree } : {}),
   };
 };
 

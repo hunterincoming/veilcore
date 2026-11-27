@@ -24,6 +24,8 @@ import {
   subjectOf,
   utcWords,
   UNCONFIRMED_WORDS,
+  DISAGREE_WORDS,
+  reporterWords,
 } from './words';
 
 export const EXAMINER_FILE = 'EXAMINER-SUMMARY.html';
@@ -318,7 +320,11 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   const anchor = ev.batch?.anchor ?? null;
   const tx = anchor && isString(anchor.txHash) ? anchor.txHash : null;
   const test = anchor ? anchor.network !== 'mainnet' : true;
-  const lookup = ev.batch && anchor ? anchorLookup(anchor, ev.batch.root) : null;
+  const fromFile = ev.registry.source === 'backup-file';
+  // Who said where the batch was recorded: the registry, or only the holder's backup file.
+  const who = reporterWords(ev.registry.source);
+  const said = fromFile ? 'as the holder’s backup file says it, not confirmed' : 'as VeilCore’s registry reported it';
+  const lookup = ev.batch && anchor ? anchorLookup(anchor, ev.batch.root, undefined, fromFile) : null;
   const ots = ev.batch && hasOts ? ev.batch.opentimestamps : null;
   const tsa = ev.batch?.rfc3161?.available ? ev.batch.rfc3161 : null;
   const made = utcWords(ev.createdAt) ?? ev.createdAt;
@@ -334,7 +340,12 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
 
   // How it was checked: what the site did when it made the bundle, and what it did not do.
   const checked: string[] = [
-    ...(ev.registry.source === 'backup-file' ? [`Not confirmed: ${UNCONFIRMED_WORDS}`] : []),
+    ...(fromFile ? [`Not confirmed: ${UNCONFIRMED_WORDS}`] : []),
+    ...(ev.registry.alternatives?.length
+      ? [
+          `Backup files disagree: ${DISAGREE_WORDS} Also given: ${ev.registry.alternatives.map((a) => `batch root ${a.root}`).join('; ')}.`,
+        ]
+      : []),
     `The record’s proof code was worked out again from the sealed fields below and matched${keyBound ? ' (with the record’s key binding folded in)' : ''}. The bundle can’t be made if it doesn’t.`,
     ev.proof && ev.batch
       ? `The proof leads from the record’s proof code to the root of batch ${ev.batch.batchId}. The batch root is one code that stands for every record in the batch.`
@@ -358,7 +369,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     );
   checked.push(
     tx
-      ? 'Not checked for you: the Midnight transaction. VeilCore’s registry reported it; nobody has looked it up on the chain for you. The steps below say how.'
+      ? `Not checked for you: the Midnight transaction. ${who.replace(/^t/, 'T')} ${fromFile ? 'names' : 'reported'} it; nobody has looked it up on the chain for you. The steps below say how.`
       : 'There is no Midnight transaction to look up yet.',
   );
 
@@ -383,8 +394,8 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     ['Network', anchor ? networkWords(anchor.network) : 'not recorded on a network yet'],
     ['Contract', anchor && isString(anchor.contractAddress) ? anchor.contractAddress : null],
     ['Transaction', tx],
-    ['Block (as the registry reported it)', anchor && isNumber(anchor.blockHeight) ? String(anchor.blockHeight) : null],
-    ['Time (as the registry reported it)', anchor ? utcWords(anchor.anchoredAt) : null],
+    [`Block (${said})`, anchor && isNumber(anchor.blockHeight) ? String(anchor.blockHeight) : null],
+    [`Time (${said})`, anchor ? utcWords(anchor.anchoredAt) : null],
   ];
   for (const a of ev.batch?.earlierAnchors ?? []) {
     midnightRows.push([
@@ -396,7 +407,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   const bitcoinRows: [string, string | null][] = ots
     ? [
         [
-          'Status the registry reported',
+          fromFile ? 'Status the holder’s backup file gives' : 'Status the registry reported',
           ots.status === 'bitcoin'
             ? `In Bitcoin block ${isNumber(ots.bitcoinBlockHeight) ? ots.bitcoinBlockHeight : '(not given)'}`
             : 'Pending: not yet in a Bitcoin block',
@@ -412,7 +423,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   const tsaRows: [string, string | null][] = tsa
     ? [
         ['Time the token states', tsa.genTime ? (utcWords(tsa.genTime) ?? tsa.genTime) : '(not read)'],
-        ['Authority (as VeilCore’s registry reported it)', tsa.tsa ? oneLine(tsa.tsa) : null],
+        [`Authority (${said})`, tsa.tsa ? oneLine(tsa.tsa) : null],
         ['Signer named in the token', tsa.signer ? oneLine(tsa.signer) : null],
         ['Token file', 'proof/root.tst, over proof/root.bin (the batch root as 32 bytes)'],
         [
@@ -517,7 +528,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   if (ots) steps.push(`<h3>The Bitcoin stamp</h3>${list(bitcoinSteps(ots.status !== 'bitcoin'), true)}`);
   if (tsa) steps.push(`<h3>The RFC 3161 token</h3>${list(TSA_STEPS, true)}`);
   if (lookup) {
-    steps.push(`<h3>Date it on Midnight (as VeilCore’s registry reported it)</h3>${list(midnightSteps(lookup), true)}`);
+    steps.push(`<h3>Date it on Midnight (${said})</h3>${list(midnightSteps(lookup), true)}`);
   }
 
   // How someone who disagrees can check this: what rests on tools anyone has, and what rests
@@ -620,7 +631,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   ${tsa ? `<h3>RFC 3161 token from a Time Stamping Authority</h3>${table(tsaRows)}${p(tsaStanding(tsa.qualified), 'muted')}` : ''}
   <h3>Midnight</h3>
   ${table(midnightRows)}
-  ${anchor ? p(`As VeilCore’s registry reported it: nothing in this bundle read it from Midnight for you. Legal standing: ${CHAIN_STANDING} Midnight is a newer public blockchain, and a court may want an expert to read it.`, 'muted') : ''}
+  ${anchor ? p(`${said.replace(/^a/, 'A')}: nothing in this bundle read it from Midnight for you. Legal standing: ${CHAIN_STANDING} Midnight is a newer public blockchain, and a court may want an expert to read it.`, 'muted') : ''}
 
   <h2>3. Proof code and batch</h2>
   ${table(ids)}

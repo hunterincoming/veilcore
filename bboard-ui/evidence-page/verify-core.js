@@ -685,7 +685,7 @@ var VeilcoreVerify = (function () {
     return out;
   }
 
-  function anchorLookup(a, root, current, contracts) {
+  function anchorLookup(a, root, current, contracts, fromBackupFile) {
     if (!isObject(a)) return null;
     var network = typeof a.network === 'string' ? a.network : 'unknown';
     var pinned = pinnedOn(contracts, network);
@@ -710,6 +710,9 @@ var VeilcoreVerify = (function () {
       onList: pinned && address ? entry !== null : null,
       contractVersion: entry ? entry.version : null,
       pinned: pinned || [],
+      // The bundle's batch data came only from the holder's backup file (registry.source
+      // 'backup-file'): never said to be VeilCore's registry's report.
+      fromBackupFile: fromBackupFile === true ? true : undefined,
     };
   }
 
@@ -718,17 +721,38 @@ var VeilcoreVerify = (function () {
     var proof = isObject(ev.proof) ? ev.proof : null;
     var root = batch && isHex64(batch.root) ? batch.root : proof && isHex64(proof.root) ? proof.root : null;
     var midnight = [];
+    var registry = isObject(ev.registry) ? ev.registry : {};
+    var source = typeof registry.source === 'string' ? registry.source : null;
+    var fromFile = source === 'backup-file';
     var current = (batch && batch.anchor) || (proof && proof.anchor) || null;
-    var c = anchorLookup(current, root, true, contracts);
+    var c = anchorLookup(current, root, true, contracts, fromFile);
     if (c && c.txHash) midnight.push(c);
     var earlier = batch && Array.isArray(batch.earlierAnchors) ? batch.earlierAnchors : [];
     for (var i = 0; i < earlier.length; i++) {
-      var e = anchorLookup(earlier[i], root, false, contracts);
+      var e = anchorLookup(earlier[i], root, false, contracts, fromFile);
       if (e && e.txHash) midnight.push(e);
     }
     var ots = batch && isObject(batch.opentimestamps) ? batch.opentimestamps : null;
+    var alternatives = [];
+    var alts = Array.isArray(registry.alternatives) ? registry.alternatives : [];
+    for (var j = 0; j < alts.length && j < 8; j++) {
+      var x = alts[j];
+      if (!isObject(x) || !isHex64(x.root)) continue;
+      alternatives.push({
+        batchId: typeof x.batchId === 'string' ? x.batchId : '',
+        root: x.root,
+        files: Array.isArray(x.files) ? x.files.filter(function (f) { return typeof f === 'string'; }) : [],
+        fromRegistry: x.fromRegistry === true,
+        midnight: anchorLookup(x.anchor, x.root, true, contracts, true),
+      });
+    }
     return {
       root: root,
+      // Where the batch data came from (evidence.json registry.source): 'backup-file' means only
+      // the holder's backup file says it, not confirmed with VeilCore's registry or Midnight.
+      source: source,
+      fromBackupFile: fromFile,
+      alternatives: alternatives,
       midnight: midnight,
       // The registry's report of the stamp, named as such; what the file itself shows is readStamp's.
       bitcoin: ots && ots.available ? { status: ots.status === 'bitcoin' ? 'bitcoin' : 'pending', file: ots.file || 'proof/root.bin.ots', bitcoinBlockHeight: typeof ots.bitcoinBlockHeight === 'number' ? ots.bitcoinBlockHeight : null } : null,
@@ -773,7 +797,7 @@ var VeilcoreVerify = (function () {
       ? 'Open the Midnight explorer for ' + networkWords(a.network) + ': ' + a.explorer + ' (type the address in yourself).'
       : 'Open a Midnight explorer for ' + networkWords(a.network) + '.');
     out.push('Search for transaction ' + a.txHash + '.' + (a.blockHeight !== null || when
-      ? ' VeilCore’s registry reports it is' + (a.blockHeight !== null ? ' in block ' + a.blockHeight : '') + (when ? (a.blockHeight !== null ? ',' : '') + ' at ' + when : '') + '; the explorer’s own block and time are the ones to rely on.'
+      ? ' ' + (a.fromBackupFile ? 'The holder’s backup file says' : 'VeilCore’s registry reports') + ' it is' + (a.blockHeight !== null ? ' in block ' + a.blockHeight : '') + (when ? (a.blockHeight !== null ? ',' : '') + ' at ' + when : '') + '; the explorer’s own block and time are the ones to rely on.'
       : ''));
     var listed = a.pinned.length ? ' (VeilCore’s contracts on ' + networkWords(a.network) + ': ' + pinnedWords(a) + ')' : '';
     if (a.onList)

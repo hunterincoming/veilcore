@@ -401,6 +401,18 @@ return canonicalise;
     document.title = 'Check ' + title + ' (offline)';
     var summary = clear('summary');
     summary.appendChild(para(['Record: ', el('strong', null, title)]));
+    var LK = report.lookups || {};
+    if (LK.fromBackupFile) {
+      summary.appendChild(result('bad', 'Restored from a backup file, not yet confirmed', [
+        para(['The batch root, the proof that leads to it and its stamps were restored from a backup file, not yet confirmed with VeilCore’s registry or Midnight. This page checks the files against each other, not that this is the root VeilCore recorded: look the batch root up on Midnight before relying on any date here.']),
+      ], 'unconfirmed'));
+    }
+    if (LK.alternatives && LK.alternatives.length) {
+      summary.appendChild(result('bad', 'The holder’s backup files disagree about this batch', [
+        para(['They give more than one batch root for it, and all of them are in this bundle. At most one can be the root recorded on Midnight. Look each one up on Midnight; rely only on the one the transaction wrote.']),
+        list(LK.alternatives.map(function (a) { return 'Also given for batch ' + a.batchId + (a.fromRegistry ? ' (by VeilCore’s registry, for another of the holder’s records)' : '') + ': batch root ' + a.root + (a.files.length ? ' (' + a.files.join(', ') + ')' : '') + (a.midnight && a.midnight.txHash ? ', said to be in transaction ' + a.midnight.txHash : '') + '.'; })),
+      ], 'alternatives'));
+    }
     var D = report.datable;
     if (D.failed.length) {
       summary.appendChild(result('bad', 'Don’t use this to date the record', [
@@ -527,7 +539,9 @@ return canonicalise;
         }
         var extra = [];
         if (a.testNetwork) extra.push(para(['This is a test network. It can be reset, and its dates carry no weight: treat this record as practice data.']));
-        extra.push(para(['VeilCore’s registry reported this transaction. Nobody has checked it on the chain for you: that is what these steps are for.']));
+        extra.push(para([L.fromBackupFile
+          ? 'Only the holder’s backup file names this transaction: it is not confirmed with VeilCore’s registry or Midnight. Nobody has checked it on the chain for you: that is what these steps are for.'
+          : 'VeilCore’s registry reported this transaction. Nobody has checked it on the chain for you: that is what these steps are for.']));
         lk.appendChild(result('info', head, [list(VeilcoreVerify.midnightSteps(a))].concat(extra), 'lookup-midnight'));
       }
       if (L.bitcoin || report.stamp) {
@@ -551,11 +565,11 @@ return canonicalise;
           shows = 'The stamp file is not about this batch root: ' + st.reason + '. It dates nothing here.';
         } else {
           shows = (st ? 'This page couldn’t read the stamp file (' + st.reason + '). ' : 'This page hasn’t read the stamp file: choose proof/root.bin.ots below to read it. ') +
-            'VeilCore’s registry reported the stamp as ' + (b.status === 'bitcoin' ? 'in Bitcoin block ' + (b.bitcoinBlockHeight || '(not given)') : 'pending, not yet in a Bitcoin block') + ' when the bundle was made.';
+            (L.fromBackupFile ? 'The holder’s backup file says the stamp is ' : 'VeilCore’s registry reported the stamp as ') + (b.status === 'bitcoin' ? 'in Bitcoin block ' + (b.bitcoinBlockHeight || '(not given)') : 'pending, not yet in a Bitcoin block') + ' when the bundle was made.';
         }
         if (st && (st.status === 'bitcoin' || st.status === 'pending') && b.status === 'bitcoin' && b.bitcoinBlockHeight &&
             !(st.bitcoin || []).some(function (x) { return x.height === b.bitcoinBlockHeight; })) {
-          shows += ' VeilCore’s registry reported block ' + b.bitcoinBlockHeight + ', which the file doesn’t name; go by the file.';
+          shows += (L.fromBackupFile ? ' The holder’s backup file says block ' : ' VeilCore’s registry reported block ') + b.bitcoinBlockHeight + ', which the file doesn’t name; go by the file.';
         }
         var pendingSteps = !(st && st.status === 'bitcoin');
         lk.appendChild(result(kind, 'Bitcoin stamp file', [list(VeilcoreVerify.bitcoinSteps(pendingSteps)), stepPara(shows)], 'lookup-bitcoin'));

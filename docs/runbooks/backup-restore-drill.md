@@ -33,35 +33,42 @@ The app's own code, in several pretend browsers against a stand-in registry:
 - The two dates that don't depend on Midnight (from 26 Nov): the stand-in registry stamps the
   batch root on Bitcoin (an OpenTimestamps file, pending at first) and with a local
   timestamp authority (RFC 3161, made with openssl), and gives each record's proof code a token
-  of its own. The file carries all of them (`stamps`). Restored with the registry gone, the
-  evidence bundle made on the new device still carries `root.bin.ots` and `root.tst`:
+  of its own. The file carries all of them (`stamps`). Restored with the registry gone, they
+  are *carried* on the new device (kept apart from what the registry gives, `src/veilcore/stamps.ts`),
+  and the evidence bundle made there still carries `root.bin.ots` and `root.tst`:
   `verify.html`'s own reader reads the Bitcoin file against the batch root, and the SDK and
-  `openssl ts -verify` (the bundle README's step) both pass the token; the bundle says the batch
-  root is not yet confirmed with the registry. A backup made there, still without the registry,
-  carries every stamp and proof again, marked unconfirmed; the first backup made with the
-  registry back confirms them.
+  `openssl ts -verify` (the bundle README's step) both pass the token. README.txt,
+  EXAMINER-SUMMARY.html, evidence.json and verify.html's own code all say the batch data is
+  from a backup file and not yet confirmed, and none says our registry reported it. A backup
+  made there, still without the registry, carries all of it forward (`stamps.carried`), nothing
+  in `proofs`; the first backup with the registry back fills the registry's part again.
 - A pending Bitcoin stamp is kept, the next backup takes the finished one once the registry
-  has it, and a registry that serves the pending one again doesn't take the finished one away.
-- Doctored stamps are refused and nothing of them is written (no stamp comes back, the bundle
-  has none, a backup made there carries none): another batch's files under this batch (with
-  its own root, or said to start from this root), this batch's files under another batch's
-  name, a changed token or Bitcoin file, one record's token moved onto another record, and a
-  token from a timestamp authority the site doesn't pin.
-- A made-up file that names the same batch with another root (proof codes are public, so anyone
-  can build one) takes nothing away: the finished Bitcoin stamp and token kept in the browser
-  are still in the next backup and the evidence bundle (review of PR #233). Kept stamps go only
-  when their record is deleted on that browser, not when a record is missing from one backup.
-- Confirmed and unconfirmed (second review of PR #233). What comes only from a backup file is
-  unconfirmed until the registry gives the same root for its batch. The drill checks: a made-up
-  root on a device with no kept copy is kept only as unconfirmed, the bundle says so on every
-  page (README, examiner summary, evidence.json), and the next backup carries it apart
-  (`stamps.unconfirmedProofs`), never in `proofs`; the genuine file restored after a made-up one
-  is not blocked (its stamps go back; with two files disagreeing and no registry, the batch is
-  used nowhere), and once the registry is back its answer wins and the made-up root's files go;
-  a made-up root for a record in a batch the registry already confirmed is refused; a file naming
-  two roots for one batch gives nothing for it; two files disagreeing leave the batch unused for
-  every record in it. On a new device with the registry gone, everything restored is
-  unconfirmed until a backup is made online.
+  has it, and neither a registry serving the pending one again nor an older file takes the
+  finished one away.
+- Doctored stamps are refused (no stamp is counted, the bundle has none, no later backup carries
+  them): another batch's files under this batch (with its own root, or said to start from this
+  root), this batch's files under another batch's name, a changed token or Bitcoin file, one
+  record's token moved onto another record, a token from a timestamp authority the site doesn't
+  pin, a pinned authority's token outside its certificate's dates, and Bitcoin files padded past
+  16 KB. A file naming the records under hundreds of batches, or with proofs for codes not held
+  here, adds at most two batches per record.
+- Made-up files (reviews of PR #233; proof codes are public, so anyone can build one):
+  - on the original device, a made-up file changes nothing the registry gave: the bundle still
+    has the registry's root and finished stamp;
+  - on a new device with the registry gone, a made-up file restored after the genuine one never
+    blocks or drops it: the restore page says the backup files disagree, the bundle shows the
+    newest root and the other beside it (`proof/alternative-1`), labelled, the next backup carries
+    both, restoring the genuine file again puts it first, and once the registry is back its
+    answer is the one used;
+  - two made-up files can't push out the genuine one restored after them, and at most two roots
+    are carried per batch, the newest kept;
+  - flags in a file saying its data is confirmed change nothing;
+  - a made-up root for a record whose batch the registry gave is shown with the registry's root
+    beside it;
+  - if the registry later gives another root for a sealed batch, the first root and its
+    finished Bitcoin stamp stay, the new answer is carried, and the backup page warns.
+- Kept stamps go only when their record is deleted on that browser, not when a record is missing
+  from one backup.
 - A wrong password, no password, a cut-off file and a changed file are all refused, and nothing
   is written. A file with a record that was edited after sealing puts back none of the records
   (all or nothing) and says why; the keys come back.
@@ -89,17 +96,14 @@ signature or a real license on chain.
 
 Both were checked to fail when restore is broken on purpose (licenses held left out of the
 restore, and lab signatures left out), then put back. The stamp tests were checked the same way
-(26 Nov), one break at a time: stamps left out of the file, left out of the restore, the
-evidence bundle not using the device's copy, the file's own root trusted, the Bitcoin file's
-root not checked, tokens not checked, any batch name accepted, a pending stamp never finished,
-and a finished stamp swapped back. Each break made at least one of them fail. After the review
-of PR #233, the same for the new tests: the restore as it was (the file's proof first, no check
-for a batch named with two roots, another root's files replacing the kept ones), tokens from an
-unpinned authority taken, kept stamps removed when a record is missing from a backup, and kept
-stamps never removed on delete. After the second review: file proofs kept as confirmed, a
-registry-confirmed root not required, two roots in one file not refused, a first unconfirmed
-proof blocking later files, a torn batch still used, unconfirmed proofs spread into `proofs`,
-and the bundle not saying it is unconfirmed. Each made at least one test fail.
+on the design as it is now (26 Nov, after the third review of PR #233), one break at a time:
+a restore writing into the registry's part, carried data left out of the file, the two-roots-
+per-batch cap off, the newest item evicted instead of the oldest, 64 KB files allowed from a
+file, a registry root change overwriting the first, the bundle using the oldest carried item,
+no alternatives in the bundle, unpinned tokens taken, certificate dates ignored, a disagreement
+not reported, no pruning on delete, README not labelled, and verify.html not reading the source.
+Each made at least one test fail. Not tested: the 512 KB budget itself, which the other caps keep
+real files well under.
 
 ## What the drill found (26 Nov 2026)
 
@@ -115,9 +119,9 @@ Fixed in the same change:
 
 3. (Foundation review, 26 Nov.) **The Bitcoin stamp files and RFC 3161 tokens were not in the
    file.** With the registry and its backups gone, a holder kept only the Midnight date. The
-   file now carries them (`stamps`), the browser keeps its own copy, and a restore puts each
-   back only once it checks against its batch root or proof code
-   (`src/veilcore/stamps.ts`).
+   file now carries them (`stamps`). The browser keeps what the registry gave; what a restored
+   file brings is carried apart, checked for form, capped, and labelled as not confirmed
+   wherever it is used (`src/veilcore/stamps.ts`).
 
 Known gaps, not fixed here:
 
