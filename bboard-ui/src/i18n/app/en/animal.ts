@@ -218,6 +218,12 @@ export const animal = {
     'Your animal’s key was date stamped on {when}. That dates the key, not the record.',
   'app.animal.v.app.prove.watch.stampedThisEarlier':
     'This animal’s key was date stamped on the network earlier. That dates the key, not the record.',
+  'app.animal.v.app.prove.watch.shareAsker':
+    '{asker} is asking you to prove you hold this animal on VeilCore. Open this link: {link}',
+  'app.animal.v.app.prove.watch.share':
+    'I’m asking you to prove you hold this animal on VeilCore. Open this link: {link}',
+  'app.animal.v.app.lic.proof.panelText':
+    'Someone says they’re licensed to breed from or sell this animal. Send them a link; they answer from the device that holds their license, and this page checks it on Midnight. You learn only that they held a live license from this record when they answered.',
   'app.animal.v.app.prove.own.title': 'Prove you hold this animal’s key (test network)',
   'app.animal.v.app.prove.own.stampFirst':
     'Add the key date stamp first: press “Add the key date stamp” on the animal’s page. The proof is about the record’s on-chain identity, which that step creates.',

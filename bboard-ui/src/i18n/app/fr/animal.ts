@@ -211,6 +211,12 @@ export const animal = {
     'La clé de votre animal a été horodatée le {when}. Cela date la clé, pas l’enregistrement.',
   'app.animal.v.app.prove.watch.stampedThisEarlier':
     'La clé de cet animal a déjà été horodatée sur le réseau. Cela date la clé, pas l’enregistrement.',
+  'app.animal.v.app.prove.watch.shareAsker':
+    '{asker} vous demande de prouver sur VeilCore que vous détenez cet animal. Ouvrez ce lien : {link}',
+  'app.animal.v.app.prove.watch.share':
+    'Je vous demande de prouver sur VeilCore que vous détenez cet animal. Ouvrez ce lien : {link}',
+  'app.animal.v.app.lic.proof.panelText':
+    'Quelqu’un affirme avoir une licence pour faire reproduire ou vendre cet animal. Envoyez-lui un lien ; la personne répond depuis l’appareil qui détient sa licence, et cette page le vérifie sur Midnight. Vous apprenez seulement qu’elle détenait une licence valide issue de cet enregistrement au moment de sa réponse.',
   'app.animal.v.app.prove.own.title': 'Prouvez que vous détenez la clé de cet animal (réseau de test)',
   'app.animal.v.app.prove.own.stampFirst':
     'Ajoutez d’abord l’horodatage de la clé : appuyez sur « Ajouter l’horodatage de la clé » sur la page de l’animal. La preuve porte sur l’identité sur la chaîne de l’enregistrement, que cette étape crée.',

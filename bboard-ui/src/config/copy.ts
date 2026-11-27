@@ -52,13 +52,14 @@ export const LICENSE_PROOF_RUN_ON_MAINNET = false;
 /**
  * Whether proving a record by link (/prove, the contract's proveOwnership control proof) has
  * worked on veilcore.org: a request sent, answered from the holder's device, and checked on chain.
- * Until it has, the "What's live where" cell for it says built, not yet tried on the main network
- * (m.live.prove.mainNext), and the mainnet sentences about it say the same. The chain read on 23
- * November 2026 found no proveOwnership call on mainnet (docs/contract-v2.md, section 0.1).
- * Hunter turns it on in a reviewed commit after that first run, never before, and changes the
- * mainnet sentences with it (copy-truth.test.ts holds them to this flag).
+ * Until it had, the "What's live where" cell for it said built, not yet tried on the main network
+ * (m.live.prove.mainNext), and the mainnet sentences about it said the same. On: on 27 November
+ * 2026 a checker's link on veilcore.org was answered from the holder's browser (transaction
+ * 531b3126668d736b7c5ac30ad04be7d26e5d29712c30f9cd32a675bbfe248d05, block 3638190, proveOwnership
+ * on contract version 1) and the checker's page said "Confirmed". The cell now says "Yes", and the
+ * mainnet sentences say it works on veilcore.org (copy-truth.test.ts holds them to this flag).
  */
-export const PROVE_BY_LINK_RUN_ON_MAINNET = false;
+export const PROVE_BY_LINK_RUN_ON_MAINNET = true;
 
 /** How a live license is proved without its terms, and whether that has run on veilcore.org. */
 export const LICENSE_PROOF_NOTE = `A license issued on ${

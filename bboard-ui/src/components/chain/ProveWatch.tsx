@@ -22,15 +22,22 @@ import {
   type MyAsk,
 } from '../../veilcore/prove-relay';
 import { useT } from '../../i18n/app';
+import { forKind, type RecordKind } from '../../i18n/translate';
 import { CODE_FONT } from '../../config/theme';
 import { color, mix } from '../../config/tokens';
 
 const WEEK = 7 * 24 * 60 * 60_000;
 const when = (t: number, locale?: string) => localStamp(t, locale);
 
-export const SendLink: React.FC<{ link: string; asker?: string }> = ({ link, asker }) => {
+/**
+ * What the record is about, when the page knows it: an animal's or a strain's words replace a
+ * plant's (translate.ts forKind). Unknown: a plant's.
+ */
+type Kinded = { kind?: RecordKind };
+
+export const SendLink: React.FC<{ link: string; asker?: string } & Kinded> = ({ link, asker, kind = 'plant' }) => {
   const [copied, setCopied] = useState(false);
-  const { t } = useT();
+  const { t } = forKind(useT(), kind);
   const text = asker ? t('app.prove.watch.shareAsker', { asker, link }) : t('app.prove.watch.share', { link });
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
   return (
@@ -102,10 +109,11 @@ const KeyLine: React.FC<{ identity: string }> = ({ identity }) => {
 
 type State = 'waiting' | 'expired' | 'unreachable';
 
-export const ProveWatch: React.FC<{ ask: MyAsk; asker?: string; showLink?: boolean }> = ({
+export const ProveWatch: React.FC<{ ask: MyAsk; asker?: string; showLink?: boolean } & Kinded> = ({
   ask: initial,
   asker,
   showLink = true,
+  kind = 'plant',
 }) => {
   const [ask, setAsk] = useState(initial);
   const [state, setState] = useState<State>('waiting');
@@ -113,7 +121,8 @@ export const ProveWatch: React.FC<{ ask: MyAsk; asker?: string; showLink?: boole
   // An answer is in but the network can't show it yet (just sent, or the indexer is down).
   const [pending, setPending] = useState(false);
   const running = useRef(false);
-  const tr = useT();
+  // An animal record's answer says "animal", never "plant" (mainnet run, 27 Nov 2026).
+  const tr = forKind(useT(), kind);
   const { t, tp } = tr;
 
   // When the fast polling window started, the answers seen so far, and when the request ends.
@@ -223,7 +232,7 @@ export const ProveWatch: React.FC<{ ask: MyAsk; asker?: string; showLink?: boole
 
   return (
     <Stack spacing={1.5}>
-      {showLink && state !== 'expired' && <SendLink link={proveLink(ask.id, ask.token)} asker={asker} />}
+      {showLink && state !== 'expired' && <SendLink link={proveLink(ask.id, ask.token)} asker={asker} kind={kind} />}
       {state === 'expired' ? (
         <Alert severity="info" variant="outlined">
           {t('app.prove.watch.expired')}

@@ -1,0 +1,90 @@
+// The checker's answer to "prove it by link", and the license check panel, in the record's own
+// words: an animal record's "Confirmed" box never says "this plant's key" or "who bred the
+// plant", and its license panel never says "licensed to grow" (mainnet run, 27 Nov 2026).
+// SPDX-License-Identifier: Apache-2.0
+import fs from 'node:fs';
+import path from 'node:path';
+import { describe, expect, it } from 'vitest';
+import { appEn } from '../../i18n/app/en';
+import { appDe } from '../../i18n/app/de';
+import { appEs } from '../../i18n/app/es';
+import { appFr } from '../../i18n/app/fr';
+import { appJa } from '../../i18n/app/ja';
+import { forKind, makeTranslator } from '../../i18n/translate';
+import { keyStampWords } from '../../veilcore/prove-relay';
+
+const DICTS = { en: appEn, de: appDe, es: appEs, fr: appFr, ja: appJa } as const;
+type Lang = keyof typeof DICTS;
+const PLANT: Record<Lang, RegExp> = {
+  en: /\bplants?\b|cultivar|\bgrow\b/i,
+  de: /pflanze|sorte|anzubauen/i,
+  es: /\bplantas?\b|cultivar/i,
+  fr: /\bplantes?\b|cultivar/i,
+  ja: /植物|栽培/,
+};
+const ANIMAL: Record<Lang, RegExp> = {
+  en: /animal/,
+  de: /Tier/,
+  es: /animal/,
+  fr: /animal/,
+  ja: /動物/,
+};
+// Every sentence ProveWatch, SendLink and LicenseProofPanel show that names the record.
+const KEYS = [
+  'app.prove.watch.notWho',
+  'app.prove.watch.holderStatement',
+  'app.prove.watch.share',
+  'app.prove.watch.shareAsker',
+  'app.lic.proof.panelText',
+] as const;
+const SRC = path.resolve(__dirname, '../..');
+const read = (f: string) => fs.readFileSync(path.join(SRC, f), 'utf8');
+
+describe("prove by link, in an animal's words", () => {
+  for (const lang of Object.keys(DICTS) as Lang[]) {
+    it(`${lang}: the checker's answer and the license panel say "animal" for an animal`, () => {
+      const plant = makeTranslator(lang, DICTS[lang]);
+      const animal = forKind(plant, 'animal');
+      const vars = { asker: 'A lab', link: 'https://veilcore.org/prove/PR-1#t=x' };
+      for (const k of KEYS) {
+        const a = animal.t(k, vars);
+        expect(a, `${lang} ${k}`).not.toBe(plant.t(k, vars));
+        expect(a, `${lang} ${k}`).toMatch(ANIMAL[lang]);
+        expect(a, `${lang} ${k}`).not.toMatch(PLANT[lang]);
+      }
+      // The key's date stamp line (keyStampWords), with and without a date.
+      for (const at of [undefined, Date.UTC(2026, 10, 27)]) {
+        const a = keyStampWords(true, at, animal);
+        expect(a, `${lang} stamp ${at}`).toMatch(ANIMAL[lang]);
+        expect(a, `${lang} stamp ${at}`).not.toMatch(PLANT[lang]);
+      }
+      // A plant's words are unchanged.
+      expect(plant.t('app.prove.watch.notWho')).toBe((DICTS[lang] as Record<string, string>)['app.prove.watch.notWho']);
+    });
+  }
+
+  it('a strain uses its own words, and nothing says who bred a plant', () => {
+    const strain = forKind(makeTranslator('en', appEn), 'strain');
+    expect(strain.t('app.prove.watch.notWho')).not.toMatch(/plant/);
+    expect(keyStampWords(true, undefined, strain)).not.toMatch(/plant/);
+  });
+
+  it("the check page and the checker's own /prove page pass the record's kind through", () => {
+    const watch = read('components/chain/ProveWatch.tsx');
+    expect(watch).toMatch(/const tr = forKind\(useT\(\), kind\);/);
+    expect(watch).toMatch(/<SendLink link=\{proveLink\(ask\.id, ask\.token\)\} asker=\{asker\} kind=\{kind\} \/>/);
+    const panel = read('components/chain/VerifierChallengePanel.tsx');
+    expect(panel).toMatch(/<ProveWatch ask=\{ask\} asker=\{asker\.trim\(\) \|\| undefined\} kind=\{kind\} \/>/);
+    expect(panel).toMatch(/subject: kind/);
+    const lic = read('components/licensing/LicenseProof.tsx');
+    expect(lic).toMatch(/const tr = forKind\(useT\(\), kind\);/);
+    const verify = read('pages/VerifyPage.tsx');
+    expect(verify).toMatch(/kind=\{recordKind\}\s*\/>/);
+    expect(verify).toMatch(
+      /<LicenseProofPanel identity=\{linked\('chain'\) \?\? ''\} recordId=\{id\} kind=\{recordKind\} \/>/,
+    );
+    const prove = read('components/flow/ProvePage.tsx');
+    expect(prove).toMatch(/<ProveWatch ask=\{mine\} kind=\{askedKind\} \/>/);
+    expect(prove).toMatch(/askSubject\(mine\)/);
+  });
+});

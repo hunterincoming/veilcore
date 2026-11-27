@@ -207,6 +207,12 @@ export const animal = {
     'Der Schlüssel Ihres Tieres erhielt am {when} einen Datumsstempel. Das datiert den Schlüssel, nicht den Datensatz.',
   'app.animal.v.app.prove.watch.stampedThisEarlier':
     'Der Schlüssel dieses Tieres erhielt schon früher einen Datumsstempel im Netzwerk. Das datiert den Schlüssel, nicht den Datensatz.',
+  'app.animal.v.app.prove.watch.shareAsker':
+    '{asker} bittet Sie, auf VeilCore zu beweisen, dass Sie dieses Tier halten. Öffnen Sie diesen Link: {link}',
+  'app.animal.v.app.prove.watch.share':
+    'Ich bitte Sie, auf VeilCore zu beweisen, dass Sie dieses Tier halten. Öffnen Sie diesen Link: {link}',
+  'app.animal.v.app.lic.proof.panelText':
+    'Jemand sagt, er habe eine Lizenz, mit diesem Tier zu züchten oder es zu verkaufen. Senden Sie einen Link; die Person antwortet von dem Gerät, auf dem ihre Lizenz liegt, und diese Seite prüft das auf Midnight. Sie erfahren nur, dass sie beim Antworten eine gültige Lizenz von diesem Datensatz hielt.',
   'app.animal.v.app.prove.own.title': 'Beweisen Sie, dass Sie den Schlüssel dieses Tieres halten (Testnetz)',
   'app.animal.v.app.prove.own.stampFirst':
     'Setzen Sie zuerst den Datumsstempel des Schlüssels: „Datumsstempel des Schlüssels setzen“ auf der Seite des Tieres. Der Nachweis bezieht sich auf die On-Chain-Identität des Datensatzes, die dieser Schritt erzeugt.',
