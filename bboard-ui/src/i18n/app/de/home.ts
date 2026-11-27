@@ -13,8 +13,8 @@ export const home = {
     'Was Sie eingegeben haben, ist in diesem Browser gespeichert. Machen Sie dort weiter, wo Sie aufgehört haben.',
   'app.home.aboutThreeMinutes':
     'Etwa 3 Minuten. Danach hat er einen öffentlichen Datumsstempel, und nur Sie halten den Schlüssel.',
-  'app.home.aboutThreeMinutesByHand':
-    'Etwa 3 Minuten. Danach ist der Datensatz versiegelt; sein öffentliches Datum kommt, wenn wir seinen Stapel verankern (vorerst von Hand). Nur Sie halten den Schlüssel.',
+  'app.home.aboutThreeMinutesBatch':
+    'Etwa 3 Minuten. Danach ist der Datensatz versiegelt; sein öffentliches Datum kommt, sobald sein Stapel automatisch auf Midnight datiert wird. Nur Sie halten den Schlüssel.',
   'app.home.continue': 'Fortsetzen',
   'app.home.start': 'Datensatz anlegen',
   'app.home.spreadsheet': 'Eine Tabelle? Ihre ganze Sammlung datieren',

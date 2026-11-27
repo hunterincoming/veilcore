@@ -11,8 +11,8 @@ export const home = {
   'app.home.draftKept': 'What you typed is kept in this browser. Pick up where you left off.',
   'app.home.aboutThreeMinutes':
     'About 3 minutes. When you’re done it has a public date stamp, and you hold the only key.',
-  'app.home.aboutThreeMinutesByHand':
-    "About 3 minutes. When you're done it's sealed; its public date comes when we anchor its batch (by hand for now). You hold the only key.",
+  'app.home.aboutThreeMinutesBatch':
+    "About 3 minutes. When you're done it's sealed; its public date comes when its batch is dated on Midnight, automatically. You hold the only key.",
   'app.home.continue': 'Continue',
   'app.home.start': 'Make a record',
   'app.home.spreadsheet': 'Have a spreadsheet? Date your whole collection',

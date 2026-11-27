@@ -400,12 +400,12 @@ export const AppHome: React.FC = () => {
               <Typography variant="body1" color="text.secondary">
                 {draft
                   ? t('app.home.draftKept')
-                  : // Where batches are anchored by hand (veilcore.org, and the demo), the record's
-                    // public date waits for that (persona review, 17 Oct); the test site anchors
-                    // automatically.
+                  : // Where the record goes into a batch (veilcore.org, and the demo), its public
+                    // date waits for the batch to be dated on Midnight (persona review, 17 Oct),
+                    // which the sponsor's job does automatically (since 8 Nov 2026).
                     REAL_CHAIN
                     ? t('app.home.aboutThreeMinutes')
-                    : t('app.home.aboutThreeMinutesByHand')}
+                    : t('app.home.aboutThreeMinutesBatch')}
               </Typography>
               <Button
                 component={RouterLink}

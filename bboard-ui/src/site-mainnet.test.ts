@@ -346,13 +346,51 @@ describe('the mainnet strings', () => {
     const o = mainnetStrings({ claimsOnMainnet: true, policyApproved: true, chainSends: true });
     expect(o['m.hero.status']).toMatch(/batches that are anchored there automatically/);
     expect(o['m.live.stamp.main']).toMatch(/^Yes\. Batches are dated automatically/);
-    // Before the switch, neither cadence; after it, "automatically" stays and "by hand" goes.
+    // Before the switch, no cadence; after it, "automatically" stays.
     const auto = { 'm.hero.status': 'they go into batches that are anchored there automatically.' };
-    const hand = { 'm.hero.status': 'they go into batches that we anchor there by hand for now.' };
     expect(withoutCadence(auto, true)).toEqual(auto);
     expect(withoutCadence(auto, false)['m.hero.status']).toBe('they go into batches that are dated there.');
-    expect(withoutCadence(hand, true)['m.hero.status']).toBe('they go into batches that are dated there.');
-    expect(withoutCadence(hand, false)['m.hero.status']).toBe('they go into batches that are dated there.');
+  });
+
+  // Batches have been anchored by the sponsor's scheduled job since 8 Nov 2026 (hourly). "By hand"
+  // anchoring wording must not come back anywhere: not in the mainnet overlays as written (before
+  // any swap), and not in the record app's own strings, in any of the five languages. The app's
+  // home screen said "(by hand for now)" until 27 Nov. Only the dated history post (the first
+  // batches were anchored by hand, 11 Oct) and "checking by hand" may say it.
+  it('no "by hand" anchoring wording comes back, in the overlays as written or the app, in any language', async () => {
+    const NOT_SO = /by hand|von Hand|a mano|à la main|手作業|手動/i;
+    const ABOUT_BATCHES = /batch|anchor|Stapel|verank|lote|ancl|\blots?\b|ancr|バッチ|アンカー/i;
+    const sentences = (v: string) => v.split(/(?<=[.;。])\s*|\n/);
+    // The overlays and their swaps, read as source: a sentence a build never shows still counts.
+    const overlays = ['en-mainnet.ts', 'de-mainnet.ts', 'es-mainnet.ts', 'fr-mainnet.ts', 'mainnet-overlay.ts'];
+    const hits: string[] = [];
+    for (const f of overlays) {
+      const text = fs.readFileSync(path.join(HERE, 'i18n', f), 'utf8').replace(/^\s*(\/\/|\*|\/\*\*).*$/gm, '');
+      for (const sen of sentences(text))
+        if (NOT_SO.test(sen) && ABOUT_BATCHES.test(sen)) hits.push(`${f}: ${sen.trim()}`);
+    }
+    // Japanese keeps its overlay in ja.ts; the history post and "checking by hand" are allowed.
+    const ja = fs.readFileSync(path.join(HERE, 'i18n', 'ja.ts'), 'utf8');
+    const jaOverlay = ja.slice(ja.indexOf('jaMainnet'));
+    for (const sen of sentences(jaOverlay))
+      if (NOT_SO.test(sen) && ABOUT_BATCHES.test(sen)) hits.push(`ja.ts: ${sen.trim()}`);
+    // The record app, every string, every language.
+    const apps: [string, Record<string, string>][] = [
+      ['en', (await import('./i18n/app/en')).appEn],
+      ['de', (await import('./i18n/app/de')).appDe],
+      ['es', (await import('./i18n/app/es')).appEs],
+      ['fr', (await import('./i18n/app/fr')).appFr],
+      ['ja', (await import('./i18n/app/ja')).appJa],
+    ];
+    for (const [l, strings] of apps)
+      for (const [k, v] of Object.entries(strings))
+        for (const sen of sentences(v))
+          if (NOT_SO.test(sen) && ABOUT_BATCHES.test(sen)) hits.push(`app ${l} ${k}: ${sen}`);
+    expect(hits).toEqual([]);
+    // And the app's home line says when the public date comes, in each language.
+    const home = Object.fromEntries(apps.map(([l, a]) => [l, a['app.home.aboutThreeMinutesBatch']]));
+    expect(home.en).toMatch(/its batch is dated on Midnight, automatically/);
+    for (const [l, v] of Object.entries(home)) expect(v, l).toMatch(/Midnight/);
   });
   it('every language veilcore.org offers sets every mainnet sentence the English does, for every build', async () => {
     const { LANGUAGES } = await import('./i18n/catalogs');
@@ -733,12 +771,28 @@ describe('builds', () => {
   // ---------------------------------------------------------------- browser
 
   const require = createRequire(import.meta.url);
+  // The repository's own Playwright (@playwright/test brings it), with the Chromium that
+  // `npm run e2e:setup` installs, so this part runs in CI too (site-unit installs it before the
+  // unit tests), as hardening-roundD.test.ts does. It used to look only for machine-wide
+  // installs CI doesn't have, so it never ran there and went stale. VEILCORE_TEST_CHROME names
+  // another Chrome to use on a machine that can't download Playwright's.
   const PW = [
+    path.resolve(HERE, '../../node_modules/playwright'),
     '/opt/node-tools/node_modules/playwright',
     path.join(os.homedir(), '.npm-global/lib/node_modules/playwright'),
-  ].find((p) => fs.existsSync(p));
-  const CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
-  const haveBrowser = Boolean(PW) && fs.existsSync(CHROME);
+  ].find((p) => fs.existsSync(path.join(p, 'package.json')));
+  type Chromium = { launch(o: object): Promise<Browser>; executablePath(): string };
+  const chromium = (): Chromium => (require(PW as string) as { chromium: Chromium }).chromium;
+  const PINNED_CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+  const CHROME = process.env.VEILCORE_TEST_CHROME || (fs.existsSync(PINNED_CHROME) ? PINNED_CHROME : undefined);
+  const haveBrowser = (() => {
+    if (!PW) return false;
+    try {
+      return fs.existsSync(CHROME ?? chromium().executablePath());
+    } catch {
+      return false;
+    }
+  })();
 
   type Page = {
     on(event: 'pageerror', f: (e: Error) => void): void;
@@ -772,6 +826,7 @@ describe('builds', () => {
 
   const PAGES = [
     '/',
+    '/how-it-works',
     '/founders',
     '/privacy',
     '/verify',
@@ -802,8 +857,7 @@ describe('builds', () => {
     {};
 
   const textOf = async (dir: string, role: string) => {
-    const { chromium } = require(PW as string) as { chromium: { launch(o: object): Promise<Browser> } };
-    const browser = await chromium.launch({ executablePath: CHROME });
+    const browser = await chromium().launch(CHROME ? { executablePath: CHROME } : {});
     const server = await serve(dir);
     const origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
@@ -873,8 +927,8 @@ describe('builds', () => {
         for (const k of DATED_POSTS) text = text.split(dated[k] ?? '\u0000').join('');
         expect(text.match(TEST_WORDING)?.[0], p).toBeUndefined();
       }
-      // The dated posts are on the home page, as history.
-      expect(mainnet['/']).toContain(dated['m.post0.text']);
+      // The dated posts are on About (/founders, "Latest from the build"), as history.
+      expect(mainnet['/founders']).toContain(dated['m.post0.text']);
     });
 
     it('the mainnet site calls records real, never a demo; only licenses and lab agreements are simulated', () => {
@@ -884,8 +938,9 @@ describe('builds', () => {
         expect(mainnet[p].match(/\bdemos?\b/i)?.[0], p).toBeUndefined();
         expect(mainnet[p].match(/made-up details|use made-up data/i)?.[0], p).toBeUndefined();
       }
-      expect(mainnet['/']).toMatch(
-        /Records sealed on this site are real records: they go into batches that we anchor there by hand for now\. Licenses and lab agreements here are still simulated\./,
+      // Where things stand: the line under How it works's heading (the home page's until 22 Nov).
+      expect(mainnet['/how-it-works']).toMatch(
+        /Records sealed on this site are real records: they go into batches that are dated there\. Licenses and lab agreements here are still simulated\./,
       );
       expect(mainnet['/']).toMatch(/Make a record/);
       // The privacy policy (components/site/PrivacyPolicy.tsx), not the test site's note.
@@ -894,7 +949,8 @@ describe('builds', () => {
       expect(mainnet['/privacy']).toMatch(/email hunter@veilcore\.org with the IDs/);
       expect(mainnet['/privacy']).not.toMatch(/What the demo keeps|Use made-up data/);
       expect(mainnet['/licenses']).toMatch(/Simulated in this web app/);
-      for (const p of ['/records', '/licenses', '/new']) expect(mainnet[p], p).toMatch(/Web app/);
+      // (The app pages no longer carry a "Web app" / network badge: the first test checks they
+      // never say test network.)
       // The test-network site is still a demo, and says so.
       expect(preprod['/']).toMatch(/Try the demo/);
       expect(preprod['/privacy']).toMatch(/Use made-up data/);
@@ -909,19 +965,19 @@ describe('builds', () => {
     });
 
     it('the mainnet site says main network, with the contract addresses', () => {
-      expect(mainnet['/']).toMatch(/VeilCore's contract is on Midnight's main network\./);
+      // How it works carries where things stand, the maintenance key and the contract addresses.
+      const how = mainnet['/how-it-works'];
+      expect(how).toMatch(/VeilCore's contract is on Midnight's main network\./);
       // Built from the real policy, approved by both founders on 7 October 2026.
-      expect(mainnet['/']).toMatch(/Every use is announced publicly, under a written maintenance policy\./);
-      expect(mainnet['/']).toMatch(/The claims contract has no maintenance key/);
-      expect(mainnet['/']).toContain(DUMMY);
-      expect(mainnet['/']).toContain(DUMMY_CLAIMS);
-      expect(mainnet['/']).toMatch(/Main network/);
-      expect(mainnet['/']).toMatch(/licenses and lab agreements are simulated/i);
-      for (const p of ['/records', '/licenses', '/new']) {
-        expect(mainnet[p], p).toMatch(/Main network/);
-        expect(mainnet[p], p).toMatch(/Web app/);
-      }
-      expect(mainnet['/privacy']).toMatch(/Dated on Midnight's main network/);
+      expect(how).toMatch(/Every use is announced publicly, under a written maintenance policy\./);
+      expect(how).toMatch(/The claims contract has no maintenance key/);
+      expect(how).toContain(DUMMY);
+      expect(how).toContain(DUMMY_CLAIMS);
+      expect(how).toMatch(/Main network/);
+      expect(how).toMatch(/licenses and lab agreements (here )?are (still )?simulated/i);
+      // /privacy is the privacy policy itself now (PrivacyPolicy.tsx), checked above; it names
+      // Midnight, never a test network.
+      expect(mainnet['/privacy']).toMatch(/Midnight and Bitcoin are public networks\./);
       expect(mainnet['/licenses']).toMatch(/Simulated in this web app/);
       expect(mainnet['/verify/example']).toMatch(/Example: a made-up record\./);
       expect(mainnet['/verify/example']).toMatch(/Midnight’s main network/);
@@ -937,9 +993,10 @@ describe('builds', () => {
     });
 
     it('the preprod site still says test network', () => {
-      expect(preprod['/']).toMatch(
+      expect(preprod['/how-it-works']).toMatch(
         /Launching on Midnight's main network\. Today records are dated on a Midnight test network/,
       );
+      expect(preprod['/how-it-works']).not.toContain(DUMMY);
       expect(preprod['/']).not.toContain(DUMMY);
       for (const p of ['/records', '/licenses', '/new']) expect(preprod[p], p).toMatch(/Test network/);
       expect(preprod['/privacy']).toMatch(/Stored on our test server/);

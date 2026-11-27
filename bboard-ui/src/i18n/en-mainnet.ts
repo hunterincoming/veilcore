@@ -6,8 +6,8 @@
 //
 // Written to be true whether or not the first mainnet batch has been anchored yet: the
 // main contract is on Midnight's main network, and records sealed here go into batches
-// that VeilCore anchors there (by hand for now: the operator seals a batch and anchors
-// its root, see the registry README, so a new record can wait a while). Nothing here may
+// that are dated there (since 8 Nov 2026 by the sponsor's scheduled job, automatically;
+// before that the operator anchored them by hand, see the registry README). Nothing here may
 // say a batch has already been anchored on mainnet. The site still sends no transactions itself
 // (licenses and lab agreements are simulated; a DNA report pairing is saved but not
 // dated). Records sealed here are real records, so the mainnet site doesn't call itself
@@ -42,16 +42,16 @@ type Overlay = Partial<Record<StringKey, string>>;
 
 const common: Overlay = {
   'm.hero.status':
-    "VeilCore's contract is on Midnight's main network. Records sealed on this site are real records: they go into batches that we anchor there by hand for now. Licenses and lab agreements here are still simulated.",
+    "VeilCore's contract is on Midnight's main network. Records sealed on this site are real records: they go into batches that are dated there. Licenses and lab agreements here are still simulated.",
   'm.faq.3a':
-    "It's built to be evidence, and our note for lawyers says what a record proves and what it doesn't. Records sealed here go into batches that we anchor on Midnight's main network by hand. Once a record's batch is anchored, the date shows the record existed by then; what that's worth in a dispute is for the court to weigh.",
+    "It's built to be evidence, and our note for lawyers says what a record proves and what it doesn't. Records sealed here go into batches that are dated on Midnight's main network. Once a record's batch is anchored, the date shows the record existed by then; what that's worth in a dispute is for the court to weigh.",
   'm.stat2.b': 'Main network',
   'm.foot.about':
     "An open record format for plant, animal and microbial genetics. Records are dated by anchoring on Midnight's main network.",
   'm.get.2b':
     "They attach to the record. A licensee can prove they hold a live license without showing which one. A royalty or other obligation on a parent shows on every offspring both holders confirmed; VeilCore records it and doesn't collect it. Built into the contract on Midnight's main network; simulated on this website.",
   'm.demo.lede':
-    "No sign-up, no wallet. Records you seal here are real records: each goes into a batch that we anchor on Midnight's main network, by hand for now, so a new record can wait a while; its check page shows when its batch is anchored. Checking is free. Licenses and lab agreements are simulated, and DNA report pairings aren't dated. A record's name is locked like the rest; a check link carries it only if you switch that on.",
+    "No sign-up, no wallet. Records you seal here are real records: each goes into a batch that is dated on Midnight's main network; its check page shows when its batch is anchored. Checking is free. Licenses and lab agreements are simulated, and DNA report pairings aren't dated. A record's name is locked like the rest; a check link carries it only if you switch that on.",
   // Dated posts: history, so they name the network the run was on (see DATED_POSTS).
   'm.post0.text':
     "Both contracts passed all 37 end-to-end checks on Midnight's preprod test network, including the new claims: a value, a range, a difference, an unchanged correction and a signature from a test lab key. Made-up marker data.",
@@ -104,7 +104,7 @@ const claimsLive: Overlay = {
   'm.claims.status':
     "A second Midnight contract, on Midnight's main network. Before launch it passed every end-to-end check, with made-up marker data. It isn't on this website yet.",
   'm.stat2.s':
-    "Both contracts are on Midnight's main network. Records sealed on this site go into batches that we anchor there by hand for now.",
+    "Both contracts are on Midnight's main network. Records sealed on this site go into batches that are dated there.",
 };
 
 /** "Prove a fact" is on this website (the sponsor pays for VeilCore's claims contract). */
@@ -118,7 +118,7 @@ const claimsPending: Overlay = {
   'm.claims.status':
     "A second Midnight contract. It passed every end-to-end check in pre-launch testing, with made-up marker data. It isn't on Midnight's main network yet, and isn't on this website.",
   'm.stat2.s':
-    "The main contract is on Midnight's main network. Records sealed on this site go into batches that we anchor there by hand for now. The claims contract follows.",
+    "The main contract is on Midnight's main network. Records sealed on this site go into batches that are dated there. The claims contract follows.",
 };
 
 /**
@@ -180,19 +180,19 @@ export const swapIn = (text: string | undefined, from: string, to: string): stri
 const sendsStrings = (o: Overlay): Overlay => ({
   'm.hero.status': swapIn(
     o['m.hero.status'],
-    'they go into batches that we anchor there by hand for now.',
+    'they go into batches that are dated there.',
     'they go into batches that are anchored there automatically. Dating a DNA report works here too, and VeilCore pays the network fee.',
   ),
   'm.faq.3a': swapIn(
     o['m.faq.3a'],
-    "that we anchor on Midnight's main network by hand.",
+    "that are dated on Midnight's main network.",
     "that are anchored on Midnight's main network automatically.",
   ),
   'm.demo.lede': swapIn(
     swapIn(
       swapIn(
         o['m.demo.lede'],
-        "that we anchor on Midnight's main network, by hand for now, so a new record can wait a while;",
+        "that is dated on Midnight's main network;",
         "that is anchored on Midnight's main network automatically;",
       ),
       'Checking is free.',
@@ -205,11 +205,7 @@ const sendsStrings = (o: Overlay): Overlay => ({
     "Your record's proof code goes into a batch, and the batch is anchored on Midnight's main network automatically. When you date your record's own key, prove a record by link or date a DNA report pairing, your browser sends that transaction itself, through VeilCore's fee service, which pays the fee. What you typed and your files are never sent to the network; what is, is listed under “What goes on Midnight”. Once on the network, it is permanent: nobody, including us, can delete it.",
   'm.privacy.hosts.text':
     "This website is hosted on Vercel, which logs IP addresses and requests. Our registry server, and the service that pays the network fee and passes this page's reads of the network, run on Railway, which logs requests. That service reads the network through Blockfrost.",
-  'm.stat2.s': swapIn(
-    o['m.stat2.s'],
-    'that we anchor there by hand for now.',
-    'that are anchored there automatically.',
-  ),
+  'm.stat2.s': swapIn(o['m.stat2.s'], 'that are dated there.', 'that are anchored there automatically.'),
   'm.for.1p': swapIn(
     o['m.for.1p'],
     'On this website the pairing is saved with your record but not yet dated.',

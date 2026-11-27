@@ -91,46 +91,35 @@ export const buildMainnet =
  * SCHEDULED_ANCHORING_RUN_ON_MAINNET), the mainnet pages claim no cadence, neither "by hand" nor
  * "automatically"/"hourly": batches are dated on Midnight, and that is all they say (blueprint
  * section 4). Longest phrases first; each language's phrases only match its own text.
+ *
+ * Batches have been anchored by the sponsor's scheduled job since 8 Nov 2026, so no overlay says
+ * "by hand" any more (the sentences say what the page shows: batches "are dated there"), and the
+ * pairs that used to strip it are gone. site-mainnet.test.ts fails if "by hand" anchoring
+ * wording comes back in any language.
  */
 export const CADENCE_SWAPS: readonly (readonly [string, string])[] = [
   // English
-  [
-    "that we anchor on Midnight's main network, by hand for now, so a new record can wait a while;",
-    "that is dated on Midnight's main network;",
-  ],
   ["that is anchored on Midnight's main network automatically;", "that is dated on Midnight's main network;"],
   ["the batch is anchored on Midnight's main network automatically", "the batch is dated on Midnight's main network"],
-  ["that we anchor on Midnight's main network by hand", "that are dated on Midnight's main network"],
   ["that are anchored on Midnight's main network automatically", "that are dated on Midnight's main network"],
-  ['that we anchor there by hand for now', 'that are dated there'],
   ['that are anchored there automatically', 'that are dated there'],
   [
     'Batches are dated automatically, and that dates your record.',
     'Batches are dated on Midnight, and that dates your record.',
   ],
   // Deutsch
-  [
-    'den wir vorerst von Hand im Hauptnetz von Midnight verankern, ein neuer Datensatz kann also eine Weile warten;',
-    'der im Hauptnetz von Midnight datiert wird;',
-  ],
   ['der automatisch im Hauptnetz von Midnight verankert wird;', 'der im Hauptnetz von Midnight datiert wird;'],
   [
     'der Stapel wird automatisch im Hauptnetz von Midnight verankert',
     'der Stapel wird im Hauptnetz von Midnight datiert',
   ],
-  ['die wir von Hand im Hauptnetz von Midnight verankern', 'die im Hauptnetz von Midnight datiert werden'],
   ['die automatisch im Hauptnetz von Midnight verankert werden', 'die im Hauptnetz von Midnight datiert werden'],
-  ['die wir dort vorerst von Hand verankern', 'die dort datiert werden'],
   ['die dort automatisch verankert werden', 'die dort datiert werden'],
   [
     'Stapel werden automatisch datiert, und das datiert Ihren Datensatz.',
     'Stapel werden auf Midnight datiert, und das datiert Ihren Datensatz.',
   ],
   // Español
-  [
-    'un lote que, por ahora, anclamos a mano en la red principal de Midnight, así que un registro nuevo puede esperar un rato;',
-    'un lote que se fecha en la red principal de Midnight;',
-  ],
   [
     'un lote que se ancla automáticamente en la red principal de Midnight;',
     'un lote que se fecha en la red principal de Midnight;',
@@ -139,19 +128,13 @@ export const CADENCE_SWAPS: readonly (readonly [string, string])[] = [
     'el lote se ancla automáticamente en la red principal de Midnight',
     'el lote se fecha en la red principal de Midnight',
   ],
-  ['que anclamos a mano en la red principal de Midnight', 'que se fechan en la red principal de Midnight'],
   ['que se anclan automáticamente en la red principal de Midnight', 'que se fechan en la red principal de Midnight'],
-  ['que, por ahora, anclamos allí a mano', 'que se fechan allí'],
   ['que se anclan allí automáticamente', 'que se fechan allí'],
   [
     'Los lotes se fechan automáticamente, y eso fecha su registro.',
     'Los lotes se fechan en Midnight, y eso fecha su registro.',
   ],
   // Français
-  [
-    'un lot que nous ancrons à la main pour l’instant sur le réseau principal de Midnight, donc un nouvel enregistrement peut attendre un moment ;',
-    'un lot daté sur le réseau principal de Midnight ;',
-  ],
   [
     'un lot ancré automatiquement sur le réseau principal de Midnight ;',
     'un lot daté sur le réseau principal de Midnight ;',
@@ -160,9 +143,7 @@ export const CADENCE_SWAPS: readonly (readonly [string, string])[] = [
     'le lot est ancré automatiquement sur le réseau principal de Midnight',
     'le lot est daté sur le réseau principal de Midnight',
   ],
-  ['que nous ancrons à la main sur le réseau principal de Midnight', 'datés sur le réseau principal de Midnight'],
   ['ancrés automatiquement sur le réseau principal de Midnight', 'datés sur le réseau principal de Midnight'],
-  ['que nous y ancrons à la main pour l’instant', 'qui y sont datés'],
   ['qui y sont ancrés automatiquement', 'qui y sont datés'],
   [
     'Les lots sont datés automatiquement, et cela date votre enregistrement.',
@@ -170,34 +151,25 @@ export const CADENCE_SWAPS: readonly (readonly [string, string])[] = [
   ],
   // 日本語
   [
-    '当面は私たちが手作業でMidnightのメインネットワークにアンカーするため、新しい記録はしばらく待つことがあります。',
-    'Midnightのメインネットワークで日付が付きます。',
-  ],
-  [
     'そのバッチは自動でMidnightのメインネットワークにアンカーされます。',
     'そのバッチはMidnightのメインネットワークで日付が付きます。',
   ],
-  ['私たちが手作業でMidnightのメインネットワークにアンカーします。', 'Midnightのメインネットワークで日付が付きます。'],
   ['自動でMidnightのメインネットワークにアンカーされます。', 'Midnightのメインネットワークで日付が付きます。'],
-  ['当面は私たちが手作業でそこにアンカーします。', 'そこで日付が付きます。'],
   ['自動でそこにアンカーされます。', 'そこで日付が付きます。'],
   ['バッチが自動で日付確定され、', 'バッチがMidnightで日付確定され、'],
 ];
 
-/** "By hand", in each language: false once the scheduled job has run, on any build. */
-const BY_HAND = /by hand|von Hand|a mano|à la main|手作業/;
-
 /**
  * The overlay without a cadence claim while the scheduled job hasn't run on mainnet. Once it has,
- * "automatically" stays and only "by hand" goes (a build without the sponsor's browser calls
- * still has its batches dated by the job).
+ * "automatically" stays (a build without the sponsor's browser calls still has its batches dated
+ * by the job), and the overlay is unchanged.
  */
 export const withoutCadence = (o: Strings, scheduledRan = SCHEDULED_ANCHORING_RUN_ON_MAINNET): Strings => {
-  const swaps = scheduledRan ? CADENCE_SWAPS.filter(([a]) => BY_HAND.test(a)) : CADENCE_SWAPS;
+  if (scheduledRan) return o;
   return Object.fromEntries(
     Object.entries(o).map(([k, v]) => [
       k,
-      typeof v === 'string' ? swaps.reduce((t, [a, b]) => t.split(a).join(b), v) : v,
+      typeof v === 'string' ? CADENCE_SWAPS.reduce((t, [a, b]) => t.split(a).join(b), v) : v,
     ]),
   );
 };
