@@ -727,10 +727,16 @@ var VeilcoreVerify = (function () {
    */
   function registryOther(registry) {
     var out = [];
-    if (Object.prototype.hasOwnProperty.call(registry, 'registryNow')) out.push('now names ' + txWords(registry.registryNow));
     var later = Array.isArray(registry.laterAnchors) ? registry.laterAnchors.filter(isObject) : [];
     if (later.length) out.push('later gave the holder’s browser ' + later.map(txWords).join(', and '));
+    if (Object.prototype.hasOwnProperty.call(registry, 'registryNow')) out.push('now names ' + txWords(registry.registryNow));
     return out;
+  }
+
+  /** Rule A for roots (bundle.ts otherRootLine): another batch root the registry gives now, or null. */
+  function registryRoot(registry) {
+    var o = isObject(registry.registryRoot) && isHex64(registry.registryRoot.root) ? registry.registryRoot : null;
+    return o ? 'VeilCore’s registry now gives another batch root, ' + o.root + ' (' + txWords(o.anchor) + '), for this record; this bundle describes the first it gave the holder’s browser. An honest registry never does this.' : null;
   }
 
   function lookups(ev, contracts) {
@@ -815,6 +821,7 @@ var VeilcoreVerify = (function () {
       twoTx: twoTx,
       // What VeilCore's registry named for this root since the transaction described here (rule A).
       registryOther: fromFile ? [] : registryOther(registry),
+      registryRoot: fromFile ? null : registryRoot(registry),
       midnight: midnight,
       // The registry's report of the stamp, named as such; what the file itself shows is readStamp's.
       bitcoin: ots && ots.available ? { status: ots.status === 'bitcoin' ? 'bitcoin' : 'pending', file: ots.file || 'proof/root.bin.ots', bitcoinBlockHeight: typeof ots.bitcoinBlockHeight === 'number' ? ots.bitcoinBlockHeight : null } : null,

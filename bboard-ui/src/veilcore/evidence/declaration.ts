@@ -18,6 +18,7 @@ import {
   fileRootsDisagree,
   fileTxConflicts,
   registryOtherWords,
+  otherRootLine,
   type Evidence,
   type SignatureLine,
 } from './bundle';
@@ -212,7 +213,13 @@ export const declarationText = async (
         add(
           `   That is the first main-network transaction VeilCore's registry gave my browser for this batch root. The registry ${t(other)} for it, which an honest registry never does.`,
         );
-      if (other && (isString(ev.registry.registryNow?.txHash) || ev.registry.laterAnchors?.length))
+      const root = otherRootLine(ev, true);
+      if (root) add(`   ${t(root)}`);
+      if (
+        isString(ev.registry.registryNow?.txHash) ||
+        ev.registry.laterAnchors?.length ||
+        isString(ev.registry.registryRoot?.anchor?.txHash)
+      )
         add(
           '   [On [date] I / ___ looked up each other transaction named here on [explorer or indexer]. Result for each: ___. / I have not looked them up myself.]',
         );

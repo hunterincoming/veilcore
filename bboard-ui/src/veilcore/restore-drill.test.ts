@@ -2113,19 +2113,46 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     expect(said.join(' ')).not.toMatch(/every one it gave|alle sind in|todas están en|toutes sont dans|すべてを/);
   });
 
-  it('an online bundle states the main-network transaction this browser kept, whatever the registry names now (rule A, R11-3)', async () => {
-    const OTHER = { ...MAINNET, txHash: 'cd'.repeat(32), blockHeight: 12000, anchoredAt: '2027-03-01T12:00:00.000Z' };
-    const PREV = { ...MAINNET, network: 'preview', contractAddress: '7a'.repeat(32), txHash: 'ab'.repeat(32) };
-    const cases: [string, () => void, string][] = [
-      ['none', () => anchorAll(null), 'now names no Midnight transaction for it'],
-      [
-        'preview',
-        () => serveFolded(PREV),
-        `now names transaction ${PREV.txHash} on Midnight Preview (a test network) for it`,
-      ],
-      ['B', () => serveFolded(OTHER), `now names transaction ${OTHER.txHash} on Midnight's main network`],
-    ];
-    for (const [name, serve, now] of cases) {
+  const OTHER_TX = { ...MAINNET, txHash: 'cd'.repeat(32), blockHeight: 12000, anchoredAt: '2027-03-01T12:00:00.000Z' };
+  const PREV_TX = { ...MAINNET, network: 'preview', contractAddress: '7a'.repeat(32), txHash: 'ab'.repeat(32) };
+  /** The four pages of a bundle as a reader sees them. */
+  const pagesOf = async (file: (p: string) => Uint8Array | undefined) => ({
+    readme: textOf(file('README.txt')),
+    examiner: plainHtml(file('EXAMINER-SUMMARY.html')),
+    declaration: textOf(file('DECLARATION-TEMPLATE.txt')),
+    verify: await (async () => {
+      const v = await renderVerifyPage(Buffer.from(file('verify.html')!).toString());
+      return `${v.text('summary')} ${v.text('lookups')}`.replace(/\s+/g, ' ');
+    })(),
+  });
+  const RULE_A_BAD = [
+    /practice data/i,
+    /isn.t recorded on Midnight yet/,
+    /not dated on any network/i,
+    /now it names another/,
+    /reads only the other transaction/,
+  ];
+  /** The bundle's Bitcoin card: its stamp file starts from the bundle's root.bin (review 12, polish 3). */
+  const bitcoinCardOk = async (file: (p: string) => Uint8Array | undefined, at: string) => {
+    const card = (await renderVerifyPage(Buffer.from(file('verify.html')!).toString()))
+      .text('lookups')
+      .replace(/\s+/g, ' ');
+    expect(card, at).toContain('starts from SHA-256 of root.bin');
+    expect(card, at).not.toContain('not about this batch root');
+  };
+
+  // One record set per case, each in its own test (review 12, polish 3).
+  const RULE_A: [string, () => void, string][] = [
+    ['none', () => anchorAll(null), 'now names no Midnight transaction for it'],
+    [
+      'preview',
+      () => serveFolded(PREV_TX),
+      `now names transaction ${PREV_TX.txHash} on Midnight Preview (a test network) for it`,
+    ],
+    ['B', () => serveFolded(OTHER_TX), `now names transaction ${OTHER_TX.txHash} on Midnight's main network`],
+  ];
+  for (const [name, serve, now] of RULE_A)
+    it(`an online bundle states the main-network transaction this browser kept while the registry names ${name} (rule A, R11-3)`, async () => {
       const A = await browser('breeder');
       const B = await browser('licensee');
       const L = await browser('lab');
@@ -2136,32 +2163,89 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
       serve();
       const got = await bundleOf(A, made.plant);
       dumpTo(`kept-${name}`, got.file);
-      expect(got.ev.registry.source, name).not.toBe('this-device');
-      expect(got.ev.batch?.anchor, name).toMatchObject({ network: 'mainnet', txHash: MAINNET.txHash });
-      const verify = (await renderVerifyPage(Buffer.from(got.file('verify.html')!).toString()))
-        .text('summary')
-        .replace(/\s+/g, ' ');
-      const pages: Record<string, string> = {
-        readme: textOf(got.file('README.txt')),
-        examiner: plainHtml(got.file('EXAMINER-SUMMARY.html')),
-        declaration: textOf(got.file('DECLARATION-TEMPLATE.txt')),
-        verify,
-      };
-      for (const [f, p] of Object.entries(pages)) {
-        const at = `${name} ${f}`;
-        expect(p, at).toContain(MAINNET.txHash);
-        expect(p.replace(/’/g, "'"), at).toContain(now.replace(/’/g, "'"));
-        for (const bad of [
-          /practice data/i,
-          /isn.t recorded on Midnight yet/,
-          /not dated on any network/i,
-          /now it names another/,
-          /reads only the other transaction/,
-        ])
-          expect(p, `${at}: ${bad}`).not.toMatch(bad);
+      expect(got.ev.registry.source).not.toBe('this-device');
+      expect(got.ev.batch?.anchor).toMatchObject({ network: 'mainnet', txHash: MAINNET.txHash });
+      for (const [f, p] of Object.entries(await pagesOf(got.file))) {
+        expect(p, f).toContain(MAINNET.txHash);
+        expect(p.replace(/’/g, "'"), f).toContain(now.replace(/’/g, "'"));
+        for (const bad of RULE_A_BAD) expect(p, `${f}: ${bad}`).not.toMatch(bad);
       }
-      expect(textOf(got.file('proof/check-on-midnight.mjs')), name).toContain(MAINNET.txHash);
+      expect(textOf(got.file('proof/check-on-midnight.mjs'))).toContain(MAINNET.txHash);
+      await bitcoinCardOk(got.file, name);
+    });
+
+  it('an online bundle is built on the kept root, its transaction and its stamps when the registry gives another root, and every page says so (rule A, R12-4)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    w.upgrade();
+    serveFolded(MAINNET); // R1/A: kept
+    await backUp(A);
+    const r1 = (w.proofs.get(fp) as { root: string }).root;
+    const r2 = await serveOtherRoot(fp, '31', OTHER_TX); // R2/B
+    const line = `VeilCore's registry now gives another batch root, ${r2} (transaction ${OTHER_TX.txHash} on Midnight's main network), for`;
+    for (const when of ['before a backup', 'after a backup']) {
+      if (when === 'after a backup') await backUp(A);
+      const got = await bundleOf(A, made.plant);
+      dumpTo(`kept-other-root-${when.replace(/ /g, '-')}`, got.file);
+      expect(got.ev.registry.source, when).not.toBe('this-device');
+      expect(got.ev.batch?.root, when).toBe(r1);
+      expect(got.ev.batch?.anchor, when).toMatchObject({ network: 'mainnet', txHash: MAINNET.txHash });
+      expect(Buffer.from(got.file('proof/root.bin')!).toString('hex'), when).toBe(r1);
+      expect(got.file('proof/root.tst'), when).toBeDefined();
+      for (const [f, p] of Object.entries(await pagesOf(got.file))) {
+        const at = `${when} ${f}`;
+        expect(p, at).toContain(MAINNET.txHash);
+        expect(p, at).toContain(r1);
+        expect(p.replace(/’/g, "'").replace(/\s+/g, ' '), at).toContain(line);
+        expect(p.split(r2).length - 1, `${at}: R2 named once`).toBe(1);
+        for (const bad of RULE_A_BAD) expect(p, `${at}: ${bad}`).not.toMatch(bad);
+      }
+      expect(textOf(got.file('DECLARATION-TEMPLATE.txt')).replace(/\s+/g, ' ')).toContain('for my record;');
+      expect(textOf(got.file('proof/check-on-midnight.mjs')), when).toContain(MAINNET.txHash);
+      await bitcoinCardOk(got.file, when);
     }
+  });
+
+  it('a set-aside root’s main-network answer is kept in the file beside the same transaction hash on a test network (rule B, R12-1)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    const THIRD = { ...MAINNET, txHash: '3c'.repeat(32), blockHeight: 13000, anchoredAt: '2027-04-01T12:00:00.000Z' };
+    w.upgrade();
+    serveFolded(MAINNET); // R1/A: kept
+    await backUp(A);
+    const r2 = await serveOtherRoot(fp, '11', THIRD); // R2/C on the main network: aside
+    await backUp(A);
+    await serveOtherRoot(fp, '11', { ...PREV_TX, txHash: THIRD.txHash }); // R2/C on Preview: aside too
+    const text = await backUp(A);
+    const aside = (stampsOf(await opened(A, text))?.changed ?? [])
+      .filter((c) => c.proofs[fp])
+      .map((c) => {
+        const a = (c.proofs[fp] as { anchor?: { txHash: string; network: string } }).anchor;
+        return [c.root, a?.txHash, a?.network];
+      });
+    expect(aside).toEqual([
+      [r2, THIRD.txHash, 'mainnet'],
+      [r2, THIRD.txHash, 'preview'],
+    ]);
+    w.goDown();
+    const { b: N } = await restoreInto('r12-1', text);
+    const got = (await bundleFromFile(N, made.plant, text))!;
+    expect(
+      got.ev.registry.fileRoots!.map((c) => {
+        const a = c.anchor as { txHash: string; network: string };
+        return [c.root, a.txHash, a.network];
+      }),
+    ).toEqual([
+      [expect.any(String), MAINNET.txHash, 'mainnet'],
+      [r2, THIRD.txHash, 'mainnet'],
+      [r2, THIRD.txHash, 'preview'],
+    ]);
   });
 });
 

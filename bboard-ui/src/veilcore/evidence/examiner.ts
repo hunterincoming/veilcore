@@ -22,6 +22,7 @@ import {
   fileTxConflictLines,
   inFolder,
   keptAnchorLine,
+  otherRootLine,
   type Evidence,
   type FileRootFacts,
   type SignatureLine,
@@ -371,7 +372,8 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
 
   // Two Midnight transactions for one batch root (review 10 of PR #233): each named, none ranked.
   const kept = keptAnchorLine(ev);
-  const twoTx = [...(kept ? [kept] : []), ...fileTxConflictLines(ev)];
+  const root = otherRootLine(ev);
+  const twoTx = [...(kept ? [kept] : []), ...(root ? [root] : []), ...fileTxConflictLines(ev)];
   // Each "- folder: transaction" line goes in one list under the line before it.
   const twoTxHtml = twoTx
     .reduce<{ head: string; items: string[] }[]>((out, l) => {

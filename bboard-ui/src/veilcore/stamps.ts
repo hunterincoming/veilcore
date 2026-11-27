@@ -427,13 +427,16 @@ const anchorsOf = (p: InclusionProof): unknown[] | undefined => {
   return Array.isArray(a) && a.length ? a : undefined;
 };
 
+/** A Midnight transaction's identity: its chain, network and hash ('' for none). */
+const txKey = (a: Record<string, unknown> | undefined): string =>
+  a ? JSON.stringify([a.chain, a.network, a.txHash]) : '';
 /**
  * The same transaction: chain, network and transaction hash alike. The contract and block the
  * registry reports for it are its word about that one transaction, so another contract for the
  * same transaction is not another date record (review 11, polish 1): the first word kept stands.
  */
 const sameAnchor = (a: Record<string, unknown> | undefined, b: Record<string, unknown> | undefined): boolean =>
-  !!a && !!b && a.chain === b.chain && a.network === b.network && a.txHash === b.txHash;
+  !!a && !!b && txKey(a) === txKey(b);
 
 /**
  * Rule B, one rule for every later answer kept (set aside here, or a folder of a bundle from a
@@ -623,8 +626,8 @@ const refreshFromRegistry = async (own: Own, wanted: ReadonlySet<string>, proofs
 const inFile = (own: Own, wanted: ReadonlySet<string>): StampsInFile | undefined => {
   const batches: Record<string, BatchStamps> = {};
   const records: Record<string, RecordStamps> = {};
-  // The registry's later answers: one entry per batch, root and Midnight transaction, each with
-  // its batch's files.
+  // The registry's later answers: one entry per batch, root and Midnight transaction (rule B's
+  // identity, txKey: chain, network and hash; review 12, blocker 1), each with its batch's files.
   const changed = new Map<string, { batchId: string; root: string; proofs: Record<string, InclusionProof> }>();
   for (const fp of wanted) {
     const p = own.proofs[fp];
@@ -633,8 +636,7 @@ const inFile = (own: Own, wanted: ReadonlySet<string>): StampsInFile | undefined
     const r = own.records[fp];
     if (r?.instant?.length) records[fp] = { instant: r.instant };
     for (const c of (own.changed[fp] ?? []).slice(0, MAX_ASIDE)) {
-      const tx = anchorOf(c)?.txHash;
-      const k = `${batchKey(c.batchId, c.root)} ${isString(tx) ? tx : ''}`;
+      const k = `${batchKey(c.batchId, c.root)} ${txKey(anchorOf(c))}`;
       const e = changed.get(k) ?? { batchId: c.batchId, root: c.root, proofs: {} };
       e.proofs[fp] = c;
       changed.set(k, e);
@@ -700,12 +702,15 @@ export const keptEvidence = async (
 };
 
 /**
- * Rule A: the first main-network anchor this browser kept for a record's batch and root is the
- * one every bundle made here describes, whatever the registry names now (review 11, blocker 2).
- * For a proof of that batch and root: null when no main-network anchor is kept for it; otherwise
- * the proof with the kept anchor, and the other Midnight transactions the registry named for the
- * root: `now`, its answer today when it isn't the kept one (null: none in the registry's form),
- * only when `served` is given; `later`, the ones kept aside, each once.
+ * Rule A: the first main-network proof this browser kept for a record (its root and anchor, and so
+ * its batch's kept files) is the one every bundle made here describes, whatever the registry gives
+ * now (review 11, blocker 2; review 12, blocker 2). Null when no main-network anchor is kept for the
+ * record. Otherwise, for the registry's `proof` of the same batch and root: that proof with the
+ * kept anchor, and the other Midnight transactions the registry named for the root: `now`, its
+ * answer today when it isn't the kept one (null: none in the registry's form), only when `served`
+ * is given; `later`, the ones kept aside, each once. For a proof of another batch or root:
+ * `otherRoot`, that root and the registry's transaction for it, and the bundle is built on the
+ * kept proof (bundle.ts gatherEvidence).
  */
 export const keptFirst = (
   fp: string,
@@ -716,22 +721,30 @@ export const keptFirst = (
   readonly anchor: Record<string, unknown>;
   readonly now?: Record<string, unknown> | null;
   readonly later: readonly Record<string, unknown>[];
+  readonly otherRoot?: { readonly root: string; readonly anchor: Record<string, unknown> | null };
 } | null => {
   if (!HEX64.test(fp)) return null;
   const own = load();
   const p = own.proofs[fp];
-  if (!p || !sameBatch(p, proof)) return null;
+  if (!p) return null;
   const kept = anchorOf(p);
   if (!kept || kept.network !== 'mainnet' || !anchorFormOk(kept)) return null;
-  const now = served && isObject(served.anchor) && anchorFormOk(served.anchor) ? served.anchor : null;
+  // The kept transaction sent again is the kept one, whatever its form (review 12, polish 5).
+  const raw = served && isObject(served.anchor) ? served.anchor : undefined;
+  const now = raw && (sameAnchor(raw, kept) || anchorFormOk(raw)) ? raw : null;
+  const same = sameBatch(p, proof);
   const later = (own.changed[fp] ?? [])
     .filter((c) => sameBatch(c, p))
     .map(anchorOf)
     .filter((a): a is Record<string, unknown> => !!a && !sameAnchor(a, kept) && !sameAnchor(a, now ?? undefined));
   return {
-    proof: withAnchor(proof, kept) as unknown as InclusionProof,
+    proof: same ? (withAnchor(proof, kept) as unknown as InclusionProof) : p,
     anchor: kept,
-    ...(served && !sameAnchor(kept, now ?? undefined) ? { now } : {}),
+    ...(!same
+      ? { otherRoot: { root: proof.root, anchor: now } }
+      : served && !sameAnchor(kept, now ?? undefined)
+        ? { now }
+        : {}),
     later,
   };
 };

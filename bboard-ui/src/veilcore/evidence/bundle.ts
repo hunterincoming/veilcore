@@ -152,6 +152,8 @@ export type Gathered = {
    */
   readonly registryNow?: Record<string, unknown> | null;
   readonly laterAnchors?: readonly Record<string, unknown>[];
+  /** Rule A for roots: the registry now gives another root for the record (and this transaction, null: none). */
+  readonly registryRoot?: { readonly root: string; readonly anchor: Record<string, unknown> | null };
 };
 
 const base64ToBytes = (b64: string): Uint8Array | null => {
@@ -318,14 +320,20 @@ const fromPublicRoutes = async (fingerprint: string, fetcher: typeof fetch): Pro
 /**
  * With the registry out of reach: the inclusion proof, the Bitcoin stamp file and the batch's
  * RFC 3161 token the registry gave this browser before (stamps.ts), held to the record exactly as
- * the registry's answer is. Lab signatures served by the registry aren't kept here.
+ * the registry's answer is. Lab signatures served by the registry aren't kept here. With `online`,
+ * the registry's answer now (rule A, another root): its source, first-seen time and lab signatures.
  */
-const fromThisDevice = async (fingerprint: string): Promise<Gathered | null> => {
+const fromThisDevice = async (fingerprint: string, online?: Gathered): Promise<Gathered | null> => {
   try {
     const stamps = await import('../stamps');
     const kept = await stamps.keptEvidence(fingerprint);
     if (!kept) return null;
-    const g = await reconcile(fingerprint, { source: 'this-device', ...kept, attestations: [] });
+    const g = await reconcile(fingerprint, {
+      ...kept,
+      source: online?.source ?? 'this-device',
+      registryFirstSeen: online?.registryFirstSeen,
+      attestations: online?.attestations ?? [],
+    });
     const later = g.proof ? (stamps.keptFirst(fingerprint, g.proof)?.later ?? []) : [];
     return g.proof ? { ...g, ...(later.length ? { laterAnchors: later } : {}) } : null;
   } catch {
@@ -368,9 +376,13 @@ export const gatherEvidence = async (
   if ('error' in got && got.error === unreachable && isHex64(record.recordFingerprint))
     return (await fromThisDevice(record.recordFingerprint)) ?? got;
   if (!('error' in got) && got.proof && got.batch && isHex64(record.recordFingerprint)) {
-    // Rule A: built on the main-network anchor this browser kept first for this root, whatever
+    // Rule A: built on the main-network proof this browser kept first for this record, whatever
     // the registry names now; every page adds what the registry says, when it differs.
     const k = (await import('../stamps')).keptFirst(record.recordFingerprint, got.proof, got.batch);
+    if (k?.otherRoot) {
+      const g = await fromThisDevice(record.recordFingerprint, got);
+      return g ? { ...g, registryRoot: k.otherRoot } : got;
+    }
     if (k)
       return {
         ...got,
@@ -584,6 +596,8 @@ export type Evidence = {
     readonly registryNow?: Record<string, unknown> | null;
     /** Gathered.laterAnchors: other transactions the registry gave the holder's browser for this root. */
     readonly laterAnchors?: readonly Record<string, unknown>[];
+    /** Gathered.registryRoot: another root the registry gives for the record now (rule A). */
+    readonly registryRoot?: { readonly root: string; readonly anchor: Record<string, unknown> | null };
   };
   readonly proof: InclusionProof | null;
   readonly batch: BatchFacts | null;
@@ -961,12 +975,23 @@ export const keptAnchorLine = (ev: Evidence): string | null => {
   return `This bundle describes ${txWords(kept)}, the first main-network transaction VeilCore's registry gave the holder's browser for this batch root. The registry ${other} for it, which an honest registry never does. Rely only on a transaction that you check yourself wrote this batch root.`;
 };
 
+/**
+ * Rule A for roots (review 12, blocker 2): the registry now gives another batch root for the
+ * record, and the bundle is built on the first it gave the holder's browser. Null when it doesn't.
+ */
+export const otherRootLine = (ev: Evidence, mine = false): string | null => {
+  const o = ev.registry.registryRoot;
+  if (!o) return null;
+  return `VeilCore's registry now gives another batch root, ${o.root} (${txWords(o.anchor)}), for ${mine ? 'my' : 'this'} record; this ${mine ? 'declaration' : 'bundle'} describes the first it gave ${mine ? 'my' : "the holder's"} browser. An honest registry never does this.`;
+};
+
 /** What VeilCore's registry named for the batch root besides the kept transaction (rule A), or null. */
 export const registryOtherWords = (ev: Evidence, whose: string): string | null => {
   const r = ev.registry;
+  // In the order they came: the ones set aside, then the registry's answer now (review 12, polish 2).
   const other = [
-    ...(r.registryNow !== undefined ? [`now names ${txWords(r.registryNow)}`] : []),
     ...(r.laterAnchors?.length ? [`later gave ${whose} ${r.laterAnchors.map(txWords).join(', and ')}`] : []),
+    ...(r.registryNow !== undefined ? [`now names ${txWords(r.registryNow)}`] : []),
   ];
   return other.length ? other.join(', and ') : null;
 };
@@ -1125,6 +1150,7 @@ export const buildEvidence = async (
       ...(gathered.registryRoots?.length ? { registryRoots: gathered.registryRoots } : {}),
       ...(gathered.registryNow !== undefined ? { registryNow: gathered.registryNow } : {}),
       ...(gathered.laterAnchors?.length ? { laterAnchors: gathered.laterAnchors } : {}),
+      ...(gathered.registryRoot ? { registryRoot: gathered.registryRoot } : {}),
     },
     proof: gathered.proof,
     batch: gathered.batch,
@@ -1579,10 +1605,10 @@ export const readmeText = (
       `${lockedParents} of this record's linked parents ${lockedParents === 1 ? 'is' : 'are'} the holder's own record${lockedParents === 1 ? '' : 's'}, locked in the browser this bundle was made in (sealed with a key it doesn't have), so ${lockedParents === 1 ? 'it is' : 'they are'} left out. The parents' names as sealed in this record are in it.`,
     );
   }
-  const kept = keptAnchorLine(ev);
-  if (kept) {
+  const since = [keptAnchorLine(ev), otherRootLine(ev)].filter(Boolean);
+  if (since.length) {
     L.push('');
-    L.push(`WHAT THE REGISTRY NAMED SINCE: ${kept}`);
+    L.push(`WHAT THE REGISTRY NAMED SINCE: ${since.join(' ')}`);
   }
   const fromFile = ev.registry.source === 'backup-file' && fileRoots.length > 0;
   const fileNote = fromFile ? fileDatingNote(ev) : null;
