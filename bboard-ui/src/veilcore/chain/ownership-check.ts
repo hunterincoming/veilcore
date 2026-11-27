@@ -28,6 +28,7 @@ import { CHAIN_CONTRACT, INDEXER_HTTP } from './config';
 import { KEY_NOT_THIS_RECORDS, keyMatchesRecord, type KeyedRecord } from '../key-binding';
 
 import { lookupChallenge, usedByAnother, useChallenge } from './challenge-book';
+import { lookupFailureOf, lookupWords } from './read-failure';
 export { newChallenge } from './challenge-book';
 
 const hexToBytes = (hex: string): Uint8Array => Uint8Array.from(hex.match(/../g) ?? [], (b) => parseInt(b, 16));
@@ -81,13 +82,9 @@ export const checkOwnership = async (
   try {
     afterTx = await (deps.stateAfter ?? defaultStateAfter)(txId, 'proveOwnership');
   } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    return {
-      accepted: false,
-      reason: /Failed to fetch|NetworkError|Load failed|timed? ?out|aborted/i.test(msg)
-        ? 'could not reach the Midnight network’s indexer; try again in a few minutes'
-        : msg,
-    };
+    // Couldn't reach or read Midnight is worth trying again (prove-relay.ts worthRetrying);
+    // only the look-up's own verdicts are a refusal (read-failure.ts).
+    return { accepted: false, reason: lookupWords(e) };
   }
   let now;
   try {
@@ -103,13 +100,20 @@ export const checkOwnership = async (
 /** Mark a challenge used by this answer: call only after the result is saved (challenge-book.ts). */
 export const markUsed = (challenge: string, txId: string): void => useChallenge(challenge.trim().toLowerCase(), txId);
 
-/** Check that a transaction anchored this identity: the state right after it names it. */
-export const checkAnchor = async (txId: string, identity: string, deps: CheckDeps = {}): Promise<boolean> => {
+/**
+ * Check that a transaction anchored this identity: the state right after it names it.
+ * Undefined when Midnight couldn't be reached or read (read-failure.ts): not a "no".
+ */
+export const checkAnchor = async (
+  txId: string,
+  identity: string,
+  deps: CheckDeps = {},
+): Promise<boolean | undefined> => {
   try {
     const after = await (deps.stateAfter ?? defaultStateAfter)(txId.trim().toLowerCase().replace(/^0x/, ''), 'anchor');
     const got = Array.from(after.lastAnchor, (b) => b.toString(16).padStart(2, '0')).join('');
     return got === identity.toLowerCase() && after.recoveryOf.member(after.lastAnchor);
-  } catch {
-    return false;
+  } catch (e) {
+    return lookupFailureOf(e) === 'refused' ? false : undefined;
   }
 };

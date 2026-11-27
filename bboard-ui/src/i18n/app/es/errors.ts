@@ -55,6 +55,9 @@ export const errors = {
   'app.err.chain.notOurRequest': 'Esta página no creó ese desafío. Haga una solicitud nueva.',
   'app.err.chain.requestUsed': 'Ese desafío ya se respondió una vez. Haga una solicitud nueva.',
   'app.err.chain.noRecordKey': 'No hay una clave de registro con la cual comprobarlo.',
+  'app.err.chain.callUnreadable':
+    'no se pudo leer esa transacción en Midnight ahora mismo; inténtelo de nuevo en unos minutos',
+  'app.err.chain.noSuchTx': 'Midnight no tiene esa transacción.',
   'app.err.chain.indexerUnreachable':
     'no se pudo conectar con el indexador de la red Midnight; inténtelo de nuevo en unos minutos',
   'app.err.chain.stateUnreadable': 'no se pudo leer el estado actual del contrato; inténtelo de nuevo en unos minutos',

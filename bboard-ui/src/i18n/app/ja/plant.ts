@@ -180,6 +180,7 @@ export const plant = {
   'app.plant.dontRely': '{reason}。レジストリが報告する日付に頼らないでください。',
   'app.plant.lookingUp': 'Midnightで調べています…',
   'app.plant.couldntReach': 'Midnightに接続できず、確認できませんでした。',
+  'app.plant.couldntRead': '今はMidnightから日付を読み取れませんでした。',
   'app.plant.notChecked': 'このページからはMidnightで確認していません。',
   'app.plant.registryReport': '{date}（VeilCoreのレジストリによる報告）',
   'app.plant.dateNotGiven': '日付の記載なし',

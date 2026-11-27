@@ -36,6 +36,20 @@
 // The indexer is still trusted for what it reports (one indexer can lie; two independent
 // ones must both lie). A run that can't reach one says so, and the page then falls back to
 // calling the date the registry's report.
+//
+// "Failed" is kept for what Midnight itself contradicts: a read that worked and says the
+// registry is wrong (the transaction failed, it made no call or several on VeilCore's
+// contracts, it isn't a date stamp, the state that was read holds another root, the keys were
+// in no published state, or the network is past the anchor's block and has no such
+// transaction). Everything else is "couldn't confirm", never a cross, and never kept for the
+// visit (anchor-lookup.ts):
+//   - unreadable: the indexer gave a state this build can't decode (a format Midnight brought in
+//     after this build, a ledger package that won't load), or no state, or a block it can't read;
+//   - not-yet: the transaction, or its block, isn't on the indexer yet, and the indexer's own
+//     latest block isn't clearly past the block the registry reports for it;
+//   - no-answer: the indexer didn't answer, timed out, or answered with an error;
+//   - one-of-two: with two indexers, one confirmed it and the other couldn't answer or read it.
+// "The two indexers disagree" is only for two answers that were both read and differ.
 // SPDX-License-Identifier: Apache-2.0
 
 import type { ContractVersion, PinnedContract } from './config';
@@ -66,12 +80,21 @@ export type AnchorCheck =
        */
       readonly keyState?: KeyState;
     }
-  /** An indexer answered, and its answer does not bear out the registry's report. */
-  | { readonly status: 'failed'; readonly reason: string }
-  /** No answer to judge: no indexer reached, or only one of two. */
-  | { readonly status: 'unreachable'; readonly reason: string }
+  /**
+   * An indexer answered, it was read, and Midnight contradicts the registry's report.
+   * `notFound`: only because the indexer, past the anchor's block, has no such transaction.
+   */
+  | { readonly status: 'failed'; readonly reason: string; readonly notFound?: true }
+  /**
+   * Couldn't confirm it, either way: see `why` (and the top of this file). Never a failure, and
+   * never kept for the visit. `why` is absent only in values made before it was added.
+   */
+  | { readonly status: 'unreachable'; readonly reason: string; readonly why?: UnreachableWhy }
   /** This build doesn't read that network, or has nothing to read it with. */
   | { readonly status: 'not-checked'; readonly why: 'not-configured' | 'other-network'; readonly reason: string };
+
+/** Why a check couldn't confirm the anchor (see the top of this file). */
+export type UnreachableWhy = 'no-answer' | 'one-of-two' | 'unreadable' | 'not-yet';
 
 export type AnchorCheckInput = {
   /** The network the registry says the root was anchored on. */
@@ -88,6 +111,62 @@ export type AnchorCheckInput = {
   readonly counted: readonly string[];
   /** The batch root the inclusion proof folds to. */
   readonly expectedRoot: string;
+  /**
+   * The block height the registry reports for the anchor, and its time for it (ISO). Only used
+   * to tell "not on the indexer yet" from "not on Midnight" (missingFromChain). They are the
+   * registry's word, so they can only ever make a missing transaction fail sooner, never later.
+   */
+  readonly reportedHeight?: number;
+  readonly reportedAt?: string;
+};
+
+/**
+ * How far past the registry's block (blocks, about 6 seconds each on Midnight) or its time the
+ * indexer's latest block must be before a transaction it doesn't have counts as missing.
+ */
+export const NOT_FOUND_MARGIN_BLOCKS = 600;
+export const NOT_FOUND_MARGIN_MS = 60 * 60 * 1000;
+/** An indexer whose latest block is this recent, by the browser's clock, is caught up. */
+export const TIP_CURRENT_MS = 10 * 60 * 1000;
+/** How far ahead of the indexer's and the browser's clocks a claimed time may be. */
+export const CLOCK_SKEW_MS = 10 * 60 * 1000;
+
+/**
+ * Whether a transaction the indexer doesn't have is missing for good, not just not reached yet.
+ *
+ * The block and time it is compared with come from whoever is being checked (the registry's
+ * report of an anchor, or a claim link anyone can write). So they may be picked to stay "not
+ * yet" forever: a huge block, a time in the future, or none at all. The rule only lets them make
+ * it fail sooner (PR #231 review):
+ *   - missing when EITHER the claimed block is clearly behind the indexer's latest block OR the
+ *     claimed time is clearly before its latest block's time: a huge block never cancels an old
+ *     time;
+ *   - missing when the claimed time is in the future by both the indexer's clock and this
+ *     browser's;
+ *   - once the indexer is caught up (its latest block is current by this browser's clock),
+ *     missing unless a time within the last hour is claimed, and missing when the claimed block
+ *     is far ahead of the latest one.
+ * So the only way to stay "not yet" is to claim the last hour, which backdates nothing: that is
+ * the date the page shows. An indexer that is behind, or gives no latest block, is not the
+ * claimant's to choose, so then only the first two rules apply.
+ */
+export const missingFromChain = (
+  tip: { readonly height?: number; readonly time?: number } | undefined,
+  claimed: { readonly height?: number; readonly time?: number },
+  now: number,
+): boolean => {
+  const h = heightOf(claimed.height);
+  const t = typeof claimed.time === 'number' && Number.isFinite(claimed.time) ? claimed.time : undefined;
+  const tipHeight = heightOf(tip?.height);
+  const tipTime = typeof tip?.time === 'number' && Number.isFinite(tip.time) ? tip.time : undefined;
+  if (h !== undefined && tipHeight !== undefined && tipHeight >= h + NOT_FOUND_MARGIN_BLOCKS) return true;
+  if (t !== undefined && tipTime !== undefined && tipTime >= t + NOT_FOUND_MARGIN_MS) return true;
+  if (t !== undefined && t > Math.max(now, tipTime ?? -Infinity) + CLOCK_SKEW_MS) return true;
+  if (tipTime !== undefined && tipTime >= now - TIP_CURRENT_MS) {
+    if (t === undefined) return true;
+    if (h !== undefined && tipHeight !== undefined && h > tipHeight + NOT_FOUND_MARGIN_BLOCKS) return true;
+  }
+  return false;
 };
 
 export type AnchorCheckDeps = {
@@ -97,6 +176,8 @@ export type AnchorCheckDeps = {
   readonly indexers: readonly string[];
   readonly fetch?: typeof fetch;
   readonly timeoutMs?: number;
+  /** This browser's clock (missingFromChain); Date.now otherwise. */
+  readonly now?: () => number;
   /**
    * Reads lastBatchRoot from a state's hex, with the decoder of the contract version the call
    * was on (anchor-decode.ts); loaded on first use otherwise.
@@ -125,12 +206,18 @@ const TX_FIELDS = `hash
       transactionResult { status }
       contractActions { address state ... on ContractCall { entryPoint } }
     }`;
+// `tip` is the indexer's own latest block (a block with no offset), asked in the same request so
+// a transaction it doesn't have can be told apart from one it hasn't reached yet.
 export const ANCHOR_QUERY = `query VEILCORE_ANCHOR_CHECK($byHash: TransactionOffset!, $byId: TransactionOffset!) {
   byHash: transactions(offset: $byHash) {
     ${TX_FIELDS}
   }
   byId: transactions(offset: $byId) {
     ${TX_FIELDS}
+  }
+  tip: block {
+    height
+    timestamp
   }
 }`;
 
@@ -180,8 +267,56 @@ type Answer =
       authority?: AuthorityReport;
       keyState?: KeyState;
     }
-  | { kind: 'refused'; reason: string }
-  | { kind: 'unreachable'; reason: string };
+  | { kind: 'refused'; reason: string; notFound?: true }
+  | { kind: 'unreachable'; reason: string; why: Exclude<UnreachableWhy, 'one-of-two'> };
+
+/**
+ * The ledger's tag at the start of a contract state's bytes (`midnight:contract-state[v8]:`),
+ * read from the hex without loading a decoder; undefined when the bytes don't start with one.
+ */
+export const stateTagOf = (stateHex: string): string | undefined => {
+  const head = stateHex.slice(0, 120);
+  let text = '';
+  for (let i = 0; i + 1 < head.length; i += 2) {
+    const c = parseInt(head.slice(i, i + 2), 16);
+    if (c < 0x20 || c > 0x7e) break;
+    text += String.fromCharCode(c);
+  }
+  return /^midnight:contract-state\[v\d+\]:/.exec(text)?.[0];
+};
+
+/** The contract-state tags this build's decoders read (v1-decoder.ts STATE_TAGS; its test compares). */
+export const KNOWN_STATE_TAGS: readonly string[] = ['midnight:contract-state[v6]:', 'midnight:contract-state[v8]:'];
+
+/** Why a state couldn't be read, in a few words: its format is newer than this build, or it just didn't decode. */
+const unreadableState = (stateHex: string): Extract<Answer, { kind: 'unreachable' }> => {
+  const tag = stateTagOf(stateHex);
+  return {
+    kind: 'unreachable',
+    why: 'unreadable',
+    reason:
+      tag !== undefined && !KNOWN_STATE_TAGS.includes(tag)
+        ? `the contract state is in a format this page can’t read yet (${tag.slice(0, -1)})`
+        : 'the contract state after that call couldn’t be read here',
+  };
+};
+
+/** The indexer's latest block in an answer (`tip`), or undefined when it gave none. */
+const tipOf = (data: unknown): { height?: number; time?: number } | undefined => {
+  const t = typeof data === 'object' && data !== null ? (data as { tip?: unknown }).tip : undefined;
+  if (typeof t !== 'object' || t === null) return undefined;
+  const b = t as { height?: unknown; timestamp?: unknown };
+  return { height: heightOf(b.height), time: blockTimeMs(b.timestamp) };
+};
+
+/** The registry's block and time for the anchor, as missingFromChain takes them. */
+const reportedOf = (input: { reportedHeight?: number; reportedAt?: string }) => ({
+  height: input.reportedHeight,
+  time: input.reportedAt === undefined ? undefined : Date.parse(input.reportedAt),
+});
+
+const heightOf = (h: unknown): number | undefined =>
+  typeof h === 'number' && Number.isSafeInteger(h) && h >= 0 ? h : undefined;
 
 /** JSON with object keys sorted, so two copies of one answer compare equal. */
 const stableJson = (v: unknown): string =>
@@ -205,12 +340,15 @@ const askOne = async (
     root: string;
     /** Per main contract: the key states to judge its state against; absent when not judged. */
     judge: ReadonlyMap<string, readonly KeyState[]>;
+    /** The registry's block and time for the anchor (AnchorCheckInput). */
+    reportedHeight?: number;
+    reportedAt?: string;
   },
   deps: AnchorCheckDeps,
   rootOf: (stateHex: string, version: ContractVersion) => Promise<string>,
   authorityOf: (stateHex: string, version: ContractVersion) => Promise<AuthorityLike>,
 ): Promise<Answer> => {
-  let body: { data?: { byHash?: unknown; byId?: unknown } | null; errors?: unknown };
+  let body: { data?: { byHash?: unknown; byId?: unknown; tip?: unknown } | null; errors?: unknown };
   try {
     const res = await (deps.fetch ?? fetch)(indexer, {
       method: 'POST',
@@ -221,15 +359,22 @@ const askOne = async (
       }),
       signal: AbortSignal.timeout(deps.timeoutMs ?? 15_000),
     });
-    if (!res.ok) return { kind: 'unreachable', reason: `the indexer answered ${res.status}` };
+    if (!res.ok) return { kind: 'unreachable', why: 'no-answer', reason: `the indexer answered ${res.status}` };
     body = (await res.json()) as typeof body;
   } catch {
-    return { kind: 'unreachable', reason: 'the indexer did not answer' };
+    return { kind: 'unreachable', why: 'no-answer', reason: 'the indexer did not answer' };
   }
-  if (Array.isArray(body.errors) && body.errors.length > 0)
-    return { kind: 'unreachable', reason: 'the indexer could not answer the question' };
+  // An indexer that answered with errors but still gave its latest block is up: what it couldn't
+  // find is judged by that block and the clock, as for a claim (read-failure.ts), never left amber
+  // on the registry's word alone. Without a latest block it is "couldn't reach".
+  if (Array.isArray(body.errors) && body.errors.length > 0) {
+    const tip = tipOf(body.data);
+    return tip !== undefined && missingFromChain(tip, reportedOf(input), (deps.now ?? Date.now)())
+      ? { kind: 'refused', notFound: true, reason: `Midnight’s indexer has no transaction ${short(input.txId)}` }
+      : { kind: 'unreachable', why: 'no-answer', reason: 'the indexer could not answer the question' };
+  }
   if (typeof body.data !== 'object' || body.data === null)
-    return { kind: 'unreachable', reason: 'the indexer’s answer could not be read' };
+    return { kind: 'unreachable', why: 'no-answer', reason: 'the indexer’s answer could not be read' };
 
   // Every transaction the indexer returned that really is this one. The same transaction
   // may come back twice (by hash and by identifier); that is fine only when both entries
@@ -250,8 +395,18 @@ const askOne = async (
   }
   if (conflicting)
     return { kind: 'refused', reason: `the indexer gave two different answers for transaction ${short(input.txId)}` };
-  if (found.size === 0)
-    return { kind: 'refused', reason: `Midnight’s indexer has no transaction ${short(input.txId)}` };
+  if (found.size === 0) {
+    // Missing, or not reached yet: judged against the indexer's own latest block and this
+    // browser's clock, never on the registry's word alone (missingFromChain).
+    const past = missingFromChain(tipOf(body.data) ?? {}, reportedOf(input), (deps.now ?? Date.now)());
+    return past
+      ? { kind: 'refused', notFound: true, reason: `Midnight’s indexer has no transaction ${short(input.txId)}` }
+      : {
+          kind: 'unreachable',
+          why: 'not-yet',
+          reason: `Midnight’s indexer doesn’t have transaction ${short(input.txId)} yet`,
+        };
+  }
   if (found.size > 1) return { kind: 'refused', reason: `more than one transaction answers to ${short(input.txId)}` };
   const [[txHash, tx]] = [...found];
 
@@ -274,14 +429,17 @@ const askOne = async (
   const version = input.contracts.get(norm(calls[0].address)) as ContractVersion;
   const stateHex = norm(calls[0].state);
   if (!/^[0-9a-f]+$/.test(stateHex) || stateHex.length % 2 !== 0)
-    return { kind: 'refused', reason: 'the indexer gave no contract state for that call' };
+    return { kind: 'unreachable', why: 'unreadable', reason: 'the indexer gave no contract state for that call' };
 
+  // A state that won't decode says nothing about the record: Midnight re-expresses old states in
+  // each new ledger's format, so a format newer than this build is the usual cause.
   let written: string;
   try {
     written = norm(await rootOf(stateHex, version));
   } catch {
-    return { kind: 'refused', reason: 'the contract state after that call could not be read as VeilCore’s' };
+    return unreadableState(stateHex);
   }
+  if (!HEX64.test(written)) return unreadableState(stateHex);
   if (written !== input.root)
     return { kind: 'refused', reason: `that transaction wrote a different batch root (${short(written)})` };
 
@@ -294,7 +452,7 @@ const askOne = async (
     try {
       authority = authorityReportOf(await authorityOf(stateHex, version));
     } catch {
-      return { kind: 'refused', reason: 'the contract state after that call could not be read as VeilCore’s' };
+      return unreadableState(stateHex);
     }
     keyState = matchKeyState(keyStates, authority);
     if (keyState === undefined)
@@ -305,13 +463,14 @@ const askOne = async (
       };
   }
 
-  // The block is the date. An answer that doesn't say which block, or when, dates nothing.
-  const h = tx.block?.height;
-  const blockHeight = typeof h === 'number' && Number.isSafeInteger(h) && h >= 0 ? h : undefined;
+  // The block is the date. An answer that doesn't say which block, or when, dates nothing; it
+  // isn't a contradiction either: the indexer may not have put the transaction in a block yet.
+  const blockHeight = heightOf(tx.block?.height);
   const blockTime = blockTimeMs(tx.block?.timestamp);
   if (blockHeight === undefined || blockTime === undefined)
     return {
-      kind: 'refused',
+      kind: 'unreachable',
+      why: tx.block === null || tx.block === undefined ? 'not-yet' : 'unreadable',
       reason: 'the indexer didn’t say when: it gave no block height or time for that transaction',
     };
   return {
@@ -378,24 +537,52 @@ export const checkAnchorOnChain = async (input: AnchorCheckInput, deps: AnchorCh
   const rootOf = async (s: string, v: ContractVersion) => (deps.rootOf ?? defaultRootOf)(s, v);
   const authorityOf = async (s: string, v: ContractVersion) => (deps.authorityOf ?? defaultAuthorityOf)(s, v);
   const answers = await Promise.all(
-    deps.indexers.map((i) => askOne(i, { txId, contracts, counted, root, judge }, deps, rootOf, authorityOf)),
+    deps.indexers.map((i) =>
+      askOne(
+        i,
+        {
+          txId,
+          contracts,
+          counted,
+          root,
+          judge,
+          ...(heightOf(input.reportedHeight) === undefined ? {} : { reportedHeight: input.reportedHeight }),
+          ...(input.reportedAt === undefined ? {} : { reportedAt: input.reportedAt }),
+        },
+        deps,
+        rootOf,
+        authorityOf,
+      ),
+    ),
   );
 
   const ok = answers.filter((a): a is Extract<Answer, { kind: 'ok' }> => a.kind === 'ok');
   const refused = answers.filter((a): a is Extract<Answer, { kind: 'refused' }> => a.kind === 'refused');
+  const unread = answers.filter((a): a is Extract<Answer, { kind: 'unreachable' }> => a.kind === 'unreachable');
+  // Two answers that were both read, and differ: one says the record checks out, the other
+  // that Midnight contradicts it.
+  if (refused.length > 0 && ok.length > 0)
+    return { status: 'failed', reason: 'the two indexers disagree about that transaction' };
+  // Midnight contradicts the registry, as read (the other indexer, if any, couldn't answer).
+  // "Not found" is never kept for the visit (anchor-lookup.ts): an indexer can drop a block.
   if (refused.length > 0)
     return {
       status: 'failed',
-      reason: ok.length > 0 ? 'the two indexers disagree about that transaction' : refused[0].reason,
+      reason: refused[0].reason,
+      ...(refused.every((r) => r.notFound) ? { notFound: true as const } : {}),
     };
-  if (ok.length < answers.length)
-    return {
-      status: 'unreachable',
-      reason:
-        answers.length > 1 && ok.length > 0
-          ? 'only one of the two indexers answered, and both must'
-          : (answers.find((a) => a.kind === 'unreachable') as { reason: string }).reason,
-    };
+  if (unread.length > 0) {
+    if (ok.length > 0)
+      return {
+        status: 'unreachable',
+        why: 'one-of-two',
+        reason: `only one of the two indexers could confirm it, and both must (${unread[0].reason})`,
+      };
+    // Nothing confirmed or contradicted. The most telling reason first: a state that can't be
+    // read, then a transaction not reached yet, then no answer at all.
+    const first = unread.find((a) => a.why === 'unreadable') ?? unread.find((a) => a.why === 'not-yet') ?? unread[0];
+    return { status: 'unreachable', why: first.why, reason: first.reason };
+  }
   const [first, ...rest] = ok;
   const differs = rest.some(
     (a) =>

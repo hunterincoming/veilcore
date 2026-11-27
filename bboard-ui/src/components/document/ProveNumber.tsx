@@ -30,9 +30,10 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { allRecords, type StrainRecord } from '../../veilcore/records';
+import { allRecords, renameTransactions, type StrainRecord } from '../../veilcore/records';
+import { readyClaimLink } from '../../veilcore/link-hashes';
 import { SCHEMAS, shownNumber, storedNumber } from '../../veilcore/field-set';
-import { claimLink, withMore, type MadeClaim } from '../../veilcore/claim-link';
+import { withMore, type MadeClaim } from '../../veilcore/claim-link';
 import { callWordKey, labWordsFor } from '../../veilcore/claim-call';
 import { CLAIMS_READY } from '../../veilcore/chain/config';
 import { canProve, claimsReadyHere, proveNumber, proveShown, type How } from '../../veilcore/prove-number';
@@ -333,7 +334,18 @@ export const ProveNumber: React.FC<{
             },
           }
         : one;
-    await navigator.clipboard.writeText(claimLink(withLab, CANONICAL_ORIGIN));
+    setCopied(false);
+    setError(undefined);
+    // Every transaction in the link by its hash, an older build's saved identifier looked up and
+    // saved back first (link-hashes.ts); no link at all when that can't be done right now.
+    let link: string;
+    try {
+      link = await readyClaimLink(withLab, CANONICAL_ORIGIN, { save: renameTransactions });
+    } catch {
+      setError(t('app.claim.linkLater'));
+      return;
+    }
+    await navigator.clipboard.writeText(link);
     setCopied(true);
   };
 

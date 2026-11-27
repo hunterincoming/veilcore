@@ -163,6 +163,8 @@ export const document = {
   'app.claim.going': 'Probando…',
   'app.claim.done': 'Probado en Midnight:',
   'app.claim.copy': 'Copiar el enlace que lo demuestra',
+  'app.claim.linkLater':
+    'Este enlace no se puede crear ahora mismo: no se pudo consultar en Midnight una transacción que incluye. Inténtelo de nuevo en unos minutos.',
   'app.claim.copied': 'Copiado.',
   'app.claim.made': 'Lo que ha demostrado',
   'app.claim.line.atMost': '{label} es como máximo {bound} {unit}',
@@ -173,6 +175,8 @@ export const document = {
   'app.claim.verdict.bad': 'Este enlace no se puede leer, así que no se comprobó nada.',
   'app.claim.verdict.checking': 'Comprobando esta afirmación en su navegador…',
   'app.claim.verdict.failed': 'Esta afirmación no superó la comprobación. No confíe en ella.',
+  'app.claim.verdict.unreadable':
+    'No se pudo leer esta afirmación en Midnight ahora mismo. No confíe en ella hasta que se confirme: inténtelo de nuevo en unos minutos.',
   'app.claim.verdict.labFailed':
     'Esta afirmación superó la comprobación, pero la firma del laboratorio no. Vea más abajo.',
   'app.claim.verdict.someFailed': 'Esta afirmación superó la comprobación, pero otra de este enlace no. Vea más abajo.',
@@ -197,6 +201,8 @@ export const document = {
   'app.doc.verdict.datedOtherFile': 'Fechado el {date}, pero el archivo que eligió no es el que se selló.',
   'app.claim.check.intro':
     'Alguien le envió este enlace para mostrar un hecho de un documento sellado, sin mostrar sus números ni el documento. Esta página lee la afirmación en Midnight y la comprueba.',
+  'app.claim.check.oldLink':
+    'Este enlace de afirmación nombra su transacción como lo hacía una versión anterior del sitio, así que no se puede comprobar. Pida al remitente un enlace nuevo.',
   'app.claim.check.bad': 'Este enlace no se puede leer. Pídalo de nuevo.',
   'app.claim.check.checking': 'Leyendo la afirmación en Midnight…',
   'app.claim.check.okWhen': 'Probado en Midnight en el bloque {block}{date}.',

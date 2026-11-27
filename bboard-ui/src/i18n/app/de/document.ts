@@ -165,6 +165,8 @@ export const document = {
   'app.claim.going': 'Wird belegt…',
   'app.claim.done': 'Auf Midnight belegt:',
   'app.claim.copy': 'Den Link kopieren, der das belegt',
+  'app.claim.linkLater':
+    'Dieser Link lässt sich gerade nicht erstellen: Eine Transaktion darin konnte auf Midnight nicht nachgeschlagen werden. Versuchen Sie es in ein paar Minuten erneut.',
   'app.claim.copied': 'Kopiert.',
   'app.claim.made': 'Was Sie belegt haben',
   'app.claim.line.atMost': '{label} ist höchstens {bound} {unit}',
@@ -175,6 +177,8 @@ export const document = {
   'app.claim.verdict.bad': 'Dieser Link lässt sich nicht lesen, daher wurde nichts geprüft.',
   'app.claim.verdict.checking': 'Dieser Beleg wird in Ihrem Browser geprüft…',
   'app.claim.verdict.failed': 'Dieser Beleg hat die Prüfung nicht bestanden. Verlassen Sie sich nicht darauf.',
+  'app.claim.verdict.unreadable':
+    'Dieser Beleg ließ sich gerade nicht von Midnight lesen. Verlassen Sie sich nicht darauf, bevor er bestätigt ist: Versuchen Sie es in ein paar Minuten erneut.',
   'app.claim.verdict.labFailed':
     'Dieser Beleg hat die Prüfung bestanden, die Signatur des Labors aber nicht. Siehe unten.',
   'app.claim.verdict.someFailed':
@@ -200,6 +204,8 @@ export const document = {
   'app.doc.verdict.datedOtherFile': 'Datiert am {date}, aber die gewählte Datei ist nicht die versiegelte.',
   'app.claim.check.intro':
     'Jemand hat Ihnen diesen Link geschickt, um eine Tatsache aus einem versiegelten Dokument zu zeigen, ohne seine Zahlen oder das Dokument zu zeigen. Diese Seite liest den Beleg auf Midnight und prüft ihn.',
+  'app.claim.check.oldLink':
+    'Dieser Beleg-Link nennt seine Transaktion so, wie es eine ältere Version der Website tat, und lässt sich daher nicht prüfen. Bitten Sie den Absender um einen neuen Link.',
   'app.claim.check.bad': 'Dieser Link ist nicht lesbar. Bitten Sie erneut darum.',
   'app.claim.check.checking': 'Der Beleg wird auf Midnight gelesen…',
   'app.claim.check.okWhen': 'Auf Midnight belegt in Block {block}{date}.',

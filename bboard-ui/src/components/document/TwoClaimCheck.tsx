@@ -9,6 +9,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Alert, CircularProgress, Container, Paper, Stack, Typography, Box } from '@mui/material';
 import { comparedOf, datedCodesOf, readTwoClaimLink, type TwoVerdict } from '../../veilcore/two-record-claims';
+import { isOldClaimLink } from '../../veilcore/claim-link';
 import { DatedNotOrigin } from '../verify/DatedNotOrigin';
 import { CheckVerdict, CheckYourself, MakeYourOwn } from '../verify/CheckParts';
 import { claimVerdict, namedRecordDate, VERDICT_DATE } from '../verify/verdict';
@@ -108,8 +109,9 @@ export const TwoClaimCheck: React.FC = () => {
         <CheckYourself sx={{ mt: -1.5, mb: 3 }} />
         <DatedNotOrigin kind="document" />
         {!link || !codes ? (
-          <Alert severity="error" variant="outlined" data-claim-link="bad">
-            {t('app.claim.check.bad')}
+          // Refused before anything is asked, as on a one-number claim's page (tx-hash-rule.ts).
+          <Alert severity="error" variant="outlined" data-claim-link={isOldClaimLink(hash, 'p') ? 'old' : 'bad'}>
+            {t(isOldClaimLink(hash, 'p') ? 'app.claim.check.oldLink' : 'app.claim.check.bad')}
           </Alert>
         ) : (
           <Stack spacing={2.5}>
@@ -119,7 +121,7 @@ export const TwoClaimCheck: React.FC = () => {
                 variant="h6"
                 component="p"
                 color={verdict?.ok ? 'text.primary' : 'text.secondary'}
-                sx={{ mb: 1, textDecoration: verdict && !verdict.ok ? 'line-through' : 'none' }}
+                sx={{ mb: 1, textDecoration: verdict && !verdict.ok && !verdict.unreadable ? 'line-through' : 'none' }}
                 data-claim-statement=""
               >
                 {statement}
@@ -141,7 +143,13 @@ export const TwoClaimCheck: React.FC = () => {
                   })}
                 </Alert>
               )}
-              {verdict && !verdict.ok && (
+              {/* Couldn't read it from Midnight: a warning, never the failure's cross (chain/read-failure.ts). */}
+              {verdict && !verdict.ok && verdict.unreadable && (
+                <Alert severity="warning" variant="outlined" data-claim-verdict="unreadable">
+                  {t('app.claim.verdict.unreadable')}
+                </Alert>
+              )}
+              {verdict && !verdict.ok && !verdict.unreadable && (
                 <Alert severity="error" variant="outlined" data-claim-verdict="failed">
                   {t('app.claim.check.failed', { reason: errorReason(verdict.reason, tr) })}
                 </Alert>

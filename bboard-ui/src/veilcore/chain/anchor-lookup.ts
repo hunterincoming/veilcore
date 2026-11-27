@@ -4,8 +4,11 @@
 // network and transaction the registry names, the contracts this build pins, the root the
 // inclusion proof folds to), so they can't disagree about the same record.
 //
-// A definite answer (checked, or not confirmed) is kept for the rest of the visit; an
-// answer that couldn't be had (no indexer reached) is not kept, so the next look tries again.
+// A definite answer (checked, or contradicted by what Midnight's indexer said) is kept for the
+// rest of the visit. An answer that couldn't be had is not kept, so the next look tries again:
+// no indexer reached, a state this build can't read, a transaction the indexer hasn't reached
+// yet (anchor-check.ts, `unreachable`), and a transaction an indexer past its block doesn't have
+// (`notFound`: an indexer can be missing a block, and that mends itself).
 // SPDX-License-Identifier: Apache-2.0
 
 import type { InclusionProof } from 'veilcore-records';
@@ -20,6 +23,7 @@ const keyOf = (
   network: string,
   tx: string,
   root: string,
+  reported: string,
   contracts: readonly PinnedContract[],
   counted: readonly string[],
   deps: AnchorCheckDeps,
@@ -28,6 +32,7 @@ const keyOf = (
     network,
     tx.toLowerCase(),
     root.toLowerCase(),
+    reported,
     contracts.map((c) => `${c.version}:${c.address}`).join(' '),
     counted.join(' '),
     deps.buildNetwork,
@@ -46,17 +51,27 @@ export const lookUpAnchor = (
 ): Promise<AnchorCheck> | undefined => {
   const a = proof.anchor;
   if (!a?.txHash) return undefined;
-  const key = keyOf(a.network, a.txHash, proof.root, contracts, counted, deps);
+  const reported = `${a.blockHeight ?? ''}@${a.anchoredAt ?? ''}`;
+  const key = keyOf(a.network, a.txHash, proof.root, reported, contracts, counted, deps);
   const known = definite.get(key);
   if (known) return Promise.resolve(known);
   const pending = inFlight.get(key);
   if (pending) return pending;
   const p = checkAnchorOnChain(
-    { network: a.network, txId: a.txHash, contracts, counted, expectedRoot: proof.root },
+    {
+      network: a.network,
+      txId: a.txHash,
+      contracts,
+      counted,
+      expectedRoot: proof.root,
+      ...(typeof a.blockHeight === 'number' ? { reportedHeight: a.blockHeight } : {}),
+      ...(typeof a.anchoredAt === 'string' ? { reportedAt: a.anchoredAt } : {}),
+    },
     deps,
   ).then((r) => {
     inFlight.delete(key);
-    if (r.status === 'checked' || r.status === 'failed' || r.status === 'not-checked') definite.set(key, r);
+    if (r.status === 'checked' || (r.status === 'failed' && !r.notFound) || r.status === 'not-checked')
+      definite.set(key, r);
     return r;
   });
   inFlight.set(key, p);

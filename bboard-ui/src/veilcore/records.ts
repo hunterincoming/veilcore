@@ -3,6 +3,7 @@
 // their status. Simulated settlement in demo mode.
 // SPDX-License-Identifier: Apache-2.0
 
+import { recordWithHashes } from './tx-rename';
 import { PAID_PLANS_ENABLED } from '../config/network';
 import { currentPlan, freeLeft, planGate, readPlan, refreshPlan, waitingCount } from './billing';
 import { useSyncExternalStore } from 'react';
@@ -2801,6 +2802,24 @@ export const setLabSignature = (id: string, sig: LabSignature): StrainRecord | u
   });
   if (updated) persist();
   return updated;
+};
+
+/**
+ * Rename saved transactions by their hash (link-hashes.ts): an older build kept the 66-hex
+ * identifier in claims, the lab signature's call and claims about two records. `map` is
+ * identifier to hash; anything not in it is left as it is. Saved once, so a link is never asked
+ * to look the same one up again.
+ */
+export const renameTransactions = (map: ReadonlyMap<string, string>): void => {
+  if (map.size === 0) return;
+  let changed = false;
+  records = records.map((r) => {
+    const renamed = recordWithHashes(r, map);
+    if (!renamed) return r;
+    changed = true;
+    return renamed;
+  });
+  if (changed) persist();
 };
 
 /** Keep the Midnight call that published the record's laboratory signature. */
