@@ -267,6 +267,17 @@ export const RestorePage: React.FC = () => {
                   {t('app.backup.stampsDisagree', { n: tr.num(done.stampsDisagree) })}
                 </Alert>
               )}
+              {/* The limit of copies kept from backup files is reached (stamps.ts MAX_SECTIONS). */}
+              {!!done.stampSections?.refused && (
+                <Alert severity="warning" variant="outlined" data-restore-stamps-refused="">
+                  {t('app.backup.stampsRefused')}
+                </Alert>
+              )}
+              {!fromAccount && (
+                <Typography variant="body2" color="text.secondary" data-restore-file-lasting="">
+                  {t('app.backup.fileIsLasting')}
+                </Typography>
+              )}
               {done.fromFile && 'added' in done.fromFile && done.fromFile.added > 0 && (
                 <Typography variant="body2" color="text.secondary" data-from-file="added">
                   {t('app.backup.fromFileAdded', { n: tr.num(done.fromFile.added) })}

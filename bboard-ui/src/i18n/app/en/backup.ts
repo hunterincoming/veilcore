@@ -164,7 +164,11 @@ export const backup = {
   'app.intake.err.badState': 'Its security value (state) is missing or malformed.',
   'app.backup.fromFileAdded': 'Records put back from the file itself: {n}.',
   'app.backup.stampsDisagree':
-    'Your backup files disagree about when some of your records were dated ({n}). Both versions are kept, so nothing is lost. Before you rely on those dates, check them on Midnight: the record’s Technical details say how.',
+    'Your backup files disagree about when some of your records were dated ({n}). Before you rely on those dates, check them on Midnight: the record’s Technical details say how.',
+  'app.backup.stampsRefused':
+    'This browser already keeps the date proofs of as many backup files as it can, so this file’s weren’t added. Nothing already kept was changed. Keep your backup files safe: each one still holds its own.',
+  'app.backup.fileIsLasting':
+    'Your backup file on your own device is never changed by restoring; keep it — it’s the lasting copy.',
   'app.backup.rootChanged':
     'VeilCore’s server gave a different date record for {n} of your records than it gave before. That should never happen. The first one is kept, and both are in this backup. Keep this file, and contact VeilCore.',
   'app.backup.fromFileProblem': "The records inside the file couldn't be put back: {why} Your keys are restored.",

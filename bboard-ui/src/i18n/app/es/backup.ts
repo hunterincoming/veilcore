@@ -169,7 +169,11 @@ export const backup = {
   'app.intake.err.badState': 'Su valor de seguridad (state) falta o no es válido.',
   'app.backup.fromFileAdded': 'Registros recuperados del propio archivo: {n}.',
   'app.backup.stampsDisagree':
-    'Sus archivos de copia de seguridad no coinciden en cuándo se fecharon algunos de sus registros ({n}). Se conservan las dos versiones, así que no se pierde nada. Antes de fiarse de esas fechas, compruébelas en Midnight: los detalles técnicos del registro explican cómo.',
+    'Sus archivos de copia de seguridad no coinciden en cuándo se fecharon algunos de sus registros ({n}). Antes de fiarse de esas fechas, compruébelas en Midnight: los detalles técnicos del registro explican cómo.',
+  'app.backup.stampsRefused':
+    'Este navegador ya guarda las pruebas de fecha de tantos archivos de copia de seguridad como puede, así que no se agregaron las de este archivo. No se cambió nada de lo ya guardado. Guarde bien sus archivos de copia de seguridad: cada uno sigue teniendo las suyas.',
+  'app.backup.fileIsLasting':
+    'Restaurar nunca cambia su archivo de copia de seguridad en su propio dispositivo; consérvelo: es la copia duradera.',
   'app.backup.rootChanged':
     'El servidor de VeilCore dio para {n} de sus registros una prueba de fecha distinta de la que dio antes. Eso no debería pasar nunca. Se conserva la primera, y las dos están en esta copia de seguridad. Guarde este archivo y contacte con VeilCore.',
   'app.backup.fromFileProblem':

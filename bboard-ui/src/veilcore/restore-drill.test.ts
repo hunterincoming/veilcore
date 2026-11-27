@@ -954,7 +954,7 @@ const checkOffline = async (file: (p: string) => Uint8Array | undefined) => {
   }
 };
 
-type Carried = {
+type SectionItem = {
   kind: string;
   batchId?: string;
   root?: string;
@@ -964,9 +964,12 @@ type Carried = {
   tsts?: { token: string }[];
   instant?: { token: string }[];
 };
-type FileStamps = StampsJson & { carried?: Carried[] };
+type Section = { id: string; items: SectionItem[] };
+type FileStamps = StampsJson & { carried?: Section[] };
 const stampsOf = (inner: Record<string, unknown>) => inner.stamps as FileStamps | undefined;
-const carriedBatches = (s: FileStamps | undefined) => (s?.carried ?? []).filter((c) => c.kind === 'batch');
+const sectionsOf = (s: FileStamps | undefined) => s?.carried ?? [];
+const batchItems = (s: FileStamps | undefined) =>
+  sectionsOf(s).flatMap((sec) => sec.items.filter((i) => i.kind === 'batch'));
 const textOf = (b?: Uint8Array) =>
   Buffer.from(b ?? new Uint8Array())
     .toString()
@@ -980,17 +983,23 @@ const pageLookups = (evidence: unknown) => {
       contracts?: unknown,
     ) => {
       fromBackupFile: boolean;
-      alternatives: { root: string }[];
+      carried: { root: string; folder: string; midnight: unknown }[];
+      disagree: boolean;
       midnight: unknown[];
     };
     midnightSteps: (a: unknown) => string[];
   }>();
   const L = V.lookups(evidence);
-  return { L, steps: L.midnight.length ? V.midnightSteps(L.midnight[0]).join(' ') : '' };
+  const first = L.carried[0]?.midnight;
+  return { L, steps: first ? V.midnightSteps(first).join(' ') : '' };
 };
 
+/** What verify.html's reader, the SDK and openssl say about one folder's stamp files, offline. */
+const checkFolder = async (file: (p: string) => Uint8Array | undefined, folder: string) =>
+  checkOffline((p) => file(p.replace(/^proof\//, `${folder}/`)));
+
 describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
-  it('are in the file, come back with the registry gone as carried, and the evidence bundle checks offline, labelled', async () => {
+  it('are in the file, come back with the registry gone as one sealed section, and the bundle checks offline, labelled', async () => {
     const A = await browser('breeder');
     const B = await browser('licensee');
     const L = await browser('lab');
@@ -1011,46 +1020,54 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
 
     w.goDown();
     const { b: A3, out } = await restoreInto('breeder-registry-gone', text);
-    // The batch's Bitcoin file and TSA token, and each of the five records' own token.
-    expect(out.stamps).toBe(2 + fps.length);
+    // One section kept: a copy of what the file said, never counted as put back.
+    expect(out.stampSections).toEqual({ kept: 1, already: 0, refused: 0 });
+    expect((out as Record<string, unknown>).stamps).toBeUndefined();
     expect(out.stampsDisagree ?? 0).toBe(0);
     for (const id of [made.plant, made.animal, made.doc, made.local]) {
       const { gathered, ev, file } = await bundleOf(A3, id);
-      // A new device with the registry gone can't confirm anything: every page says so.
       expect(gathered.source, id).toBe('backup-file');
+      expect(ev.proof, 'no section is taken as the record’s proof').toBeNull();
+      expect(ev.registry.carried?.map((c) => c.folder)).toEqual(['proof/backup-file-1']);
       expect(textOf(file('README.txt'))).toContain(
         'NOT CONFIRMED: The batch root, the proof that leads to it and its stamps were restored from a backup file and are not yet confirmed with VeilCore’s registry or Midnight.',
       );
       expect(textOf(file('EXAMINER-SUMMARY.html'))).toContain('Not confirmed:');
       expect(textOf(file('EXAMINER-SUMMARY.html'))).not.toContain('as VeilCore’s registry reported it');
       expect(textOf(file('evidence.json'))).toContain('not yet confirmed with VeilCore’s registry or Midnight');
-      // verify.html's own code reads registry.source and says who named the transaction.
       const { L: page, steps } = pageLookups(JSON.parse(textOf(file('evidence.json'))));
       expect(page.fromBackupFile).toBe(true);
+      expect(page.carried.map((c) => c.root)).toEqual([batch.root]);
       expect(steps).toContain('The holder’s backup file says it is');
       expect(steps).not.toContain('VeilCore’s registry reports');
-      expect(ev.batch?.opentimestamps).toMatchObject({ available: true, status: 'pending' });
-      expect(ev.batch?.rfc3161).toMatchObject({ available: true, file: 'proof/root.tst' });
-      const offline = await checkOffline(file);
+      for (const f of ['inclusion-proof.json', 'batch-root.txt', 'root.bin', 'root.bin.ots', 'root.tst'])
+        expect(file(`proof/backup-file-1/${f}`), `${id} ${f}`).toBeDefined();
+      const offline = await checkFolder(file, 'proof/backup-file-1');
       expect(offline.stamp.status, id).toBe('pending');
       expect(offline.sdk, id).toBe(true);
       expect(offline.openssl, id).toMatch(/Verification: OK/);
     }
-    // A backup made there, still without the registry, carries all of it forward as carried:
-    // nothing in `proofs` or the registry's part.
+    // A backup made there, still without the registry, carries the section exactly as kept.
     const again = await opened(A3, await backUp(A3));
     const st = stampsOf(again)!;
     expect(again.proofs, 'nothing carried goes in proofs').toBeUndefined();
     expect(st.batches).toEqual({});
-    const items = carriedBatches(st);
-    expect(items).toHaveLength(1);
-    expect(items[0]).toMatchObject({ batchId: BATCH_ID, root: batch.root, ots: batch.ots, tsts: batch.tsts });
-    expect(Object.keys(items[0].proofs!).sort()).toEqual([...fps].sort());
+    expect(sectionsOf(st)).toHaveLength(1);
+    const item = batchItems(st)[0];
+    expect(item).toMatchObject({ batchId: BATCH_ID, root: batch.root, ots: batch.ots, tsts: batch.tsts });
+    expect(Object.keys(item.proofs!).sort()).toEqual([...fps].sort());
+    // That file restored there again, and the first file again: nothing changes.
+    expect((await A3.run(() => A3.m.backup.restoreAny(fileOf(text), PASSWORD))).stampSections).toEqual({
+      kept: 0,
+      already: 1,
+      refused: 0,
+    });
     // The registry back: the next backup's own part comes from it, and the bundle is this device's.
     w.goUp();
     const online = await opened(A3, await backUp(A3));
     expect(Object.keys(online.proofs as object).sort()).toEqual([...fps].sort());
     expect(stampsOf(online)!.batches[BATCH_ID]).toEqual(batch);
+    expect(sectionsOf(stampsOf(online)), 'the section is still carried, as it was').toEqual(sectionsOf(st));
     w.goDown();
     expect((await bundleOf(A3, made.plant)).gathered.source).toBe('this-device');
   });
@@ -1067,21 +1084,25 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     const done = stampsOf(await opened(A, text))!.batches[BATCH_ID];
     expect(done).toMatchObject({ otsStatus: 'bitcoin', bitcoinBlockHeight: STAMP_BLOCK });
     expect(Buffer.from(done.ots!, 'base64')).toEqual(w.ots.get(BATCH_ID));
-    // A registry that serves the pending file again doesn't take the finished one away.
     w.ots.set(BATCH_ID, otsFile(done.root));
     expect(stampsOf(await opened(A, await backUp(A)))!.batches[BATCH_ID].ots).toBe(done.ots);
-    // Nor does restoring the older file, which holds the pending one.
     await A.run(() => A.m.backup.restoreAny(fileOf(firstText), PASSWORD));
     expect(stampsOf(await opened(A, await backUp(A)))!.batches[BATCH_ID].ots).toBe(done.ots);
-    // With the registry gone, the bundle from a restored device names the Bitcoin block.
     w.goDown();
     const { b: A3 } = await restoreInto('breeder-registry-gone', text);
     const { ev, file } = await bundleOf(A3, made.plant);
-    expect(ev.batch?.opentimestamps).toMatchObject({ status: 'bitcoin', bitcoinBlockHeight: STAMP_BLOCK });
-    expect((await checkOffline(file)).stamp).toMatchObject({ status: 'bitcoin', bitcoin: [{ height: STAMP_BLOCK }] });
+    expect(ev.registry.carried?.[0].opentimestamps).toMatchObject({
+      status: 'bitcoin',
+      bitcoinBlockHeight: STAMP_BLOCK,
+    });
+    expect((await checkFolder(file, 'proof/backup-file-1')).stamp).toMatchObject({
+      status: 'bitcoin',
+      bitcoin: [{ height: STAMP_BLOCK }],
+    });
   });
 
-  // A doctored file, restored with the registry gone so nothing can come back from it instead.
+  // A doctored file, restored with the registry gone so nothing can come back from it instead: its
+  // proofs still check and are kept as a section, its doctored files are not.
   const doctoredStamps = async (doctor: (s: StampsJson, m: Made, fps: Record<string, string>) => void) => {
     const A = await browser('breeder');
     const B = await browser('licensee');
@@ -1094,19 +1115,17 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     const N = await browser('new-device');
     const out = await N.run(() => N.m.backup.restoreAny(fileOf(JSON.stringify(inner))));
     expect(out.fromFile).toMatchObject({ added: 5 });
-    expect(out.stamps ?? 0, 'nothing from the file was put back').toBe(0);
-    // The proof still comes along (it checks); the doctored files don't.
     const { ev } = await bundleOf(N, made.plant);
-    expect(ev.batch?.opentimestamps.available).toBe(false);
-    expect(ev.batch?.rfc3161.available).toBe(false);
-    const kept = stampsOf(await opened(N, await backUp(N)));
-    for (const c of kept?.carried ?? []) {
-      expect(c.ots, 'no doctored Bitcoin file carried on').toBeUndefined();
-      expect(c.tsts ?? c.instant, 'no doctored token carried on').toBeUndefined();
+    for (const c of ev.registry.carried ?? []) {
+      expect(c.opentimestamps.available).toBe(false);
+      expect(c.tokens).toBe(0);
+    }
+    for (const it of sectionsOf(stampsOf(await opened(N, await backUp(N)))).flatMap((s) => s.items)) {
+      expect(it.ots, 'no doctored Bitcoin file carried on').toBeUndefined();
+      expect(it.tsts ?? it.instant, 'no doctored token carried on').toBeUndefined();
     }
   };
 
-  /** Another batch's files: a real stamp file and token, for a root none of these records lead to. */
   const otherBatch = () => {
     const root = 'ee'.repeat(32);
     return { root, ots: otsFile(root, { bitcoin: STAMP_BLOCK }).toString('base64'), token: tsa.tokenFor(root) };
@@ -1185,59 +1204,62 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
       ['within', { ...tsa.pin, notBefore: '2000-01-01T00:00:00Z', validUntil: '2099-01-01T00:00:00Z' }, true],
     ] as const) {
       const N = await browser(`dates-${label}`);
-      await N.run(() => N.m.backup.restoreAny(fileOf(JSON.stringify({ ...inner, stamps: undefined }))));
+      await N.run(() =>
+        N.m.backup.restoreAny(fileOf(JSON.stringify({ ...inner, stamps: undefined, proofs: undefined }))),
+      );
       const recs = await N.run(() => N.m.records.allRecords());
-      const got = await N.run(() => N.m.stamps.restoreStamps(inner.stamps, inner.proofs, recs, [pin as never]));
-      // Within its dates: the batch token and the five records' own tokens (the Bitcoin file counts once either way).
-      expect(got.stamps, label).toBe(want ? 2 + 5 : 1);
+      await N.run(() => N.m.stamps.restoreStamps(inner.stamps, inner.proofs, recs, [pin as never]));
+      const items = sectionsOf(stampsOf(await opened(N, await backUp(N)))).flatMap((s) => s.items);
+      const tokens = items.flatMap((i) => i.tsts ?? i.instant ?? []).length;
+      expect(tokens, label).toBe(want ? 1 + 5 : 0);
     }
   });
 
-  it('a file naming records here under many other batches, or proofs for codes not held here, adds little (review 2, A2)', async () => {
+  it('a section naming a record under many batches gives nothing for it, and proofs for codes not held here add nothing (review 2, A2)', async () => {
     const A = await browser('breeder');
     const B = await browser('licensee');
     const L = await browser('lab');
     await makeTheSet(A, B, L);
     const inner = await opened(A, await backUp(A));
     const fps = (inner.recordData as { recordFingerprint: string }[]).map((r) => r.recordFingerprint);
-    const proofs: Record<string, unknown> = { ...(inner.proofs as object) };
-    const carried: unknown[] = [];
+    const items: unknown[] = [];
     for (let i = 0; i < 300; i++) {
       const b = await buildBatch([...fps], `B-X-${i}`);
-      carried.push({
+      items.push({
         kind: 'batch',
         batchId: `B-X-${i}`,
         root: b.root,
         proofs: b.proofs,
         ots: otsFile(b.root).toString('base64'),
       });
-      proofs['ab'.repeat(31) + (i % 256).toString(16).padStart(2, '0')] = { batchId: `B-X-${i}`, root: b.root };
     }
+    const proofs = { [`${'ab'.repeat(32)}`]: { batchId: 'B-X-0', root: 'cd'.repeat(32) } };
     const before = await A.run(() => A.m.stamps.keptSize());
-    await A.run(() =>
+    const out = await A.run(() =>
       A.m.backup.restoreAny(
-        fileOf(JSON.stringify({ ...inner, proofs, stamps: { ...(inner.stamps as object), carried } })),
+        fileOf(
+          JSON.stringify({
+            ...inner,
+            proofs,
+            stamps: { format: 'veilcore/stamps/v1', batches: {}, records: {}, carried: [{ id: 'x', items }] },
+          }),
+        ),
       ),
     );
-    const s = stampsOf(await opened(A, await backUp(A)))!;
-    // At most two batches per record are carried: the newest two the file named.
-    for (const fp of fps) expect(carriedBatches(s).filter((c) => c.proofs?.[fp]).length, fp).toBeLessThanOrEqual(2);
-    expect(carriedBatches(s).length).toBeLessThanOrEqual(2);
-    expect(await A.run(() => A.m.stamps.keptSize())).toBeLessThan(before + 40_000);
+    expect(out.stampSections?.kept ?? 0).toBe(0);
+    expect(await A.run(() => A.m.stamps.keptSize())).toBeLessThan(before + 2_000);
   });
 
-  it('big stamp files in a made-up file are refused, and what is carried stays within its budget (review 3, C6)', async () => {
+  it('big stamp files in a made-up file are refused (review 3, C6)', async () => {
     const A = await browser('breeder');
     const B = await browser('licensee');
     const L = await browser('lab');
     await makeTheSet(A, B, L);
     const inner = await opened(A, await backUp(A));
     const fps = (inner.recordData as { recordFingerprint: string }[]).map((r) => r.recordFingerprint);
-    // A valid pending stamp file padded with append steps to about 58k characters.
     const padded = (root: string) => {
       const base = otsFile(root);
       const step = Buffer.concat([Buffer.from([0xf0, 0xa0, 0x1f]), randomBytes(4000)]);
-      // After the header (magic, version, SHA-256 and the 32-byte digest), before the rest.
       const at = 31 + 2 + 32;
       return Buffer.concat([base.subarray(0, at), ...(Array(11).fill(step) as Buffer[]), base.subarray(at)]).toString(
         'base64',
@@ -1245,160 +1267,207 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     };
     const before = await A.run(() => A.m.stamps.keptSize());
     for (let f = 0; f < 2; f++) {
-      const carried: unknown[] = [];
-      for (let i = 0; i < 2; i++) {
-        const b = await buildBatch([...fps, randomBytes(32).toString('hex')], `B-PAD-${f}-${i}`);
-        carried.push({
-          kind: 'batch',
-          batchId: `B-PAD-${f}-${i}`,
-          root: b.root,
-          proofs: b.proofs,
-          ots: padded(b.root),
-        });
-      }
+      const b = await buildBatch([...fps, randomBytes(32).toString('hex')], `B-PAD-${f}`);
+      const items = [{ kind: 'batch', batchId: `B-PAD-${f}`, root: b.root, proofs: b.proofs, ots: padded(b.root) }];
       await A.run(() =>
-        A.m.backup.restoreAny(fileOf(JSON.stringify({ ...inner, stamps: { ...(inner.stamps as object), carried } }))),
+        A.m.backup.restoreAny(
+          fileOf(
+            JSON.stringify({
+              ...inner,
+              proofs: undefined,
+              stamps: { format: 'veilcore/stamps/v1', batches: {}, records: {}, carried: [{ id: 'x', items }] },
+            }),
+          ),
+        ),
       );
     }
-    const s = stampsOf(await opened(A, await backUp(A)))!;
-    for (const c of carriedBatches(s)) expect(c.ots, 'no padded stamp file kept').toBeUndefined();
-    const after = await A.run(() => A.m.stamps.keptSize());
-    expect(after - before).toBeLessThan(40_000);
-    expect(after).toBeLessThan(A.m.stamps.CARRIED_BUDGET * 1.4 + 200_000);
+    for (const it of batchItems(stampsOf(await opened(A, await backUp(A))))) expect(it.ots).toBeUndefined();
+    expect((await A.run(() => A.m.stamps.keptSize())) - before).toBeLessThan(20_000);
   });
 
-  // Reviews 2 and 3: proof codes are public, so a made-up file can put the holder's records under a
-  // root of its own, with a pending Bitcoin file and a real token (a public TSA stamps any 32
-  // bytes, dated now). Under the carried design it is kept apart, labelled, never confirmed, and
-  // never takes the genuine evidence away.
-  const craftedSet = async () => {
+  // Reviews 2 to 4: proof codes are public, so a made-up file can name the holder's records under any
+  // root, with a real token (a public TSA stamps any 32 bytes, dated now) and any stamp file that
+  // starts from that root. Each file's stamps are one sealed section: nothing a later file says can
+  // change or remove an earlier one, and nothing a file says is ever counted as confirmed.
+  const craftedSet = async (finish = true) => {
     const A = await browser('breeder');
     const B = await browser('licensee');
     const L = await browser('lab');
     const made = await makeTheSet(A, B, L);
-    w.upgrade();
+    if (finish) w.upgrade();
     const text = await backUp(A);
     const inner = await opened(A, text);
     const done = stampsOf(inner)!.batches[BATCH_ID];
     const fps = (inner.recordData as { recordFingerprint: string }[]).map((r) => r.recordFingerprint);
-    const crafted = async (salt = 'aa') => {
-      const other = await buildBatch([...fps, salt.repeat(32)], BATCH_ID);
+    const anchorOf = (fp: string) => (inner.proofs as Record<string, { anchor: unknown }>)[fp]?.anchor;
+    /** A made-up section naming these records under (batchId, a root of its own). */
+    const fakeItem = async (batchId: string, salt: string, otsOpts: { bitcoin?: number } = {}) => {
+      const b = await buildBatch([...fps, salt.repeat(32)], batchId);
       return {
-        other,
-        text: JSON.stringify({
-          ...inner,
-          proofs: Object.fromEntries(
-            Object.entries(other.proofs).map(([k, p]) => [
-              k,
-              { ...(p as object), anchor: (inner.proofs as Record<string, { anchor: unknown }>)[k]?.anchor },
-            ]),
-          ),
-          stamps: {
-            format: 'veilcore/stamps/v1',
-            records: {},
-            batches: {
-              [BATCH_ID]: {
-                root: other.root,
-                ots: otsFile(other.root).toString('base64'),
-                tsts: [{ token: tsa.tokenFor(other.root) }],
-              },
-            },
-          },
-        }),
+        root: b.root,
+        item: {
+          kind: 'batch',
+          batchId,
+          root: b.root,
+          proofs: Object.fromEntries(fps.map((fp) => [fp, { ...(b.proofs[fp] as object), anchor: anchorOf(fp) }])),
+          ots: otsFile(b.root, otsOpts).toString('base64'),
+          tsts: [{ token: tsa.tokenFor(b.root) }],
+        },
       };
     };
-    return { A, made, text, inner, done, fps, crafted };
+    const fileWith = (stamps: Record<string, unknown>, proofs?: unknown) =>
+      JSON.stringify({
+        ...inner,
+        proofs,
+        stamps: { format: 'veilcore/stamps/v1', batches: {}, records: {}, ...stamps },
+      });
+    const crafted = async (salt = 'aa') => {
+      const f = await fakeItem(BATCH_ID, salt);
+      return { other: { root: f.root }, text: fileWith({ carried: [{ id: salt, items: [f.item] }] }) };
+    };
+    const recordsOnly = JSON.stringify({ ...inner, proofs: undefined, stamps: undefined });
+    return { A, made, text, inner, done, fps, fakeItem, fileWith, crafted, recordsOnly };
   };
+  /** The genuine section, as a later backup carries it. */
+  const genuineIn = (s: FileStamps | undefined, done: { root: string; ots?: string }) =>
+    sectionsOf(s).filter((sec) =>
+      sec.items.some((i) => i.kind === 'batch' && i.root === done.root && i.ots === done.ots),
+    );
 
   it('a made-up file on the original device changes nothing it got from the registry (reviews 1 and 3, C7)', async () => {
     const { A, made, done, crafted } = await craftedSet();
     await A.run(async () => A.m.backup.restoreAny(fileOf((await crafted()).text)));
     w.goDown();
-    const after = stampsOf(await opened(A, await backUp(A)))!;
-    expect(after.batches[BATCH_ID], 'the finished Bitcoin stamp and its token are still here').toEqual(done);
+    expect(stampsOf(await opened(A, await backUp(A)))!.batches[BATCH_ID]).toEqual(done);
     const { gathered, ev } = await bundleOf(A, made.plant);
     expect(gathered.source).toBe('this-device');
     expect(ev.batch?.root).toBe(done.root);
     expect(ev.batch?.opentimestamps).toMatchObject({ available: true, status: 'bitcoin' });
   });
 
-  it('on a new device with the registry gone, a made-up file never blocks or drops the genuine one (reviews 2 A3, 3 C1)', async () => {
-    const { made, text, done, fps, crafted } = await craftedSet();
+  for (const finish of [false, true])
+    it(`a made-up stamp file for the genuine root can’t replace the genuine ${finish ? 'finished' : 'pending'} one (review 4, R4-${finish ? 2 : 1})`, async () => {
+      const { made, text, inner, done, fileWith } = await craftedSet(finish);
+      w.goDown();
+      const { b: N } = await restoreInto('new-device', text);
+      const before = genuineIn(stampsOf(await opened(N, await backUp(N))), done);
+      expect(before).toHaveLength(1);
+      const fake = otsFile(done.root, { bitcoin: 1 }).toString('base64');
+      await N.run(() =>
+        N.m.backup.restoreAny(
+          fileOf(fileWith({ batches: { [BATCH_ID]: { root: done.root, ots: fake } } }, inner.proofs)),
+        ),
+      );
+      const after = stampsOf(await opened(N, await backUp(N)));
+      expect(genuineIn(after, done), 'the genuine section is there, unchanged').toEqual(before);
+      // Both shown side by side, each in its own folder, none first.
+      const { ev, file } = await bundleOf(N, made.plant);
+      expect(ev.registry.carried).toHaveLength(2);
+      const otsFiles = [1, 2].map((n) => Buffer.from(file(`proof/backup-file-${n}/root.bin.ots`)!).toString('base64'));
+      expect(otsFiles).toContain(done.ots);
+      expect(otsFiles).toContain(fake);
+    });
+
+  it('a made-up file restored first can’t keep the genuine tokens out (review 4, R4-3)', async () => {
+    const { text, inner, done, fps, fileWith, recordsOnly } = await craftedSet();
+    w.goDown();
+    const N = await browser('new-device');
+    await N.run(() => N.m.backup.restoreAny(fileOf(recordsOnly)));
+    const four = (hex: string) => [0, 1, 2, 3].map(() => ({ token: tsa.tokenFor(hex) }));
+    await N.run(() =>
+      N.m.backup.restoreAny(
+        fileOf(
+          fileWith(
+            {
+              batches: { [BATCH_ID]: { root: done.root, tsts: four(done.root) } },
+              records: Object.fromEntries(fps.map((fp) => [fp, { instant: four(fp) }])),
+            },
+            inner.proofs,
+          ),
+        ),
+      ),
+    );
+    const out = await N.run(() => N.m.backup.restoreAny(fileOf(text), PASSWORD));
+    expect(out.stampSections?.kept).toBe(1);
+    const st = stampsOf(await opened(N, await backUp(N)));
+    const items = sectionsOf(st).flatMap((s) => s.items);
+    expect(items.some((i) => i.tsts?.some((t) => t.token === done.tsts![0].token))).toBe(true);
+    const genuineInstant = stampsOf(inner)!.records[fps[0]].instant![0].token;
+    expect(items.some((i) => i.kind === 'record' && i.instant?.some((t) => t.token === genuineInstant))).toBe(true);
+  });
+
+  for (const [label, ids] of [
+    ['two other batch ids for every record (review 4, R4-4)', ['B-FAKE-Y', 'B-FAKE-Z']],
+    ['two other roots for the genuine batch (review 4, R4-5)', [BATCH_ID, BATCH_ID]],
+  ] as const)
+    it(`one made-up file with ${label} can’t push the genuine one out, and the holder is told they disagree`, async () => {
+      const { made, text, done, fakeItem, fileWith } = await craftedSet();
+      w.goDown();
+      const { b: N } = await restoreInto('new-device', text);
+      const before = genuineIn(stampsOf(await opened(N, await backUp(N))), done);
+      const y = await fakeItem(ids[0], 'a1');
+      const z = await fakeItem(ids[1], 'b2');
+      const out = await N.run(() =>
+        N.m.backup.restoreAny(
+          fileOf(
+            fileWith({
+              carried: [
+                { id: 'y', items: [y.item] },
+                { id: 'z', items: [z.item] },
+              ],
+            }),
+          ),
+        ),
+      );
+      expect(out.stampsDisagree).toBe(5);
+      expect(genuineIn(stampsOf(await opened(N, await backUp(N))), done)).toEqual(before);
+      const { ev, file } = await bundleOf(N, made.plant);
+      expect(ev.registry.carried?.map((c) => c.root).sort()).toEqual([done.root, y.root, z.root].sort());
+      expect(textOf(file('README.txt'))).toContain('BACKUP FILES DISAGREE:');
+      expect(pageLookups(JSON.parse(textOf(file('evidence.json')))).L.disagree).toBe(true);
+    });
+
+  it('every section in a bundle gets all its files, the genuine one included (review 4, R4-6)', async () => {
+    const { made, text, done, crafted } = await craftedSet();
     w.goDown();
     const { b: N } = await restoreInto('new-device', text);
-    const c1 = await crafted();
-    const out = await N.run(() => N.m.backup.restoreAny(fileOf(c1.text)));
-    // The holder is told the backup files disagree (the restore page says so).
-    expect(out.stampsDisagree).toBe(1);
-    // The bundle carries the newest (the made-up one), labelled, with the genuine one beside it.
-    const { gathered, ev, file } = await bundleOf(N, made.plant);
-    expect(gathered.source).toBe('backup-file');
-    expect(ev.batch?.root).toBe(c1.other.root);
-    expect(ev.registry.alternatives?.map((a) => a.root)).toEqual([done.root]);
-    expect(textOf(file('README.txt'))).toContain('BACKUP FILES DISAGREE:');
-    expect(file('proof/alternative-1/root.bin.ots')).toBeDefined();
-    expect(Buffer.from(file('proof/alternative-1/root.bin')!).toString('hex')).toBe(done.root);
-    const { L: page } = pageLookups(JSON.parse(textOf(file('evidence.json'))));
-    expect(page.alternatives.map((a) => a.root)).toEqual([done.root]);
-    // The next backup carries both forward, the genuine finished stamp included.
-    const next = stampsOf(await opened(N, await backUp(N)))!;
-    const roots = carriedBatches(next).map((c) => c.root);
-    expect(roots.sort()).toEqual([done.root, c1.other.root].sort());
-    expect(carriedBatches(next).find((c) => c.root === done.root)?.ots).toBe(done.ots);
-    // Restoring the genuine file again puts it first.
-    await N.run(() => N.m.backup.restoreAny(fileOf(text), PASSWORD));
-    expect((await bundleOf(N, made.plant)).ev.batch?.root).toBe(done.root);
-    // The registry back: its answer is the confirmed one.
-    w.goUp();
-    await backUp(N);
-    w.goDown();
-    const confirmed = await bundleOf(N, made.plant);
-    expect(confirmed.gathered.source).toBe('this-device');
-    expect(confirmed.ev.batch?.root).toBe(done.root);
-    expect(fps.length).toBe(5);
+    await N.run(async () => N.m.backup.restoreAny(fileOf((await crafted('e5')).text)));
+    const { ev, file } = await bundleOf(N, made.plant);
+    expect(ev.registry.carried).toHaveLength(2);
+    const genuine = ev.registry.carried!.find((c) => c.root === done.root)!;
+    for (const c of ev.registry.carried!)
+      for (const f of ['inclusion-proof.json', 'batch-root.txt', 'root.bin', 'root.bin.ots', 'root.tst'])
+        expect(file(`${c.folder}/${f}`), `${c.folder}/${f}`).toBeDefined();
+    expect((await checkFolder(file, genuine.folder)).openssl).toMatch(/Verification: OK/);
   });
 
-  it('two made-up files can’t push out the genuine one restored after them (review 3, C2)', async () => {
-    const { made, text, done, inner, crafted } = await craftedSet();
+  it('eight made-up files restored after the genuine one can’t push it out; past the limit a file is refused and the page says so', async () => {
+    const { made, text, done, crafted } = await craftedSet();
     w.goDown();
-    const N = await browser('new-device');
-    await N.run(() =>
-      N.m.backup.restoreAny(fileOf(JSON.stringify({ ...inner, proofs: undefined, stamps: undefined }))),
-    );
-    await N.run(async () => N.m.backup.restoreAny(fileOf((await crafted('aa')).text)));
-    await N.run(async () => N.m.backup.restoreAny(fileOf((await crafted('bb')).text)));
-    const out = await N.run(() => N.m.backup.restoreAny(fileOf(text), PASSWORD));
-    expect(out.stamps).toBeGreaterThan(0);
-    const { ev } = await bundleOf(N, made.plant);
-    expect(ev.batch?.root, 'the file restored last is the one shown').toBe(done.root);
-    expect(ev.batch?.opentimestamps).toMatchObject({ available: true, status: 'bitcoin' });
-    const next = stampsOf(await opened(N, await backUp(N)))!;
-    expect(carriedBatches(next).some((c) => c.root === done.root && c.ots === done.ots)).toBe(true);
-    expect(carriedBatches(next).filter((c) => c.batchId === BATCH_ID).length).toBe(2);
-  });
-
-  it('at most two roots are carried for one batch, the newest kept, even when each names different records', async () => {
-    const { made, text, inner, done, fps } = await craftedSet();
-    w.goDown();
-    const N = await browser('new-device');
-    await N.run(() =>
-      N.m.backup.restoreAny(fileOf(JSON.stringify({ ...inner, proofs: undefined, stamps: undefined }))),
-    );
-    // Three made-up files, each putting one other record under the same batch with its own root.
-    for (const [i, fp] of fps.slice(1, 4).entries()) {
-      const b = await buildBatch([fp, String(i).repeat(64)], BATCH_ID);
-      await N.run(() =>
-        N.m.backup.restoreAny(fileOf(JSON.stringify({ ...inner, proofs: { [fp]: b.proofs[fp] }, stamps: undefined }))),
-      );
+    const { b: N } = await restoreInto('new-device', text);
+    const before = genuineIn(stampsOf(await opened(N, await backUp(N))), done);
+    const results: { kept: number; refused: number }[] = [];
+    for (let i = 0; i < 8; i++) {
+      const out = await N.run(async () => N.m.backup.restoreAny(fileOf((await crafted(String(i + 1).repeat(2))).text)));
+      results.push({ kept: out.stampSections?.kept ?? 0, refused: out.stampSections?.refused ?? 0 });
     }
-    await N.run(() => N.m.backup.restoreAny(fileOf(text), PASSWORD));
-    const kept = carriedBatches(stampsOf(await opened(N, await backUp(N)))).filter((c) => c.batchId === BATCH_ID);
-    expect(kept).toHaveLength(2);
-    expect(
-      kept.some((c) => c.root === done.root && c.ots === done.ots),
-      'the genuine one, restored last, is kept',
-    ).toBe(true);
-    expect((await bundleOf(N, made.plant)).ev.batch?.root).toBe(done.root);
+    // Seven fit beside the genuine one (eight in all); the eighth is refused.
+    expect(results.map((r) => r.kept)).toEqual([1, 1, 1, 1, 1, 1, 1, 0]);
+    expect(results[7].refused).toBe(1);
+    const after = stampsOf(await opened(N, await backUp(N)));
+    expect(sectionsOf(after)).toHaveLength(8);
+    expect(genuineIn(after, done)).toEqual(before);
+    expect((await bundleOf(N, made.plant)).ev.registry.carried?.some((c) => c.root === done.root)).toBe(true);
+  });
+
+  it('what a made-up file brings is never counted as put back (review 3, C2 and review 4)', async () => {
+    const { crafted, recordsOnly } = await craftedSet();
+    w.goDown();
+    const N = await browser('new-device');
+    await N.run(() => N.m.backup.restoreAny(fileOf(recordsOnly)));
+    const out = await N.run(async () => N.m.backup.restoreAny(fileOf((await crafted()).text)));
+    expect((out as Record<string, unknown>).stamps).toBeUndefined();
+    expect(out.stampSections).toEqual({ kept: 1, already: 0, refused: 0 });
   });
 
   it('flags in a file claiming its data is confirmed change nothing (review 3, C3)', async () => {
@@ -1407,40 +1476,40 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     const f = JSON.parse(c.text) as Record<string, Record<string, unknown>>;
     f.stamps.confirmed = true;
     f.stamps.source = 'this-device';
-    (f.stamps.batches as Record<string, Record<string, unknown>>)[BATCH_ID].confirmed = true;
     w.goDown();
     const N = await browser('new-device');
     await N.run(() => N.m.backup.restoreAny(fileOf(JSON.stringify(f))));
-    const { gathered } = await bundleOf(N, made.plant);
-    expect(gathered.source).toBe('backup-file');
+    expect((await bundleOf(N, made.plant)).gathered.source).toBe('backup-file');
     expect((await opened(N, await backUp(N))).proofs).toBeUndefined();
   });
 
-  it('a made-up root for a record whose batch the registry gave is shown beside the registry’s root (review 2, A6)', async () => {
-    const { A, made, done, crafted } = await craftedSet();
+  it('a made-up root for a record whose batch the registry gave is shown with the registry’s root named (review 2, A6)', async () => {
+    const { A, made, done, crafted, text } = await craftedSet();
     const victim = await A.run(() => A.m.records.getRecord(made.animal)!.recordFingerprint);
-    // This browser's own copy, without the animal's proof (as if its backup never asked for it).
     await A.run(async () => {
       const { inflateSync, deflateSync, strFromU8, strToU8 } = await import('fflate');
       const { base64 } = await import('@scure/base');
-      const raw = JSON.parse(localStorage.getItem('veilcore.stamps.v1')!) as { z: string };
+      const raw = JSON.parse(localStorage.getItem('veilcore.stamps.v1')!) as { v: number; z: string };
       const k = JSON.parse(strFromU8(inflateSync(base64.decode(raw.z)))) as {
         own: { proofs: Record<string, unknown> };
       };
       delete k.own.proofs[victim];
       localStorage.setItem(
         'veilcore.stamps.v1',
-        JSON.stringify({ v: 2, z: base64.encode(deflateSync(strToU8(JSON.stringify(k)))) }),
+        JSON.stringify({ v: raw.v, z: base64.encode(deflateSync(strToU8(JSON.stringify(k)))) }),
       );
     });
-    const c1 = await crafted();
-    await A.run(() => A.m.backup.restoreAny(fileOf(c1.text)));
+    await A.run(async () => A.m.backup.restoreAny(fileOf((await crafted()).text)));
     w.goDown();
     const { gathered, ev } = await bundleOf(A, made.animal);
     expect(gathered.source).toBe('backup-file');
-    expect(ev.registry.alternatives).toEqual([expect.objectContaining({ root: done.root, fromRegistry: true })]);
-    // The other records still use the registry's root and finished stamp.
+    expect(ev.registry.registryRoots).toEqual([done.root]);
     expect((await bundleOf(A, made.plant)).gathered.source).toBe('this-device');
+    // The genuine file: its proof leads to the root the registry gave the batch, so it is the registry's.
+    await A.run(() => A.m.backup.restoreAny(fileOf(text), PASSWORD));
+    const back = await bundleOf(A, made.animal);
+    expect(back.gathered.source).toBe('this-device');
+    expect(back.ev.batch?.opentimestamps).toMatchObject({ available: true, status: 'bitcoin' });
   });
 
   it('if the registry later gives another root for a sealed batch, the first and its finished stamp stay, and the holder is warned (review 3, C5)', async () => {
@@ -1450,10 +1519,9 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     for (const fp of fps) w.proofs.set(fp, { ...(w.proofs.get(fp) as object), ...(evil.proofs[fp] as object) });
     const next = await opened(A, await backUp(A));
     expect(await A.run(() => A.m.stamps.rootChanges())).toBe(fps.length);
-    expect(stampsOf(next)!.batches[BATCH_ID], 'the first root and its finished stamp are kept').toEqual(done);
+    expect(stampsOf(next)!.batches[BATCH_ID]).toEqual(done);
     expect((next.proofs as Record<string, { root: string }>)[fps[0]].root).toBe(done.root);
-    // The registry's new answer isn't lost either: it is carried, never trusted.
-    expect(carriedBatches(stampsOf(next)).some((c) => c.root === evil.root)).toBe(true);
+    expect(batchItems(stampsOf(next)).some((c) => c.root === evil.root)).toBe(true);
     w.goDown();
     expect((await bundleOf(A, made.plant)).ev.batch?.root).toBe(done.root);
   });
@@ -1473,7 +1541,7 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     await A.run(() => A.m.keys.forgetKeys(made.animal));
     await A.run(() => A.m.stamps.stampsForBackup([{ id: made.plant, recordFingerprint: plantFp }], {}));
     expect(await A.run(() => A.m.stamps.keptEvidence(animalFp))).toBeNull();
-    expect((await A.run(() => A.m.stamps.keptEvidence(plantFp)))?.ots).toBeTruthy();
+    expect(await A.run(() => A.m.stamps.keptEvidence(plantFp))).toMatchObject({ confirmed: true });
   });
 });
 

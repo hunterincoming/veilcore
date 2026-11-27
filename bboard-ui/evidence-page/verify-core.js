@@ -733,26 +733,35 @@ var VeilcoreVerify = (function () {
       if (e && e.txHash) midnight.push(e);
     }
     var ots = batch && isObject(batch.opentimestamps) ? batch.opentimestamps : null;
-    var alternatives = [];
-    var alts = Array.isArray(registry.alternatives) ? registry.alternatives : [];
-    for (var j = 0; j < alts.length && j < 8; j++) {
-      var x = alts[j];
+    // Every section restored from a backup file that covers the record (registry.carried), each
+    // looked up the same way, none ranked first.
+    var carried = [];
+    var secs = fromFile && Array.isArray(registry.carried) ? registry.carried : [];
+    for (var j = 0; j < secs.length && j < 16; j++) {
+      var x = secs[j];
       if (!isObject(x) || !isHex64(x.root)) continue;
-      alternatives.push({
+      carried.push({
+        folder: typeof x.folder === 'string' ? x.folder : '',
         batchId: typeof x.batchId === 'string' ? x.batchId : '',
         root: x.root,
         files: Array.isArray(x.files) ? x.files.filter(function (f) { return typeof f === 'string'; }) : [],
-        fromRegistry: x.fromRegistry === true,
         midnight: anchorLookup(x.anchor, x.root, true, contracts, true),
       });
     }
+    var distinct = {};
+    for (var q = 0; q < carried.length; q++) distinct[carried[q].batchId + ' ' + carried[q].root] = true;
+    var registryRoots = Array.isArray(registry.registryRoots) ? registry.registryRoots.filter(isHex64) : [];
+    for (var r = 0; r < registryRoots.length; r++) distinct['registry ' + registryRoots[r]] = true;
     return {
       root: root,
       // Where the batch data came from (evidence.json registry.source): 'backup-file' means only
       // the holder's backup file says it, not confirmed with VeilCore's registry or Midnight.
       source: source,
       fromBackupFile: fromFile,
-      alternatives: alternatives,
+      carried: carried,
+      registryRoots: registryRoots,
+      // More than one root across the backup files' sections (and the registry's): they disagree.
+      disagree: Object.keys(distinct).length > 1,
       midnight: midnight,
       // The registry's report of the stamp, named as such; what the file itself shows is readStamp's.
       bitcoin: ots && ots.available ? { status: ots.status === 'bitcoin' ? 'bitcoin' : 'pending', file: ots.file || 'proof/root.bin.ots', bitcoinBlockHeight: typeof ots.bitcoinBlockHeight === 'number' ? ots.bitcoinBlockHeight : null } : null,
@@ -874,6 +883,27 @@ var VeilcoreVerify = (function () {
     out.datable = datable(out);
     var embeddedOts = opts && opts.ots instanceof Uint8Array ? opts.ots : null;
     if (embeddedOts) out.stamp = await readStamp(embeddedOts, out.lookups.root);
+    // Each carried section's own checks: its proof leads from this record to its root, and its
+    // stamp file (carried in evidence.json) starts from that root.
+    out.carried = [];
+    var cs = out.lookups.carried;
+    var raw = isObject(ev.registry) && Array.isArray(ev.registry.carried) ? ev.registry.carried : [];
+    for (var ci = 0; ci < cs.length; ci++) {
+      var src = raw[ci] || {};
+      var otsBytes = null;
+      if (typeof src.ots === 'string') {
+        try {
+          otsBytes = Uint8Array.from(atob(src.ots), function (ch) { return ch.charCodeAt(0); });
+        } catch (e) {
+          otsBytes = null;
+        }
+      }
+      out.carried.push({
+        proof: await checkProof(src.proof, fingerprint, cs[ci].root),
+        stamp: otsBytes ? await readStamp(otsBytes, cs[ci].root) : null,
+        tokens: typeof src.tokens === 'number' ? src.tokens : 0,
+      });
+    }
     var list = Array.isArray(files) ? files : [];
     for (var k = 0; k < list.length; k++) {
       var f = list[k];

@@ -407,16 +407,40 @@ return canonicalise;
         para(['The batch root, the proof that leads to it and its stamps were restored from a backup file, not yet confirmed with VeilCore’s registry or Midnight. This page checks the files against each other, not that this is the root VeilCore recorded: look the batch root up on Midnight before relying on any date here.']),
       ], 'unconfirmed'));
     }
-    if (LK.alternatives && LK.alternatives.length) {
-      summary.appendChild(result('bad', 'The holder’s backup files disagree about this batch', [
-        para(['They give more than one batch root for it, and all of them are in this bundle. At most one can be the root recorded on Midnight. Look each one up on Midnight; rely only on the one the transaction wrote.']),
-        list(LK.alternatives.map(function (a) { return 'Also given for batch ' + a.batchId + (a.fromRegistry ? ' (by VeilCore’s registry, for another of the holder’s records)' : '') + ': batch root ' + a.root + (a.files.length ? ' (' + a.files.join(', ') + ')' : '') + (a.midnight && a.midnight.txHash ? ', said to be in transaction ' + a.midnight.txHash : '') + '.'; })),
-      ], 'alternatives'));
+    // Copies of what backup files said (registry.carried): all of them, side by side, none first.
+    var CR = report.carried || [];
+    if (LK.carried && LK.carried.length) {
+      var cards = [para(['Restored from backup files, not yet confirmed with VeilCore’s registry or Midnight. Each is in its own folder with all its files; none is ranked first. Only a root Midnight holds dates anything.'])];
+      for (var ci = 0; ci < LK.carried.length; ci++) {
+        var cc = LK.carried[ci];
+        var ck = CR[ci] || {};
+        var lines = [
+          'Batch ' + cc.batchId + ', batch root ' + cc.root + ' (' + cc.folder + ').',
+          ck.proof && ck.proof.status === 'ok' ? 'Its proof leads from this record’s proof code to that root.' : 'Its proof does not check: ' + ((ck.proof && ck.proof.reason) || 'none') + '.',
+          ck.stamp && ck.stamp.status === 'bitcoin' ? 'Its Bitcoin stamp file starts from that root and names block ' + ck.stamp.bitcoin.map(function (x) { return x.height; }).join(', ') + '; check it against Bitcoin (ots verify root.bin.ots in that folder).' : ck.stamp && ck.stamp.status === 'pending' ? 'Its Bitcoin stamp file starts from that root but holds only a promise, not yet a Bitcoin block.' : 'No Bitcoin stamp file that starts from that root.',
+          (ck.tokens ? ck.tokens + ' RFC 3161 token' + (ck.tokens === 1 ? '' : 's') + ' in that folder (openssl ts -verify).' : 'No RFC 3161 token.'),
+        ];
+        if (cc.midnight && cc.midnight.txHash) lines = lines.concat(VeilcoreVerify.midnightSteps(cc.midnight));
+        else lines.push('The backup file names no Midnight transaction for it.');
+        cards.push(el('h3', null, 'From a backup file: ' + cc.folder));
+        cards.push(list(lines));
+      }
+      summary.appendChild(result('info', 'Copies from the holder’s backup files', cards, 'carried'));
+    }
+    if (LK.disagree) {
+      summary.appendChild(result('bad', 'The holder’s backup files disagree', [
+        para(['They give more than one batch root for this record, and all of them are in this bundle, none ranked first. At most one can be the root Midnight holds. Look each one up on Midnight; rely only on the one the transaction wrote.']),
+        list((LK.registryRoots || []).map(function (r) { return 'VeilCore’s registry gave this batch another root, for another of the holder’s records: ' + r + '.'; })),
+      ], 'disagree'));
     }
     var D = report.datable;
     if (D.failed.length) {
       summary.appendChild(result('bad', 'Don’t use this to date the record', [
         para(['These files don’t agree with each other: ' + D.failed.join('; ') + '. Whatever date a transaction or stamp shows, it isn’t this record’s. Ask whoever gave you the bundle for an unchanged copy.']),
+      ], 'result'));
+    } else if (D.notBatched && report.lookups && report.lookups.carried && report.lookups.carried.length) {
+      summary.appendChild(result('info', 'The record checks; only copies from backup files date it', [
+        para(['Its proof code matches the sealed fields. What dates it here was restored from the holder’s backup files and isn’t confirmed: each copy is below, with its own look-up.']),
       ], 'result'));
     } else if (D.notBatched) {
       summary.appendChild(result('info', 'The record checks, but nothing dates it yet', [

@@ -441,6 +441,9 @@ test('the backup restore drill: everything comes back from the file alone, and s
   await A3.page.locator('[data-restore-preview-bring]').click();
   await expect(A3.page.getByRole('heading', { name: /Your records are back/ })).toBeVisible();
   await expect(A3.page.getByText('Records put back from the file itself: 5.')).toBeVisible();
+  await expect(A3.page.locator('[data-restore-file-lasting]')).toHaveText(
+    'Your backup file on your own device is never changed by restoring; keep it — it’s the lasting copy.',
+  );
   const gotA3 = await step<Snapshot>(A3.page, 'step=snapshot');
   // The one gap, as the runbook says: the license itself lives on the registry only.
   expect(differ(wantA.snapshot, gotA3.snapshot), 'came back different (beyond the known gap)').toEqual([
@@ -472,44 +475,48 @@ test('the backup restore drill: everything comes back from the file alone, and s
   }
   const top = path.join(bundleDir, fs.readdirSync(bundleDir)[0]);
   const ev = JSON.parse(fs.readFileSync(path.join(top, 'evidence.json'), 'utf8')) as {
-    registry: { source: string };
-    batch: { opentimestamps: { available: boolean }; rfc3161: { available: boolean } };
+    registry: {
+      source: string;
+      carried?: { folder: string; opentimestamps: { available: boolean }; tokens: number }[];
+    };
   };
-  // A new device with the registry gone can't confirm the batch root, and the bundle says so.
+  // A new device with the registry gone can't confirm anything, and the bundle says so: the
+  // file's date proofs are one section, in its own folder with all its files.
   expect(ev.registry.source).toBe('backup-file');
   expect(fs.readFileSync(path.join(top, 'README.txt'), 'utf8')).toContain('NOT CONFIRMED:');
-  expect(ev.batch.opentimestamps.available).toBe(true);
-  expect(ev.batch.rfc3161.available).toBe(true);
+  expect(ev.registry.carried?.map((c) => c.folder)).toEqual(['proof/backup-file-1']);
+  expect(ev.registry.carried?.[0].opentimestamps.available).toBe(true);
+  expect(ev.registry.carried?.[0].tokens).toBe(1);
+  const folder = path.join(top, 'proof/backup-file-1');
   // The README's own step for the token, with no network.
   const ssl = await run('openssl', [
     'ts',
     '-verify',
     '-data',
-    path.join(top, 'proof/root.bin'),
+    path.join(folder, 'root.bin'),
     '-in',
-    path.join(top, 'proof/root.tst'),
+    path.join(folder, 'root.tst'),
     '-token_in',
     '-CAfile',
     reg.tsa.caFile,
   ]);
   expect(ssl.stdout).toContain('Verification: OK');
-  // verify.html from disk, offline: it reads the Bitcoin file against the batch root.
+  // verify.html from disk, offline: it reads where the data came from, says so first, and lists
+  // the section with its own checks; it never says our registry reported it.
   const offline = await browser.newContext({ offline: true });
   const v = await offline.newPage();
   await v.goto(`file://${path.join(top, 'verify.html')}`);
   await expect(v.locator('body')).toHaveAttribute('data-checked', 'yes');
-  await expect(v.locator('[data-check="lookup-bitcoin"]')).toContainText(`names Bitcoin block ${STAMP_BLOCK}`);
-  // The examiner page reads where the batch data came from, and says so first.
   await expect(v.locator('[data-check="unconfirmed"]')).toContainText(
     'restored from a backup file, not yet confirmed with VeilCore’s registry or Midnight',
   );
-  await expect(v.locator('[data-check="lookup-midnight"]')).toContainText(
-    'Only the holder’s backup file names this transaction',
-  );
-  await expect(v.locator('[data-check="lookup-midnight"]')).not.toContainText(
-    'VeilCore’s registry reported this transaction',
-  );
-  await expect(v.locator('[data-check="lookup-bitcoin"]')).not.toContainText('VeilCore’s registry reported');
+  const carried = v.locator('[data-check="carried"]');
+  await expect(carried).toContainText('proof/backup-file-1');
+  await expect(carried).toContainText('Its proof leads from this record’s proof code to that root.');
+  await expect(carried).toContainText(`names block ${STAMP_BLOCK}`);
+  await expect(carried).toContainText('The holder’s backup file says it is');
+  await expect(v.locator('body')).not.toContainText('VeilCore’s registry reported this transaction');
+  await expect(v.locator('body')).not.toContainText('VeilCore’s registry reports it is');
   await offline.close();
 
   // ---- the file without the website ---------------------------------------------------------
