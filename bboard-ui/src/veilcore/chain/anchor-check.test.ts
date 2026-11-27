@@ -473,6 +473,28 @@ describe('checkAnchorOnChain', () => {
         expect(await ask(null)).toMatchObject({ status: 'unreachable', why: 'no-answer' });
       });
 
+      // Fourth review, polish 2: an answer with errors that still carries the transaction must
+      // never be read as "no such transaction". It stays "couldn't reach".
+      it('an answer with errors that still holds the transaction is never "no such transaction"', async () => {
+        const erring = (data: object) =>
+          (() =>
+            Promise.resolve(
+              new Response(JSON.stringify({ data: { tip: TIP, ...data }, errors: [{ message: 'x' }] })),
+            )) as unknown as typeof fetch;
+        const ask = (data: object) =>
+          checkAnchorOnChain(input, { buildNetwork: 'mainnet', indexers: [I1], fetch: erring(data), now: () => NOW });
+        const cantReach = { status: 'unreachable', why: 'no-answer' };
+        expect(await ask({ byHash: [anchorTx()], byId: null })).toMatchObject(cantReach);
+        expect(await ask({ byHash: null, byId: [anchorTx()] })).toMatchObject(cantReach);
+        // Named by one of its identifiers, or with its hash in another case or with 0x.
+        expect(await ask({ byHash: null, byId: [anchorTx({ hash: 'nope', identifiers: [TX] })] })).toMatchObject(
+          cantReach,
+        );
+        expect(await ask({ byHash: [anchorTx({ hash: '0x' + TX.toUpperCase() })] })).toMatchObject(cantReach);
+        // Some other transaction is the same as none: judged by the latest block, as before.
+        expect(await ask({ byHash: [anchorTx({ hash: 'ff'.repeat(32), identifiers: [] })] })).toMatchObject(missing);
+      });
+
       it('only a time within the last hour may stay "not yet": that backdates nothing', async () => {
         for (const ago of [0, 60_000, NOT_FOUND_MARGIN_MS - 60_000])
           expect(await forged({ reportedAt: iso(TIP.timestamp - ago) }), String(ago)).toMatchObject({

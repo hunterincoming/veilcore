@@ -164,7 +164,8 @@ export const document = {
   'app.claim.done': 'Probado en Midnight:',
   'app.claim.copy': 'Copiar el enlace que lo demuestra',
   'app.claim.linkLater':
-    'Este enlace no se puede crear ahora mismo: no se pudo consultar en Midnight una transacción que incluye. Inténtelo de nuevo en unos minutos.',
+    'Este enlace no se puede crear ahora mismo: no se pudo comprobar en Midnight una parte de él. Inténtelo de nuevo en unos minutos.',
+  'app.claim.linkReady': 'El enlace está listo. Toque aquí para copiarlo.',
   'app.claim.copied': 'Copiado.',
   'app.claim.made': 'Lo que ha demostrado',
   'app.claim.line.atMost': '{label} es como máximo {bound} {unit}',
