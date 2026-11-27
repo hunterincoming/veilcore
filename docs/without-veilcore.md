@@ -70,62 +70,38 @@ the code stands for. Now the file also carries:
   tokens on its own proof code. Before, these were only on our registry, so a holder with a
   perfect file and no registry kept only the Midnight date.
 - **Your backup file on your own device is never changed by restoring; keep it — it's the
-  lasting copy.** Everything below is about what a browser keeps, not about the file.
-- **Two parts, never mixed.** The browser keeps what *our registry* answered (each record's
-  proof, its batch's files and its own tokens, each checked against the record or the root).
-  Only that counts as VeilCore's answer, and only that goes in the file's `proofs` and in
-  `stamps.batches`/`stamps.records`. Proof codes are public, so anyone can make a file that puts
-  your records under a batch root of their own: so what a restored backup file brings never
-  goes there.
-- **One sealed section per restored file.** Each restored file's date proofs (its own, and
-  every section it carried from earlier files) are kept together as ONE section, exactly as
-  they passed the checks below, each proof rebuilt from its known fields only, in a fixed order,
-  and named by the SHA-256 of their canonical bytes: the same evidence in another order is
-  recognised as already kept. One file takes one place, however many sections it carries.
-  Sections are never merged, edited, upgraded or evicted: a later file can't change or remove an
-  earlier one. Every later backup file carries every section as it is (`stamps.carried`), and a
-  restore reads every one of them, every part of each: **nothing from a backup file is ever
-  cut or left out.** At most 8 sections and 512 KB (compressed) are kept. Past that, a new
-  file's section is refused, nothing already kept changes, and the restore page says so and
-  offers **Clear copies from backup files** (also in the evidence bundle dialog under Technical
-  details, with one sentence on what it does): it removes only these copies, never what our
-  registry gave, after asking, and your backup files are unchanged. After clearing, restore
-  your backup file again before making a new backup; a backup made before then won't hold
-  those date proofs, and the page says so. A single file whose date proofs alone are bigger
-  than the limit is refused with its own message.
-- **Limits refuse the whole file, never part of it.** A file is read only within these limits:
-  9 carried sections (8 plus the registry's changed answer), 64 parts per section, 4,096 items
-  per part, 8 tokens per item, 16 KB per Bitcoin file or token, 512 KB in all. A file that goes
-  past any of them, or that names one record under two batches in one part, has none of its
-  date proofs kept, the restore page gives the reason, and nothing already kept changes. Its
-  records, keys and the rest still come back as usual.
-- **What is checked about a section.** Only its form, so junk stays out: each proof must lead
-  from one of your records to the root it names (one batch per record per section), a Bitcoin
-  file must start from SHA-256 of that root, a token must verify against what it stamps and be
-  signed by a timestamp authority the site pins, within that certificate's dates, and each file
-  or token is at most 16 KB, eight tokens per item. The proof's `formatVersion` is kept as the
-  registry sends it (text).
-- **When it is used.** Only for an evidence bundle when our registry can't be reached and it has
-  no answer of its own for the record. One case counts as the registry's: a section's proof that
-  leads to a root our registry gave the same batch (for another of your records). Then only the
-  path is taken from the file; the transaction, block, times and the rest come from the
-  registry's own proof for that batch. The bundle then carries *every* root that the sections
-  give for the record, each in its own folder (`proof/backup-file-*`) with all its files (the
-  proof, the root, every different Bitcoin file, the tokens, the Midnight check), none ranked
-  first. Sections giving the same batch and root are shown once, with how many copies gave it;
-  if their Bitcoin files differ, each is included and the pages say to check each. Every page says
-  so: README.txt, EXAMINER-SUMMARY.html, evidence.json and verify.html (which reads
-  `registry.source` and lists the sections side by side) say the batch data was "restored from a
-  backup file, not yet confirmed with VeilCore's registry or Midnight", and that the holder's
-  backup file, not our registry, names the transaction. If the sections give more than one root,
-  every page says your backup files disagree and to look each up on Midnight, and the restore
-  page tells you. Midnight settles it: only one root is written there.
+  lasting copy.**
+- **Only what our registry gave.** Each backup asks our registry for each record's proof, its
+  batch's files and its own tokens, checks each against the record or the root, keeps them in
+  the browser and writes them into the file. A backup file never holds anything that came from
+  another backup file. Proof codes are public, so anyone can make a file that puts your records
+  under a batch root of their own; since nothing from a file is ever kept or written on, such a
+  file can't reach your later backups.
+- **Restoring doesn't import a file's stamps.** A restore brings back records, keys, lab
+  signatures and claims as before; the file's `stamps` and `proofs` stay in the file and are not
+  copied into the browser.
+- **Make a bundle straight from the file.** With our registry out of reach and nothing it gave
+  this browser before, the evidence bundle dialog offers **Make an evidence bundle from a backup
+  file**, and so does the restore page after a restore (under Technical details). The holder
+  picks their backup file and gives its password. The site reads the file in memory, checks each
+  date proof for form (the proof must lead from the record to the root it names, a Bitcoin file
+  must start from SHA-256 of that root, a token must verify against what it stamps and be signed
+  by a timestamp authority the site pins, within that certificate's dates), leaves out what
+  fails, stores nothing, and builds the bundle. Each root the file gives for the record has its
+  own folder (`proof/backup-file-*`) with all its files: the proof (with its `formatVersion` as
+  the registry sent it), the root, the Bitcoin file, the tokens and the Midnight check. Every
+  page says so: README.txt, EXAMINER-SUMMARY.html, evidence.json and verify.html (which reads
+  `registry.source`) say it comes "from the holder's backup file, not confirmed with VeilCore's
+  registry", and that the backup file, not our registry, names the transaction. A file whose
+  records are not on the device yet is restored first.
 - **If our registry ever gives another root for a sealed batch** (an honest registry never
   does), the browser keeps the first root and its stamps (a finished Bitcoin stamp is never
-  deleted), carries the new answer as a section without trusting it, and the backup page warns
-  you.
-- What the browser keeps goes only when its record is deleted on that browser (a section, once
-  none of the records it covers is held there).
+  deleted), the backup page warns you, and the file carries the later answer too
+  (`stamps.changed`, one entry per batch and root). A bundle made from that file then shows
+  each root in its own folder, the first one first, and every page says the file gives more
+  than one root and to look each up on Midnight. Midnight settles it: only one root is written
+  there.
+- What the browser keeps goes only when its record is deleted on that browser.
 - `npx veilcore-records backup` doesn't read `stamps` yet (a change for veilcore-sdk); the files
   inside are the same `.ots` and `.tst` files the registry serves, base64, for `ots verify` and
   `openssl ts -verify`.

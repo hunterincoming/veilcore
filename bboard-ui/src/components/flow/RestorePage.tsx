@@ -47,7 +47,7 @@ import type { AppKey } from '../../i18n/app/en';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { CODE_FONT } from '../../config/theme';
-import { ClearCarriedCopies } from '../ClearCarriedCopies';
+import { BundleFromBackupFile } from '../BundleFromBackupFile';
 
 /** "2 lab deliveries and 1 lab code": what else the file brought back, or '' for nothing. */
 export const labWork = (r: RestoreResult, tr: Translator = enT): string => {
@@ -62,6 +62,7 @@ export const RestorePage: React.FC = () => {
   const [done, setDone] = useState<RestoreResult>();
   const [problem, setProblem] = useState<string>();
   const [typing, setTyping] = useState(false);
+  const [tech, setTech] = useState(false);
   const [typed, setTyped] = useState('');
   const keyBoxId = useId();
   const doneRef = useRef<HTMLHeadingElement>(null);
@@ -262,38 +263,6 @@ export const RestorePage: React.FC = () => {
                   {t('app.backup.fromFileProblem', { why: done.fromFile.error })}
                 </Alert>
               )}
-              {/* Backup files that give two different date records for some records (stamps.ts). */}
-              {!!done.stampsDisagree && (
-                <Alert severity="warning" variant="outlined" data-restore-stamps-disagree="">
-                  {t('app.backup.stampsDisagree', { n: tr.num(done.stampsDisagree) })}
-                </Alert>
-              )}
-              {/* The limit of copies kept from backup files is reached (stamps.ts MAX_SECTIONS). */}
-              {!!done.stampSections?.refused && (
-                <Alert severity="warning" variant="outlined" data-restore-stamps-refused="">
-                  <Stack spacing={1}>
-                    <span>{t('app.backup.stampsRefused')}</span>
-                    <ClearCarriedCopies always />
-                  </Stack>
-                </Alert>
-              )}
-              {/* This one file's date proofs alone are bigger than this browser keeps a copy of. */}
-              {/* The file goes past a limit on what one file may bring, or contradicts itself: refused whole. */}
-              {!!done.stampSections?.limits && (
-                <Alert severity="warning" variant="outlined" data-restore-stamps-limits="">
-                  {t('app.backup.stampsLimits')}
-                </Alert>
-              )}
-              {!!done.stampSections?.contradicts && (
-                <Alert severity="warning" variant="outlined" data-restore-stamps-contradicts="">
-                  {t('app.backup.stampsContradicts')}
-                </Alert>
-              )}
-              {!!done.stampSections?.tooBig && (
-                <Alert severity="warning" variant="outlined" data-restore-stamps-too-big="">
-                  {t('app.backup.stampsTooBig')}
-                </Alert>
-              )}
               {!fromAccount && (
                 <Typography variant="body2" color="text.secondary" data-restore-file-lasting="">
                   {t('app.backup.fileIsLasting')}
@@ -369,6 +338,26 @@ export const RestorePage: React.FC = () => {
               >
                 {t('app.backup.seeMyPlants')}
               </Button>
+              {/* Technical details: an evidence bundle made straight from a backup file, for when
+                  VeilCore can't be reached (restoring doesn't bring a file's date proofs here). */}
+              <Box>
+                <Button
+                  color="inherit"
+                  onClick={() => setTech(!tech)}
+                  aria-expanded={tech}
+                  endIcon={tech ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  sx={{ minHeight: 44, px: 0 }}
+                  data-restore-tech=""
+                >
+                  {t('app.plant.technicalDetails')}
+                </Button>
+                <Collapse in={tech}>
+                  <Stack spacing={1} sx={{ pt: 1 }}>
+                    <Typography variant="subtitle2">{t('app.filebundle.open')}</Typography>
+                    <BundleFromBackupFile />
+                  </Stack>
+                </Collapse>
+              </Box>
             </Stack>
           ) : (
             <>

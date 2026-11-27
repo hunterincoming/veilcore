@@ -134,9 +134,11 @@ These come from the audit's Tier 3. Any change to VeilCore should keep them.
 1. **Nothing a holder already has can be lost when VeilCore is down.** Every record, proof,
    Bitcoin stamp and timestamp-service token the holder has seen is in their backup file
    (true once this release is on veilcore.org, for backups made from then on: `recordData`,
-   `proofs` and `stamps`, in `bboard-ui/src/veilcore/backup.ts` and `stamps.ts`). The browser keeps its own copy of the proofs and stamps, so a backup made
-   while the registry is down still carries them, and the evidence bundle uses that copy when
-   the registry can't be reached. Not done yet: the backup and the evidence bundle don't refresh
+   `proofs` and `stamps`, in `bboard-ui/src/veilcore/backup.ts` and `stamps.ts`). The browser
+   keeps its own copy of what the registry gave it, so a backup made while the registry is down
+   still carries them, and the evidence bundle uses that copy when the registry can't be
+   reached. On a new device the bundle is made straight from the backup file (restoring doesn't
+   import a file's stamps, so a made-up file can't spread into later backups). Not done yet: the backup and the evidence bundle don't refresh
    on their own after each batch is stamped; they are as fresh as the holder's last backup.
 2. **A new record is never refused because a service is down.** It is saved on the device,
    signed and queued (offline sealing). The screen says it is saved and will be dated when the

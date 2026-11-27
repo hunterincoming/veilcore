@@ -163,25 +163,18 @@ export const backup = {
   'app.intake.err.hasHash': 'Its return address already has a # part.',
   'app.intake.err.badState': 'Its security value (state) is missing or malformed.',
   'app.backup.fromFileAdded': 'Records put back from the file itself: {n}.',
-  'app.backup.stampsDisagree':
-    'Your backup files disagree about when some of your records were dated ({n}). Before you rely on those dates, check them on Midnight: the record’s Technical details say how.',
-  'app.backup.stampsRefused':
-    'This browser already keeps copies of as many backup files’ date proofs as it can, so this file’s weren’t kept. Until you clear the copies from other files, the date proofs you download here and later backups made here won’t hold this file’s. Nothing already kept was changed, and your backup files are unchanged.',
-  'app.backup.stampsTooBig':
-    'This backup file’s date proofs are too big for this browser to keep a copy of. Nothing already kept was changed. The file itself still holds them all: keep it safe.',
-  'app.carried.clear': 'Clear copies from backup files',
-  'app.carried.confirmTitle': 'Clear copies from backup files?',
-  'app.carried.confirmText':
-    'This removes only the copies of date proofs this browser kept from backup files you restored. What VeilCore’s server gave this browser stays. Your backup files on your device are unchanged, and you can restore the right one again.',
-  'app.carried.confirm': 'Clear them',
-  'app.carried.cleared':
-    'Cleared. Your backup files on your device are unchanged. Now restore your backup file again to keep its date proofs here; backups made before then won’t hold them.',
-  'app.carried.what':
-    'Copies of date proofs from backup files you restored. They’re used only when VeilCore can’t be reached, and never count as checked by VeilCore.',
-  'app.backup.stampsLimits':
-    'This backup file holds more date proofs than this browser keeps from one file, so none of them were kept: keeping some would mean leaving others out. Nothing already kept was changed. The file itself still holds them all: keep it safe.',
-  'app.backup.stampsContradicts':
-    'This backup file names one of your records in two different places at once, so none of its date proofs were kept. Nothing already kept was changed. Keep the file, and restore one you trust.',
+  'app.filebundle.open': 'Make an evidence bundle from a backup file',
+  'app.filebundle.what':
+    'This uses the date proofs inside your backup file, so it works when VeilCore can’t be reached. Nothing from the file is kept here, and the bundle says it comes from your backup file, not checked with VeilCore.',
+  'app.filebundle.offline':
+    'VeilCore can’t be reached right now. You can make the bundle from your backup file instead.',
+  'app.filebundle.pick': 'Choose backup file',
+  'app.filebundle.which': 'Record',
+  'app.filebundle.make': 'Make the bundle',
+  'app.filebundle.makeFor': 'Make the bundle for {name}',
+  'app.filebundle.noneForRecord': 'That backup file has no date proofs for this record. Try a newer backup file.',
+  'app.filebundle.noneHere':
+    'None of the records in that file are on this device yet. Restore the file first, then make the bundle here.',
   'app.backup.fileIsLasting':
     'Your backup file on your own device is never changed by restoring; keep it — it’s the lasting copy.',
   'app.backup.rootChanged':

@@ -182,12 +182,12 @@ export type BackupContents = {
   /**
    * The files that check each record's dates on Bitcoin and with a Time Stamping Authority
    * (stamps.ts): per batch a record sits in, its root, its OpenTimestamps file (root.bin.ots) and
-   * its RFC 3161 tokens (root.tst); per record, the RFC 3161 tokens on its own proof code: what
-   * VeilCore's registry gave the browser that made the file. `carried`: what that browser had only
-   * from earlier backup files, kept as it came and never confirmed. A restore keeps all of it apart
-   * from what the registry gives, checked for form only, and uses it only when the registry can't
-   * be reached, labelled so (stamps.ts). Optional, like `revs`: an older file has none, and an
-   * older app passes over it.
+   * its RFC 3161 tokens (root.tst); per record, the RFC 3161 tokens on its own proof code: only
+   * what VeilCore's registry gave the browser that made the file, never anything from another
+   * file. A restore doesn't bring them into the browser: with the registry out of reach, an
+   * evidence bundle is made straight from the file (readBackupStamps, stamps.ts
+   * evidenceFromFile), labelled so. Optional, like `revs`: an older file has none, and an older
+   * app passes over it.
    */
   readonly stamps?: import('./stamps').StampsInFile;
 };
@@ -698,23 +698,6 @@ export type RestoreResult = {
   readonly evidence?: number;
   /** Licenses (held here, or the keys of ones given) added from the file. */
   readonly licenses?: number;
-  /**
-   * What became of the file's date proofs (stamps.ts): copies kept as they came (never counted as
-   * put back: nobody has confirmed them), already kept, or refused because the limit is reached.
-   */
-  readonly stampSections?: {
-    readonly kept: number;
-    readonly already: number;
-    readonly refused: number;
-    /** This one file's date proofs are bigger than this browser keeps a copy of. */
-    readonly tooBig: number;
-    /** The file goes past a limit on what one file may bring: refused whole, nothing cut. */
-    readonly limits: number;
-    /** The file names a record under two batches in one place: refused whole. */
-    readonly contradicts: number;
-  };
-  /** Records whose kept sources give more than one batch or root (the page says so). */
-  readonly stampsDisagree?: number;
   /** The records the file carried (recordData): what was put back, or why none were. */
   readonly fromFile?: ImportResult | { readonly error: string };
 };
@@ -739,6 +722,18 @@ export const peekBackup = async (
   }
   const records = Array.isArray(v.records) ? v.records.length : 0;
   return { savedAt: typeof v.savedAt === 'string' ? v.savedAt : undefined, records };
+};
+
+/**
+ * A backup file's date proofs, read in memory only, for an evidence bundle made straight from the
+ * file (stamps.ts evidenceFromFile): nothing in this browser changes. A locked file needs its
+ * password (the same errors as a restore).
+ */
+export const readBackupStamps = async (file: File, password?: string): Promise<import('./stamps').BackupFileStamps> => {
+  const v = await opened(parse(await file.text()), password);
+  if (v.format !== BACKUP_FORMAT)
+    throw new Error("That file isn't a VeilCore backup. Pick the file you saved from VeilCore.");
+  return { stamps: v.stamps, proofs: v.proofs };
 };
 
 /**
@@ -870,29 +865,8 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
   } catch {
     /* a record's evidence that can't be checked here stays out; the rest of the restore stands */
   }
-  // The file's date proofs (Bitcoin files, TSA tokens, inclusion proofs): kept on this browser
-  // as one sealed copy of what this file said, apart from what the registry gives (stamps.ts),
-  // so an evidence bundle can still be made, labelled, with the registry gone. The file itself is
-  // never changed: it stays the lasting copy.
-  let stampSections: RestoreResult['stampSections'];
-  let stampsDisagree = 0;
-  try {
-    if (v.stamps !== undefined || v.proofs !== undefined) {
-      const got = await (await import('./stamps')).restoreStamps(v.stamps, v.proofs, allRecords());
-      if (got.kept || got.already || got.refused || got.tooBig || got.limits || got.contradicts)
-        stampSections = {
-          kept: got.kept,
-          already: got.already,
-          refused: got.refused,
-          tooBig: got.tooBig,
-          limits: got.limits,
-          contradicts: got.contradicts,
-        };
-      stampsDisagree = got.disagree;
-    }
-  } catch {
-    /* what can't be checked here stays out; the rest of the restore stands */
-  }
+  // The file's date proofs (stamps) are not brought into this browser: they stay in the file,
+  // the lasting copy, and an evidence bundle can be made straight from it (readBackupStamps).
   // Entries the file carries raw (they couldn't be read where it was made): back as they were,
   // after the records, so what this browser and the registry hold is known (records.ts).
   restoreUnreadable(v.deviceOnlyUnreadable);
@@ -908,8 +882,6 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
     ...(receiving ? { receiving } : {}),
     ...(licenses ? { licenses } : {}),
     ...(evidence ? { evidence } : {}),
-    ...(stampSections ? { stampSections } : {}),
-    ...(stampsDisagree ? { stampsDisagree } : {}),
   };
 };
 

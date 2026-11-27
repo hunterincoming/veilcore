@@ -7,38 +7,25 @@
 // on VeilCore's registry: the backup file kept the record and its inclusion proof, so a holder
 // with a perfect backup and no registry kept the Midnight date and lost the other two clocks.
 //
-// Two parts, never mixed (fourth review of PR #233: the simplest design that can't be gamed):
+// What this browser keeps is only what VeilCore's registry answered it. Each backup
+// (backup.ts withRecordsAndProofs) asks the registry for each record's proof, its batch's Bitcoin
+// file and tokens, and the record's own tokens, checks each against the record or the batch root,
+// keeps them, and writes them into the file. A pending Bitcoin file is kept and the finished one
+// taken when the registry has it; a finished one is never swapped back. If the registry ever
+// answers with another root for a record whose batch it already gave (an honest registry never
+// changes a sealed batch), the first answer stays, the new one is kept aside and goes in the file
+// too, and the backup page warns (rootChanges). Nothing here is deleted except when its record is
+// deleted on this browser (record-keys.ts wasForgotten).
 //
-//   - THE REGISTRY'S PART: what VeilCore's registry answered this browser. Each backup
-//     (backup.ts withRecordsAndProofs) asks the registry for each record's proof, its batch's
-//     Bitcoin file and tokens, and the record's own tokens, checks each against the record or the
-//     batch root, and keeps them. Nothing from a backup file ever goes in here. A pending Bitcoin
-//     file is kept and the finished one taken when the registry has it; a finished one is never
-//     swapped back. If the registry ever answers with another root for a record whose batch it
-//     already gave (an honest registry never changes a sealed batch), the first answer stays, the
-//     new one is kept aside, and the backup page warns (rootChanges). Nothing here is deleted
-//     except when its record is deleted on this browser (record-keys.ts wasForgotten);
-//
-//   - CARRIED SECTIONS: each restored backup file's stamps, as ONE sealed section, kept exactly as
-//     it passed the checks below and named by the SHA-256 of its canonical bytes. Sections are
-//     never merged, edited, upgraded or evicted: a later file can't change or remove an earlier
-//     one. Restoring a file whose section is already kept changes nothing. At most MAX_SECTIONS
-//     sections and CARRIED_BUDGET compressed bytes: past that a new section is refused, the
-//     restore page says so, and nothing kept is changed. Every later backup writes every section
-//     as it is (`stamps.carried`). The checks, so junk stays out: each proof must lead from one of
-//     this holder's records to the root it names, a Bitcoin file must start from SHA-256 of that
-//     root (verify.html's reader), a token must verify against what it stamps and be signed by a
-//     timestamp authority this site pins, within that certificate's dates (config/tsa-pins.json,
-//     as instant-stamp.ts). What fails a check is junk and is left out. NOTHING else is ever cut
-//     (review 6): a file that goes past a limit (more than MAX_FILE_SECTIONS sections, a section
-//     with more than MAX_PARTS_PER_SECTION parts, more than MAX_CARRIED_TOKENS tokens on an item,
-//     a file or token over CARRIED_FILE_CHARS, a section over CARRIED_BUDGET) or names a record
-//     under two batches in one part is refused whole, with its reason. A section is a copy of
-//     what a file said, never VeilCore's answer: it is used only for an evidence bundle when the
-//     registry can't be reached, every section that covers the record side by side, none ranked
-//     first, each labelled on every page as restored from a backup file and not yet confirmed.
-//     The holder's backup files themselves are never changed by any of this: they stay the
-//     lasting copy.
+// Restoring a backup file never brings stamps into this browser (review 7 of PR #233: every
+// problem left came from importing a file's stamps and carrying them on into later backups). So a
+// backup file only ever holds what the registry gave the browser that made it, never anything
+// from another file, and a made-up file can't spread. The holder's backup file is the lasting
+// copy: with the registry out of reach, an evidence bundle is made straight from it
+// (evidenceFromFile): read in memory, each item checked for form (each proof must lead from the
+// record to the root it names, a Bitcoin file must start from that root, a token must be signed
+// by a timestamp authority this site pins, within that certificate's dates), nothing stored, and
+// every page of the bundle labelled as from that backup file, not confirmed with the registry.
 //
 // Everything here is public data (the registry serves it to anyone with the proof code); it is
 // stored compressed, because a TSA token carries its certificate chain (a few kilobytes) and
@@ -47,7 +34,7 @@
 
 import { deflateSync, inflateSync, strFromU8, strToU8 } from 'fflate';
 import { base64 } from '@scure/base';
-import { canonicalise, verifyTimestampToken, type InclusionProof } from 'veilcore-records';
+import { verifyTimestampToken, type InclusionProof } from 'veilcore-records';
 import { VeilcoreVerify } from '../../evidence-page/verify-core.js';
 import { checkProof } from './proofs';
 import { isNumber, isObject, isString } from './json';
@@ -61,34 +48,10 @@ export const STAMPS_FORMAT = 'veilcore/stamps/v1';
 const HEX64 = /^[0-9a-f]{64}$/;
 /** At most this many tokens per batch or per record (a registry names one per TSA it uses). */
 const MAX_TOKENS = 8;
-/** A token or stamp file from the registry bigger than this (base64 characters) isn't one it makes. */
+/** A token or stamp file bigger than this (base64 characters) isn't one the registry makes. */
 const MAX_FILE_CHARS = 64 * 1024;
-/** From a backup file: real stamp files and tokens are a few kilobytes. */
-export const CARRIED_FILE_CHARS = 16 * 1024;
-/** Tokens per item from a backup file: as many as the registry ever gives (one per TSA). */
-const MAX_CARRIED_TOKENS = MAX_TOKENS;
-/** Carried sections kept at most (one per restored backup file). */
-export const MAX_SECTIONS = 8;
-/** All carried sections together, compressed as stored. */
-export const CARRIED_BUDGET = 512 * 1024;
-/** Items one part may hold (a file names one batch per record). */
-const MAX_SECTION_ITEMS = 4096;
-/** Parts one carried section may hold (it grows by one each time a file carries it on). */
-const MAX_PARTS_PER_SECTION = 64;
-/** Carried sections one file may bring: as many as a browser keeps, and the registry's changed answer. */
-const MAX_FILE_SECTIONS = MAX_SECTIONS + 1;
-
-/**
- * A limit a backup file goes past. Nothing from a file is ever cut short (review 6): when any
- * part of a file would have to be left out to fit, none of its date proofs are kept, the restore
- * page says why, and nothing already kept changes.
- */
-class CapExceeded extends Error {
-  constructor(readonly why: 'limits' | 'contradicts') {
-    super(why);
-  }
-}
-const isCap = (e: unknown): e is CapExceeded => e instanceof CapExceeded;
+/** Other roots a backup file may give one record (the registry's later answers): more is junk. */
+const MAX_FILE_ROOTS = 16;
 const FETCHES = 6;
 
 /** An RFC 3161 token, base64 DER, and which TSA's (the registry's word, for the reader). */
@@ -117,41 +80,27 @@ export type RecordStamps = {
   readonly none?: boolean;
 };
 
-/** One batch in a carried section: a root the file named, the proofs of this holder's records that lead to it, its files. */
-export type CarriedBatch = {
-  readonly kind: 'batch';
+/**
+ * A root the registry gave later for a batch it had already given (rootChanges), with the
+ * proofs that lead to it and its files: in the file, so nothing the registry said is lost.
+ */
+export type ChangedBatch = {
   readonly batchId: string;
   readonly root: string;
   readonly proofs: Readonly<Record<string, InclusionProof>>;
   readonly ots?: string;
   readonly tsts?: readonly TokenEntry[];
 };
-/** One record's own tokens, as a backup file carried them. */
-export type CarriedRecord = { readonly kind: 'record'; readonly fp: string; readonly instant: readonly TokenEntry[] };
-export type CarriedItem = CarriedBatch | CarriedRecord;
-/** What one source said: a file's own part, or one section an earlier backup carried. */
-export type CarriedPart = { readonly items: readonly CarriedItem[] };
-/**
- * One restored backup file's stamps, sealed: its own part and every part it carried, in a
- * deterministic order; `id` is the SHA-256 of their canonical JSON.
- */
-export type CarriedSection = { readonly id: string; readonly parts: readonly CarriedPart[] };
 
-/** Every item of a section. */
-export const itemsOf = (sec: CarriedSection): CarriedItem[] => sec.parts.flatMap((p) => p.items);
-
-/** What the backup file carries (`stamps`). */
+/** What the backup file carries (`stamps`): only what VeilCore's registry gave the browser that made it. */
 export type StampsInFile = {
   readonly format: typeof STAMPS_FORMAT;
-  /** By batch id: what the registry gave the browser that made the file. */
+  /** By batch id: the batch each record's first proof (the file's `proofs`) names. */
   readonly batches: Readonly<Record<string, BatchStamps>>;
-  /** By proof code: what the registry gave the browser that made the file. */
+  /** By proof code. */
   readonly records: Readonly<Record<string, RecordStamps>>;
-  /**
-   * Every carried section that browser kept, as it kept them, oldest first, and one for any root
-   * the registry gave later for a batch it had already given: never confirmed by anyone.
-   */
-  readonly carried?: readonly CarriedSection[];
+  /** The registry's later answers for batches it had already given (an honest registry gives none). */
+  readonly changed?: readonly ChangedBatch[];
 };
 
 type Own = {
@@ -164,17 +113,16 @@ type Own = {
   changed: Record<string, InclusionProof[]>;
   ids: Record<string, string>;
 };
-type Store = { own: Own; sections: CarriedSection[] };
 
 /** A batch's key: its id and its root, so one root's files never stand in for another's. */
 const batchKey = (batchId: string, root: string): string => `${batchId} ${root}`;
 
-const emptyOwn = (): Own => ({ batches: {}, records: {}, proofs: {}, changed: {}, ids: {} });
-const empty = (): Store => ({ own: emptyOwn(), sections: [] });
+const empty = (): Own => ({ batches: {}, records: {}, proofs: {}, changed: {}, ids: {} });
 
 const obj = <T>(v: unknown): Record<string, T> => (isObject(v) ? (v as Record<string, T>) : {});
 
-const load = (): Store => {
+/** What this browser keeps. Anything else under the key (an unreleased build's other parts) is passed over. */
+const load = (): Own => {
   try {
     const raw = localStorage.getItem(STAMPS_KEY);
     if (!raw) return empty();
@@ -184,16 +132,11 @@ const load = (): Store => {
     if (!isObject(v) || !isObject(v.own)) return empty();
     const o = v.own;
     return {
-      own: {
-        batches: obj(o.batches),
-        records: obj(o.records),
-        proofs: obj(o.proofs),
-        changed: obj(o.changed),
-        ids: obj(o.ids),
-      },
-      sections: Array.isArray(v.sections)
-        ? (v.sections as CarriedSection[]).filter((x) => isObject(x) && isString(x.id) && Array.isArray(x.parts))
-        : [],
+      batches: obj(o.batches),
+      records: obj(o.records),
+      proofs: obj(o.proofs),
+      changed: obj(o.changed),
+      ids: obj(o.ids),
     };
   } catch {
     return empty();
@@ -201,13 +144,11 @@ const load = (): Store => {
 };
 
 const pack = (v: unknown): string => base64.encode(deflateSync(strToU8(JSON.stringify(v)), { level: 9 }));
-/** The compressed bytes the sections take, as stored. */
-const sectionBytes = (sections: readonly CarriedSection[]): number => Math.ceil((pack(sections).length * 3) / 4);
 
 /** Kept best effort: a browser that refuses the write still has the backup file. */
-const save = (s: Store): void => {
+const save = (own: Own): void => {
   try {
-    localStorage.setItem(STAMPS_KEY, JSON.stringify({ v: 4, z: pack(s) }));
+    localStorage.setItem(STAMPS_KEY, JSON.stringify({ v: 4, z: pack({ own }) }));
   } catch {
     /* full or refused: the file made now still carries them */
   }
@@ -249,7 +190,7 @@ const tokenChecks = async (t: unknown, stamped: Uint8Array): Promise<boolean> =>
  * anyone's making is not taken.
  */
 const pinnedTokenChecks = async (t: unknown, stamped: Uint8Array, pins: readonly TsaPin[]): Promise<boolean> => {
-  if (!isString(t) || t.length > CARRIED_FILE_CHARS || pins.length === 0) return false;
+  if (!isString(t) || t.length > MAX_FILE_CHARS || pins.length === 0) return false;
   try {
     const der = b64Bytes(t);
     if (!der) return false;
@@ -291,17 +232,10 @@ const mergeTokens = (had: readonly TokenEntry[] = [], add: readonly TokenEntry[]
 /** The checked tokens of a list as it arrived: from the registry, or (with `pins`) from a backup file. */
 const checkedTokens = async (list: unknown, stamped: Uint8Array, pins?: readonly TsaPin[]): Promise<TokenEntry[]> => {
   const out: TokenEntry[] = [];
-  const max = pins ? MAX_CARRIED_TOKENS : MAX_TOKENS;
-  const all = Array.isArray(list) ? (list as unknown[]) : [];
-  // From a file, nothing is cut: more tokens than the limit, or one too big, refuses the file.
-  if (
-    pins &&
-    (all.length > max || all.some((t) => isObject(t) && isString(t.token) && t.token.length > CARRIED_FILE_CHARS))
-  )
-    throw new CapExceeded('limits');
-  for (const t of pins ? all : all.slice(0, max)) {
+  for (const t of Array.isArray(list) ? (list as unknown[]).slice(0, MAX_TOKENS) : []) {
     if (!isObject(t)) continue;
     if (!(await (pins ? pinnedTokenChecks(t.token, stamped, pins) : tokenChecks(t.token, stamped)))) continue;
+    if (out.some((x) => x.token === t.token)) continue;
     out.push({ token: t.token as string, ...(isString(t.tsa) && t.tsa.length < 512 ? { tsa: t.tsa } : {}) });
   }
   return out;
@@ -309,12 +243,12 @@ const checkedTokens = async (list: unknown, stamped: Uint8Array, pins?: readonly
 
 /** JSON as kept: only strings, finite numbers, booleans, arrays and plain objects; no null, no unknown types. */
 const plain = (v: unknown, depth = 0): unknown => {
-  // Deeper or longer than any proof the registry gives: refused whole, never cut.
-  if (depth > 8) throw new CapExceeded('limits');
+  // Deeper or longer than any proof the registry gives: that answer isn't kept (the others are).
+  if (depth > 8) throw new Error('too deep');
   if (isString(v) || typeof v === 'boolean') return v;
   if (typeof v === 'number') return Number.isFinite(v) ? v : undefined;
   if (Array.isArray(v)) {
-    if (v.length > 64) throw new CapExceeded('limits');
+    if (v.length > 64) throw new Error('too long');
     return v.map((x) => plain(x, depth + 1)).filter((x) => x !== undefined);
   }
   if (!isObject(v)) return undefined;
@@ -329,10 +263,10 @@ const plain = (v: unknown, depth = 0): unknown => {
 const ANCHOR_FIELDS = ['chain', 'network', 'txHash', 'contractAddress', 'blockHeight', 'anchoredAt', 'testNetwork'];
 
 /**
- * A proof as kept here, rebuilt from its known fields only (review 5): the commitment, the path,
- * the root and batch, when it was sealed, and the registry's anchors, without the batch tokens
- * (kept once, per batch). Anything else, any null, any field of the wrong type, is dropped, so
- * what is kept and named is always plain, canonical JSON.
+ * A proof as kept here, rebuilt from its known fields only (review 5): the format version, the
+ * commitment, the path, the root and batch, when it was sealed, and the registry's anchors,
+ * without the batch tokens (kept once, per batch). Anything else, any null, any field of the
+ * wrong type, is dropped, so what is kept is always plain JSON.
  */
 const keepable = (p: InclusionProof): InclusionProof => {
   const r = p as unknown as Record<string, unknown>;
@@ -343,7 +277,7 @@ const keepable = (p: InclusionProof): InclusionProof => {
         ),
       )
     : undefined;
-  if (Array.isArray(r.anchors) && r.anchors.length > 16) throw new CapExceeded('limits');
+  if (Array.isArray(r.anchors) && r.anchors.length > 16) throw new Error('too many anchors');
   const anchors = Array.isArray(r.anchors)
     ? (r.anchors as unknown[]).filter(isObject).map((a) => {
         const c = plain(a) as Record<string, unknown>;
@@ -423,17 +357,10 @@ const getInstant = async (fp: string): Promise<{ status: number; body: unknown }
   }
 };
 
-/**
- * What belongs only to records deleted on this browser goes: their proofs and own tokens in the
- * registry's part, and a batch's files once no proof kept there leads to them. Carried sections
- * are sealed: a deleted record's proofs in them stay until the section's last record is deleted,
- * and then the section goes.
- */
-const pruneDeleted = (s: Store): void => {
-  const o = s.own;
+/** What belongs only to records deleted on this browser goes, and a batch's files once no proof kept here leads to them. */
+const pruneDeleted = (o: Own): void => {
   const gone = new Set(Object.keys(o.ids).filter((fp) => wasForgotten(o.ids[fp])));
   if (gone.size === 0) return;
-  // A section goes only once none of the records it covers is held here any more.
   for (const fp of gone) {
     delete o.proofs[fp];
     delete o.changed[fp];
@@ -444,28 +371,25 @@ const pruneDeleted = (s: Store): void => {
     [...Object.values(o.proofs), ...Object.values(o.changed).flat()].map((p) => batchKey(p.batchId, p.root)),
   );
   for (const k of Object.keys(o.batches)) if (!used.has(k)) delete o.batches[k];
-  const covers = (sec: CarriedSection) =>
-    itemsOf(sec).flatMap((it) => (it.kind === 'batch' ? Object.keys(it.proofs) : [it.fp]));
-  s.sections = s.sections.filter((sec) => covers(sec).some((fp) => fp in o.ids));
 };
 
 const sameBatch = (a: { batchId: string; root: string }, b: { batchId: string; root: string }): boolean =>
   a.batchId === b.batchId && a.root === b.root;
 
 /**
- * For a backup about to be made: OWN refreshed from the registry where it answers, kept, and what
- * the file carries. `proofs` (by proof code) are the inclusion proofs the registry just gave, each
- * checked against its record (proofs.ts proofFor); a proof code it didn't give one for now (out of
- * reach) gets the one kept here, checked again. A registry proof naming another batch or root than
- * the one it gave first is kept aside and the first stays, in OWN and in `proofs`. Never throws.
+ * For a backup about to be made: what is kept here refreshed from the registry where it answers,
+ * and what the file carries. `proofs` (by proof code) are the inclusion proofs the registry just
+ * gave, each checked against its record (proofs.ts proofFor); a proof code it didn't give one for
+ * now (out of reach) gets the one kept here, checked again. A registry proof naming another batch
+ * or root than the one it gave first is kept aside and the first stays, here and in `proofs`.
+ * Never throws.
  */
 export const stampsForBackup = async (
   records: readonly { readonly id: string; readonly recordFingerprint?: string }[],
   proofs: Record<string, unknown>,
 ): Promise<StampsInFile | undefined> => {
-  const store = load();
-  pruneDeleted(store);
-  const own = store.own;
+  const own = load();
+  pruneDeleted(own);
   const wanted = new Set<string>();
   for (const r of records) {
     const fp = r.recordFingerprint;
@@ -478,11 +402,15 @@ export const stampsForBackup = async (
   } catch {
     /* what the registry gave before stays, and goes in the file */
   }
-  save(store);
-  return inFile(store, wanted).catch(() => undefined);
+  save(own);
+  try {
+    return inFile(own, wanted);
+  } catch {
+    return undefined;
+  }
 };
 
-/** OWN refreshed from the registry's answers (stampsForBackup). */
+/** What is kept here refreshed from the registry's answers (stampsForBackup). */
 const refreshFromRegistry = async (own: Own, wanted: ReadonlySet<string>, proofs: Record<string, unknown>) => {
   for (const fp of wanted) {
     // One record's answer that can't be kept never stops the others.
@@ -554,343 +482,36 @@ const refreshFromRegistry = async (own: Own, wanted: ReadonlySet<string>, proofs
   });
 };
 
-const sha256Hex = async (text: string): Promise<string> => {
-  const d = new Uint8Array(await crypto.subtle.digest('SHA-256', strToU8(text)));
-  return Array.from(d, (x) => x.toString(16).padStart(2, '0')).join('');
-};
-const itemKey = (i: CarriedItem): string => (i.kind === 'batch' ? `b ${i.batchId} ${i.root}` : `r ${i.fp}`);
-const byText =
-  <T>(key: (x: T) => string) =>
-  (a: T, b: T) =>
-    key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0;
-/** Tokens in a fixed order, each once. */
-const sortedTokens = (list: readonly TokenEntry[]): TokenEntry[] =>
-  [...new Map(list.map((t) => [t.token, t])).values()].sort(byText((t) => t.token));
-
-/** A part in a fixed order (items by kind and name, tokens sorted, each once), so the same evidence is named the same. */
-const normalPart = (items: readonly CarriedItem[]): CarriedPart => ({
-  items: [...items]
-    .map(
-      (i): CarriedItem =>
-        i.kind === 'batch'
-          ? { ...i, ...(i.tsts ? { tsts: sortedTokens(i.tsts) } : {}) }
-          : { ...i, instant: sortedTokens(i.instant) },
-    )
-    .sort(byText(itemKey)),
-});
-
-/** A section from parts: each part in its fixed order, parts in a fixed order, each once; named by the SHA-256 of its canonical JSON. */
-const sealSection = async (parts: readonly CarriedPart[]): Promise<CarriedSection> => {
-  const unique = new Map<string, CarriedPart>();
-  for (const p of parts) {
-    const n = normalPart(p.items);
-    if (n.items.length) unique.set(canonicalise(n), n);
-  }
-  const sorted = [...unique.entries()].sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)).map(([, p]) => p);
-  return { id: await sha256Hex(canonicalise({ parts: sorted })), parts: sorted };
-};
-
-/** The registry's later answers kept aside, as one section for the file (never lost, never trusted). */
-const changedSection = async (own: Own, wanted: ReadonlySet<string>): Promise<CarriedSection | undefined> => {
-  const by = new Map<string, { batchId: string; root: string; proofs: Record<string, InclusionProof> }>();
-  for (const fp of wanted)
-    for (const p of own.changed[fp] ?? []) {
-      const k = batchKey(p.batchId, p.root);
-      const e = by.get(k) ?? { batchId: p.batchId, root: p.root, proofs: {} };
-      e.proofs[fp] = keepable(p);
-      by.set(k, e);
-    }
-  if (by.size === 0) return undefined;
-  const items: CarriedItem[] = [...by.entries()].map(([k, e]) => {
-    const b = own.batches[k];
-    return {
-      kind: 'batch',
-      ...e,
-      ...(b?.ots ? { ots: b.ots } : {}),
-      ...(b?.tsts?.length ? { tsts: b.tsts } : {}),
-    };
-  });
-  return sealSection([{ items }]);
-};
-
-/** What the file carries: the registry's part for these records, and every carried section as kept. */
-const inFile = async (store: Store, wanted: ReadonlySet<string>): Promise<StampsInFile | undefined> => {
-  const own = store.own;
+/** What the file carries for these records: only what the registry gave this browser. */
+const inFile = (own: Own, wanted: ReadonlySet<string>): StampsInFile | undefined => {
   const batches: Record<string, BatchStamps> = {};
   const records: Record<string, RecordStamps> = {};
+  // The registry's later answers: one entry per (batch, root), each with its own files.
+  const changed = new Map<string, { batchId: string; root: string; proofs: Record<string, InclusionProof> }>();
   for (const fp of wanted) {
     const p = own.proofs[fp];
     const b = p ? own.batches[batchKey(p.batchId, p.root)] : undefined;
     if (p && b && (b.ots || b.tsts?.length) && !batches[p.batchId]) batches[p.batchId] = b;
     const r = own.records[fp];
     if (r?.instant?.length) records[fp] = { instant: r.instant };
+    for (const c of own.changed[fp] ?? []) {
+      const k = batchKey(c.batchId, c.root);
+      const e = changed.get(k) ?? { batchId: c.batchId, root: c.root, proofs: {} };
+      e.proofs[fp] = c;
+      changed.set(k, e);
+    }
   }
-  // Never lets a failure here take the registry's part or the kept sections out of the file.
-  const changed = await changedSection(own, wanted).catch(() => undefined);
-  const carried = [
-    ...store.sections,
-    ...(changed && !store.sections.some((s) => s.id === changed.id) ? [changed] : []),
-  ];
-  return Object.keys(batches).length || Object.keys(records).length || carried.length
-    ? { format: STAMPS_FORMAT, batches, records, ...(carried.length ? { carried } : {}) }
+  const later: ChangedBatch[] = [...changed.entries()].map(([k, e]) => {
+    const b = own.batches[k];
+    return { ...e, ...(b?.ots ? { ots: b.ots } : {}), ...(b?.tsts?.length ? { tsts: b.tsts } : {}) };
+  });
+  return Object.keys(batches).length || Object.keys(records).length || later.length
+    ? { format: STAMPS_FORMAT, batches, records, ...(later.length ? { changed: later } : {}) }
     : undefined;
 };
 
 /** How many records the registry has given a different batch or root for, after giving one (an honest registry never does). */
-export const rootChanges = (): number => Object.values(load().own.changed).filter((l) => l.length > 0).length;
-
-// ---- restore: each file's stamps become one sealed section, never the registry's part -------
-
-type Incoming = {
-  batchId: string;
-  root: string;
-  proofs: Record<string, InclusionProof>;
-  ots?: unknown;
-  tsts?: unknown;
-};
-
-/** One section's batch items as they came, each proof checked against a record here. */
-const checkedBatches = async (
-  raw: readonly { batchId: unknown; root: unknown; proofs: unknown; ots?: unknown; tsts?: unknown }[],
-  here: ReadonlySet<string>,
-  pins: readonly TsaPin[],
-): Promise<CarriedBatch[]> => {
-  const incoming: Incoming[] = [];
-  if (raw.length > MAX_SECTION_ITEMS) throw new CapExceeded('limits');
-  for (const it of raw) {
-    if (!isString(it.batchId) || it.batchId.length > 128 || !isString(it.root) || !HEX64.test(it.root)) continue;
-    if (isString(it.ots) && it.ots.length > CARRIED_FILE_CHARS) throw new CapExceeded('limits');
-    const proofs: Record<string, InclusionProof> = {};
-    for (const [fp, p] of Object.entries(isObject(it.proofs) ? it.proofs : {})) {
-      if (!here.has(fp)) continue;
-      try {
-        const st = await checkProof(fp, p);
-        if (st.status === 'none' || st.proof.batchId !== it.batchId || st.proof.root !== it.root) continue;
-        proofs[fp] = keepable(st.proof);
-      } catch (e) {
-        if (isCap(e)) throw e;
-        /* a proof that can't be read is junk, left out; the rest stand */
-      }
-    }
-    if (Object.keys(proofs).length)
-      incoming.push({ batchId: it.batchId, root: it.root, proofs, ots: it.ots, tsts: it.tsts });
-  }
-  // One batch per record in a part: a part that names a record under two batches contradicts
-  // itself, and the file is refused (nothing is quietly left out).
-  const seen = new Set<string>();
-  for (const e of incoming)
-    for (const fp of Object.keys(e.proofs)) {
-      if (seen.has(fp)) throw new CapExceeded('contradicts');
-      seen.add(fp);
-    }
-  const out: CarriedBatch[] = [];
-  for (const e of incoming) {
-    const proofs = e.proofs;
-    const read = await readOts(e.ots, e.root, CARRIED_FILE_CHARS).catch(() => null);
-    const tsts = await checkedTokens(e.tsts, hexBytes(e.root), pins);
-    out.push({
-      kind: 'batch',
-      batchId: e.batchId,
-      root: e.root,
-      proofs,
-      ...(read ? { ots: e.ots as string } : {}),
-      ...(tsts.length ? { tsts } : {}),
-    });
-  }
-  return out;
-};
-
-/** One section's record items: each record here's own tokens, checked. */
-const checkedRecords = async (
-  raw: readonly [unknown, unknown][],
-  here: ReadonlySet<string>,
-  pins: readonly TsaPin[],
-): Promise<CarriedRecord[]> => {
-  const out = new Map<string, CarriedRecord>();
-  if (raw.length > MAX_SECTION_ITEMS) throw new CapExceeded('limits');
-  for (const [fp, list] of raw) {
-    if (!isString(fp) || !here.has(fp)) continue;
-    if (out.has(fp)) throw new CapExceeded('contradicts');
-    const instant = await checkedTokens(list, hexBytes(fp), pins);
-    if (instant.length) out.set(fp, { kind: 'record', fp, instant });
-  }
-  return [...out.values()];
-};
-
-/** A part's raw items split by kind, checked; never throws: what can't be read is left out. */
-const checkedPart = async (
-  rawBatches: readonly { batchId: unknown; root: unknown; proofs: unknown; ots?: unknown; tsts?: unknown }[],
-  rawRecords: readonly [unknown, unknown][],
-  here: ReadonlySet<string>,
-  pins: readonly TsaPin[],
-): Promise<CarriedPart> => ({
-  items: [...(await checkedBatches(rawBatches, here, pins)), ...(await checkedRecords(rawRecords, here, pins))],
-});
-
-/**
- * The parts a file brings: its own (what the registry gave the browser that made it), then each
- * part of each section it carried. They become ONE section: one file takes one place, however
- * many sections it carries (review 5).
- */
-const partsOf = async (
-  file: Record<string, unknown> | undefined,
-  fileProofs: unknown,
-  here: ReadonlySet<string>,
-  pins: readonly TsaPin[],
-): Promise<CarriedPart[]> => {
-  const out: CarriedPart[] = [];
-  // Its own part: its proofs, grouped by batch, with its batches' files where the root matches.
-  const groups = new Map<string, { batchId: string; root: string; proofs: Record<string, unknown> }>();
-  for (const [fp, p] of Object.entries(isObject(fileProofs) ? fileProofs : {})) {
-    if (!isObject(p) || !isString(p.batchId) || !isString(p.root)) continue;
-    const k = batchKey(p.batchId, p.root);
-    const g = groups.get(k) ?? { batchId: p.batchId, root: p.root, proofs: {} };
-    g.proofs[fp] = p;
-    groups.set(k, g);
-  }
-  const batches = file && isObject(file.batches) ? file.batches : {};
-  const ownBatches = [...groups.values()].map((g) => {
-    const b = batches[g.batchId];
-    return { ...g, ...(isObject(b) && b.root === g.root ? { ots: b.ots, tsts: b.tsts } : {}) };
-  });
-  const ownRecords = Object.entries(file && isObject(file.records) ? file.records : {}).map(
-    ([fp, r]) => [fp, isObject(r) ? r.instant : undefined] as [unknown, unknown],
-  );
-  out.push(await checkedPart(ownBatches, ownRecords, here, pins));
-  // Each part of each section it carried (a section as an earlier version wrote it, `items`, is one part).
-  // Every section it carried, every part of each: none is left out. Past the limits, the whole
-  // file is refused (review 6).
-  const carried = Array.isArray(file?.carried) ? (file.carried as unknown[]) : [];
-  if (carried.length > MAX_FILE_SECTIONS) throw new CapExceeded('limits');
-  const rawParts: unknown[] = [];
-  for (const sec of carried) {
-    if (!isObject(sec)) continue;
-    if (Array.isArray(sec.parts)) {
-      if (sec.parts.length > MAX_PARTS_PER_SECTION) throw new CapExceeded('limits');
-      rawParts.push(...(sec.parts as unknown[]));
-    } else if (Array.isArray(sec.items)) rawParts.push({ items: sec.items });
-  }
-  for (const part of rawParts) {
-    const items = isObject(part) && Array.isArray(part.items) ? (part.items as unknown[]) : [];
-    const rawBatches = items.filter(
-      (i): i is Record<string, unknown> & { batchId: unknown; root: unknown; proofs: unknown } =>
-        isObject(i) && i.kind === 'batch',
-    );
-    const rawRecords = items
-      .filter((i): i is Record<string, unknown> => isObject(i) && i.kind === 'record')
-      .map((i) => [i.fp, i.instant] as [unknown, unknown]);
-    out.push(await checkedPart(rawBatches, rawRecords, here, pins));
-  }
-  return out.filter((p) => p.items.length > 0);
-};
-
-/** Whether everything in a section is already in the registry's part here: then it adds nothing. */
-const coveredByOwn = (items: readonly CarriedItem[], own: Own): boolean =>
-  items.every((it) => {
-    if (it.kind === 'record')
-      return it.instant.every((t) => own.records[it.fp]?.instant?.some((x) => x.token === t.token));
-    const b = own.batches[batchKey(it.batchId, it.root)];
-    return (
-      Object.entries(it.proofs).every(([fp, p]) => own.proofs[fp] && sameBatch(own.proofs[fp], p)) &&
-      (!it.ots || b?.ots === it.ots) &&
-      (it.tsts ?? []).every((t) => b?.tsts?.some((x) => x.token === t.token))
-    );
-  });
-
-/** The (batch, root) pairs every kept source gives a record: more than one means they disagree. */
-const rootsFor = (s: Store, fp: string): Set<string> => {
-  const out = new Set<string>();
-  const p = s.own.proofs[fp];
-  if (p) out.add(batchKey(p.batchId, p.root));
-  for (const sec of s.sections)
-    for (const it of itemsOf(sec)) if (it.kind === 'batch' && it.proofs[fp]) out.add(batchKey(it.batchId, it.root));
-  return out;
-};
-
-export type StampsRestored = {
-  /** 1 when this file's section was kept: a copy of what it said, not confirmed by anyone. */
-  readonly kept: number;
-  /** 1 when that section was already kept here (or adds nothing to what the registry gave). */
-  readonly already: number;
-  /** 1 when it was refused because this browser keeps as many files' sections as it can. */
-  readonly refused: number;
-  /** 1 when it was refused because this one file's section alone is bigger than the limit. */
-  readonly tooBig: number;
-  /** 1 when it was refused because it goes past a limit on what one file may bring (nothing is cut). */
-  readonly limits: number;
-  /** 1 when it was refused because it names a record under two batches in one place. */
-  readonly contradicts: number;
-  /** Records here that kept sources give more than one batch or root for. */
-  readonly disagree: number;
-};
-
-/**
- * Keep what a backup file carries as ONE sealed section, for the records here, each item checked
- * for form first (see the top of this file). The registry's part is never touched; nothing kept
- * is changed. `fileProofs` is the file's `proofs`; `records` are the records this browser holds
- * after the restore; `pins` the timestamp authorities this site trusts (tests pass their own).
- * Never throws: an item that can't be read is left out, and the rest stand.
- */
-export const restoreStamps = async (
-  fromFile: unknown,
-  fileProofs: unknown,
-  records: readonly { readonly id: string; readonly recordFingerprint?: string }[],
-  pins: readonly TsaPin[] = TSA_PINS,
-  /** For tests: smaller limits than the site's. */
-  limits: { readonly budget: number; readonly sections: number } = { budget: CARRIED_BUDGET, sections: MAX_SECTIONS },
-): Promise<StampsRestored> => {
-  const here = new Set<string>();
-  const store = load();
-  for (const r of records) {
-    const fp = r.recordFingerprint;
-    if (!fp || !HEX64.test(fp)) continue;
-    here.add(fp);
-    store.own.ids[fp] ??= r.id;
-  }
-  const result = { kept: 0, already: 0, refused: 0, tooBig: 0, limits: 0, contradicts: 0, disagree: 0 };
-  if (here.size === 0) return result;
-  const file = isObject(fromFile) && fromFile.format === STAMPS_FORMAT ? fromFile : undefined;
-  try {
-    const parts = await partsOf(file, fileProofs, here, pins);
-    if (parts.length) {
-      const section = await sealSection(parts);
-      if (store.sections.some((x) => x.id === section.id) || coveredByOwn(itemsOf(section), store.own))
-        result.already = 1;
-      else if (sectionBytes([section]) > limits.budget) result.tooBig = 1;
-      else if (
-        store.sections.length + 1 > limits.sections ||
-        sectionBytes([...store.sections, section]) > limits.budget
-      )
-        result.refused = 1;
-      else {
-        store.sections = [...store.sections, section];
-        result.kept = 1;
-        save(store);
-      }
-    }
-  } catch (e) {
-    // Nothing of this file is kept; nothing kept is changed. A limit or a contradiction is said.
-    if (isCap(e)) result[e.why] = 1;
-  }
-  result.disagree = [...here].filter((fp) => rootsFor(store, fp).size > 1).length;
-  return result;
-};
-
-/** How many sections this browser keeps from restored backup files. */
-export const carriedCount = (): number => load().sections.length;
-
-/**
- * Clear the copies kept from restored backup files (the holder's choice, review 5): only the
- * carried sections; the registry's part stays, and the holder's backup files are never touched.
- */
-export const clearCarried = (): number => {
-  const store = load();
-  const n = store.sections.length;
-  if (n === 0) return 0;
-  store.sections = [];
-  save(store);
-  return n;
-};
+export const rootChanges = (): number => Object.values(load().changed).filter((l) => l.length > 0).length;
 
 // ---- the evidence bundle with the registry out of reach -----------------------------------
 
@@ -916,143 +537,109 @@ const batchFacts = async (proof: InclusionProof, b: { ots?: string; tsts?: reado
   };
 };
 
-/** One carried section's batch for a record, for the bundle: everything that section has for it. */
-export type CarriedEvidence = {
-  /** The ids of the sections that give this batch and root (each the SHA-256 of its canonical bytes). */
-  readonly sections: readonly string[];
-  /** How many copies kept from backup files give this batch and root. */
-  readonly copies: number;
-  readonly batchId: string;
-  readonly root: string;
-  readonly proof: InclusionProof;
-  /** Every distinct Bitcoin stamp file those copies carry that starts from this root, each once. */
-  readonly ots: readonly {
-    readonly bytes: Uint8Array;
-    readonly status: 'bitcoin' | 'pending';
-    readonly height?: number;
-  }[];
-  /** Each distinct token, DER. */
-  readonly tsts: readonly Uint8Array[];
-};
-
 /**
- * What this browser has for one record, for the evidence bundle when the registry is out of
- * reach: the registry's part (`confirmed`), also when a carried proof leads to a root the
- * registry gave for that batch; or else every carried section that covers the record, side by
- * side, in the order they were kept (`sections`), none of them confirmed. `registryRoots`: roots
- * the registry gave the same batch, when they differ from every section's.
+ * What this browser kept from the registry for one record, for the evidence bundle when the
+ * registry is out of reach: the registry's own first proof and its batch's files, or null.
  */
 export const keptEvidence = async (
   fp: string,
-): Promise<
-  | {
-      readonly confirmed: true;
-      readonly proof: InclusionProof;
-      readonly batch: Record<string, unknown>;
-      readonly ots: Uint8Array | null;
-    }
-  | { readonly confirmed: false; readonly sections: readonly CarriedEvidence[]; readonly registryRoots: string[] }
-  | null
-> => {
+): Promise<{
+  readonly proof: InclusionProof;
+  readonly batch: Record<string, unknown>;
+  readonly ots: Uint8Array | null;
+} | null> => {
   if (!HEX64.test(fp)) return null;
-  const store = load();
-  const own = store.own.proofs[fp];
-  if (own) {
-    const st = await checkProof(fp, own);
-    if (st.status !== 'none')
-      return {
-        confirmed: true,
-        proof: st.proof,
-        ...(await batchFacts(st.proof, store.own.batches[batchKey(st.proof.batchId, st.proof.root)])),
-      };
+  const own = load();
+  const p = own.proofs[fp];
+  if (!p) return null;
+  const st = await checkProof(fp, p).catch(() => ({ status: 'none' as const }));
+  if (st.status === 'none') return null;
+  return { proof: st.proof, ...(await batchFacts(st.proof, own.batches[batchKey(st.proof.batchId, st.proof.root)])) };
+};
+
+// ---- an evidence bundle straight from a backup file (nothing stored) ------------------------
+
+/** A backup file's date proofs as read from it, in memory only: its `stamps` and its `proofs`. */
+export type BackupFileStamps = { readonly stamps: unknown; readonly proofs: unknown };
+
+/** One root a backup file gives for a record, for the bundle: everything the file has for it that checks. */
+export type FileEvidence = {
+  readonly batchId: string;
+  readonly root: string;
+  readonly proof: InclusionProof;
+  /** The Bitcoin stamp file, when the file has one that starts from this root. */
+  readonly ots?: { readonly bytes: Uint8Array; readonly status: 'bitcoin' | 'pending'; readonly height?: number };
+  /** Each token signed by a pinned authority over this root, DER. */
+  readonly tsts: readonly Uint8Array[];
+  /** True for a root the registry gave later for a batch it had already given (the file's `changed`). */
+  readonly later: boolean;
+};
+
+/** The proof codes a backup file has a proof for. */
+export const fileCovers = (file: BackupFileStamps): Set<string> =>
+  new Set(Object.keys(isObject(file.proofs) ? file.proofs : {}).filter((fp) => HEX64.test(fp)));
+
+/**
+ * What a backup file gives for one record, each root on its own and in the file's order, every
+ * item checked for form (see the top of this file); what fails a check is left out. Nothing is
+ * stored. `registryRoots`: roots this browser's registry part has for the same batch that the file
+ * doesn't give. `pins` are the timestamp authorities this site trusts (tests pass their own).
+ */
+export const evidenceFromFile = async (
+  fp: string,
+  file: BackupFileStamps,
+  pins: readonly TsaPin[] = TSA_PINS,
+): Promise<{ readonly roots: readonly FileEvidence[]; readonly registryRoots: readonly string[] }> => {
+  const none = { roots: [], registryRoots: [] };
+  if (!HEX64.test(fp)) return none;
+  const s = isObject(file.stamps) && file.stamps.format === STAMPS_FORMAT ? file.stamps : {};
+  const batches = isObject(s.batches) ? s.batches : {};
+  const candidates: { proof: unknown; files: unknown; later: boolean }[] = [];
+  const first = isObject(file.proofs) ? file.proofs[fp] : undefined;
+  if (isObject(first) && isString(first.batchId))
+    candidates.push({ proof: first, files: batches[first.batchId], later: false });
+  const changed = Array.isArray(s.changed) ? (s.changed as unknown[]) : [];
+  for (const c of changed) {
+    if (candidates.length > MAX_FILE_ROOTS) break;
+    if (isObject(c) && isObject(c.proofs) && c.proofs[fp] !== undefined)
+      candidates.push({ proof: c.proofs[fp], files: c, later: true });
   }
-  const sections: CarriedEvidence[] = [];
-  const groups = new Map<
-    string,
-    {
-      sections: string[];
-      copies: number;
-      batchId: string;
-      root: string;
-      proof: InclusionProof;
-      ots: { bytes: Uint8Array; status: 'bitcoin' | 'pending'; height?: number; b64: string }[];
-      tsts: Map<string, Uint8Array>;
+  const roots: FileEvidence[] = [];
+  for (const c of candidates) {
+    try {
+      const st = await checkProof(fp, c.proof);
+      if (st.status === 'none') continue;
+      const { batchId, root } = st.proof;
+      if (roots.some((r) => sameBatch(r, { batchId, root }))) continue;
+      const f = isObject(c.files) && c.files.root === root ? c.files : {};
+      const read = await readOts(f.ots, root);
+      const bytes = read && isString(f.ots) ? b64Bytes(f.ots) : undefined;
+      const tsts = (await checkedTokens(f.tsts, hexBytes(root), pins))
+        .map((t) => b64Bytes(t.token))
+        .filter((b): b is Uint8Array => !!b);
+      roots.push({
+        batchId,
+        root,
+        proof: keepable(st.proof),
+        ...(read && bytes
+          ? { ots: { bytes, status: read.status, ...(read.height !== undefined ? { height: read.height } : {}) } }
+          : {}),
+        tsts,
+        later: c.later,
+      });
+    } catch {
+      /* junk: left out; the rest stand */
     }
-  >();
-  for (const sec of store.sections)
-    for (const it of itemsOf(sec)) {
-      if (it.kind !== 'batch' || !it.proofs[fp]) continue;
-      const st = await checkProof(fp, it.proofs[fp]).catch(() => ({ status: 'none' as const }));
-      if (st.status === 'none' || !sameBatch(st.proof, it)) continue;
-      // The registry gave this root for this batch (for another record here): only the path is
-      // the file's; the transaction, block, times and the rest are the registry's own (review 5).
-      const reg = Object.values(store.own.proofs).find((p) => sameBatch(p, it));
-      if (reg) {
-        const joined = await checkProof(fp, { ...reg, commitment: fp, path: st.proof.path }).catch(() => ({
-          status: 'none' as const,
-        }));
-        if (joined.status !== 'none')
-          return {
-            confirmed: true,
-            proof: joined.proof,
-            ...(await batchFacts(joined.proof, store.own.batches[batchKey(it.batchId, it.root)])),
-          };
-        continue;
-      }
-      const read = it.ots ? await readOts(it.ots, it.root).catch(() => null) : null;
-      // Copies giving the same batch and root are shown once, with how many there are, and
-      // every distinct stamp file and token among them (review 6).
-      const k = batchKey(it.batchId, it.root);
-      const g = groups.get(k) ?? {
-        sections: [] as string[],
-        copies: 0,
-        batchId: it.batchId,
-        root: it.root,
-        proof: st.proof,
-        ots: [] as { bytes: Uint8Array; status: 'bitcoin' | 'pending'; height?: number; b64: string }[],
-        tsts: new Map<string, Uint8Array>(),
-      };
-      g.copies++;
-      if (!g.sections.includes(sec.id)) g.sections.push(sec.id);
-      const bytes = read && it.ots ? b64Bytes(it.ots) : undefined;
-      if (bytes && read && !g.ots.some((o) => o.b64 === it.ots))
-        g.ots.push({
-          bytes,
-          status: read.status,
-          ...(read.height !== undefined ? { height: read.height } : {}),
-          b64: it.ots!,
-        });
-      for (const t of it.tsts ?? []) {
-        const b = b64Bytes(t.token);
-        if (b) g.tsts.set(t.token, b);
-      }
-      groups.set(k, g);
-    }
-  for (const g of groups.values())
-    sections.push({
-      sections: g.sections,
-      copies: g.copies,
-      batchId: g.batchId,
-      root: g.root,
-      proof: g.proof,
-      // A finished stamp first, then pending ones, each once.
-      ots: [...g.ots]
-        .sort((a, b) => (a.status === b.status ? 0 : a.status === 'bitcoin' ? -1 : 1))
-        .map(({ b64: _b, ...o }) => {
-          void _b;
-          return o;
-        }),
-      tsts: [...g.tsts.values()],
-    });
-  if (sections.length === 0) return null;
-  const ids = new Set(sections.map((s) => s.batchId));
-  const roots = new Set(sections.map((s) => s.root));
+  }
+  const own = load();
+  const ids = new Set(roots.map((r) => r.batchId));
+  const given = new Set(roots.map((r) => r.root));
   const registryRoots = [
     ...new Set(
-      Object.values(store.own.proofs)
-        .filter((p) => ids.has(p.batchId) && !roots.has(p.root))
+      [...Object.values(own.proofs), ...Object.values(own.changed).flat()]
+        .filter((p) => ids.has(p.batchId) && !given.has(p.root))
         .map((p) => p.root),
     ),
   ];
-  return { confirmed: false, sections, registryRoots };
+  return { roots, registryRoots };
 };

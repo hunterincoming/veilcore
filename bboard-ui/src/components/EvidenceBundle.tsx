@@ -22,13 +22,19 @@ import DownloadIcon from '@mui/icons-material/FileDownloadOutlined';
 import { allRecords, useSealedView, type StrainRecord } from '../veilcore/records';
 import { datingOf } from './flow/useDnaTie';
 import type { RecordKeys } from '../veilcore/record-keys';
-import { downloadEvidenceBundle, lockedParentsOf } from '../veilcore/evidence/bundle';
+import {
+  downloadEvidenceBundle,
+  lockedParentsOf,
+  UNREACHABLE,
+  type EvidenceOptions,
+} from '../veilcore/evidence/bundle';
+import type { BackupFileStamps } from '../veilcore/stamps';
 import { MAX_FINGERPRINT_BYTES } from '../veilcore/commitment';
 import { InEnglishNote, useRecordT } from '../i18n/app';
 import { isDocument } from '../veilcore/document-profile';
 import { bitcoinStampFor } from '../veilcore/proofs';
 import { recordProof } from './verify/useAnchorCheck';
-import { ClearCarriedCopies } from './ClearCarriedCopies';
+import { BundleFromBackupFile } from './BundleFromBackupFile';
 
 /** The button's English (app.plant.bundle.download): the landing page names it. */
 export const DOWNLOAD_EVIDENCE_LABEL = 'Download evidence bundle';
@@ -52,6 +58,9 @@ export const EvidenceBundle: React.FC<{
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
+  // VeilCore's registry couldn't be reached (and this browser has no copy it gave): the bundle
+  // can be made from the holder's backup file instead (BundleFromBackupFile).
+  const [offline, setOffline] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const { t, tp } = useRecordT(record);
   const { locked } = useSealedView();
@@ -81,6 +90,33 @@ export const EvidenceBundle: React.FC<{
     setOpen(false);
     setError(null);
     setDone(null);
+    setOffline(false);
+  };
+
+  /** The holder's choices as bundle options, or words saying what is missing. */
+  const choices = async (): Promise<EvidenceOptions | { error: string }> => {
+    if (includeLab && (doc ? docFiles.length === 0 : !labFile))
+      return { error: t(doc ? 'app.doc.bundle.chooseOrUntick' : 'app.plant.bundle.chooseOrUntick') };
+    const tooBig = (doc ? docFiles : labFile ? [labFile] : []).find((f) => f.size > MAX_FINGERPRINT_BYTES);
+    if (includeLab && tooBig) return { error: t('app.plant.bundle.tooBig', { name: tooBig.name }) };
+    // The record dating the saved DNA report, if one does: README.txt names it.
+    const datedBy = datingOf(record, undefined, allRecords())?.id;
+    return {
+      includeKey: canKey && includeKey,
+      bitcoinHeaders: stampedOnBitcoin && includeBtc,
+      ...(datedBy ? { dnaReportDatedBy: datedBy } : {}),
+      ...(lockedParents ? { lockedParents } : {}),
+      ...(!doc && includeLab && labFile
+        ? { labFile: { name: labFile.name, bytes: new Uint8Array(await labFile.arrayBuffer()) } }
+        : {}),
+      ...(doc && includeLab && docFiles.length > 0
+        ? {
+            documentFiles: await Promise.all(
+              docFiles.map(async (f) => ({ name: f.name, bytes: new Uint8Array(await f.arrayBuffer()) })),
+            ),
+          }
+        : {}),
+    };
   };
 
   const download = async () => {
@@ -88,38 +124,26 @@ export const EvidenceBundle: React.FC<{
     setError(null);
     setDone(null);
     try {
-      if (includeLab && (doc ? docFiles.length === 0 : !labFile)) {
-        setError(t(doc ? 'app.doc.bundle.chooseOrUntick' : 'app.plant.bundle.chooseOrUntick'));
+      const options = await choices();
+      if ('error' in options) {
+        setError(options.error);
         return;
       }
-      const tooBig = (doc ? docFiles : labFile ? [labFile] : []).find((f) => f.size > MAX_FINGERPRINT_BYTES);
-      if (includeLab && tooBig) {
-        setError(t('app.plant.bundle.tooBig', { name: tooBig.name }));
-        return;
-      }
-      // The record dating the saved DNA report, if one does: README.txt names it.
-      const datedBy = datingOf(record, undefined, allRecords())?.id;
-      const out = await downloadEvidenceBundle(record, keys, {
-        includeKey: canKey && includeKey,
-        bitcoinHeaders: stampedOnBitcoin && includeBtc,
-        ...(datedBy ? { dnaReportDatedBy: datedBy } : {}),
-        ...(lockedParents ? { lockedParents } : {}),
-        ...(!doc && includeLab && labFile
-          ? { labFile: { name: labFile.name, bytes: new Uint8Array(await labFile.arrayBuffer()) } }
-          : {}),
-        ...(doc && includeLab && docFiles.length > 0
-          ? {
-              documentFiles: await Promise.all(
-                docFiles.map(async (f) => ({ name: f.name, bytes: new Uint8Array(await f.arrayBuffer()) })),
-              ),
-            }
-          : {}),
-      });
-      if ('error' in out) setError(out.error);
-      else setDone(out.name);
+      const out = await downloadEvidenceBundle(record, keys, options);
+      if ('error' in out) {
+        setError(out.error);
+        if (out.error === UNREACHABLE) setOffline(true);
+      } else setDone(out.name);
     } finally {
       setBusy(false);
     }
+  };
+
+  /** The same bundle, made straight from a backup file the holder picked (nothing kept here). */
+  const fromFile = async (_r: StrainRecord, file: BackupFileStamps) => {
+    const options = await choices();
+    if ('error' in options) return options;
+    return downloadEvidenceBundle(record, keys, { ...options, fromBackupFile: file });
   };
 
   return (
@@ -221,8 +245,12 @@ export const EvidenceBundle: React.FC<{
                 {t('app.plant.bundle.downloaded', { name: done })}
               </Alert>
             )}
-            {/* Copies kept from restored backup files (stamps.ts): the holder can clear them here. */}
-            <ClearCarriedCopies />
+            {offline && sealed && (
+              <Stack spacing={1} data-bundle-offline="">
+                <Typography variant="body2">{t('app.filebundle.offline')}</Typography>
+                <BundleFromBackupFile record={record} make={fromFile} />
+              </Stack>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>

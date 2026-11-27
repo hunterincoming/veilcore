@@ -120,9 +120,9 @@ export type BatchFacts = {
 export type Gathered = {
   /**
    * Where it came from: the one-call evidence route, the older public routes, or, with the
-   * registry out of reach, what this browser kept from its backups (stamps.ts): `this-device`
-   * when the registry gave that proof before, `backup-file` when it came only from a backup file
-   * and the registry hasn't confirmed its batch root (every page of the bundle says so).
+   * registry out of reach, `this-device` (what the registry gave this browser before, stamps.ts)
+   * or `backup-file` (read straight from a backup file the holder picked, not confirmed with the
+   * registry: every page of the bundle says so).
    */
   readonly source: 'evidence-route' | 'public-routes' | 'this-device' | 'backup-file';
   /** This registry's own clock: when it first saw this record's content. */
@@ -140,9 +140,9 @@ export type Gathered = {
   readonly attestations: Record<string, unknown>[];
   /** The stamped block's headers, checked here (withBitcoinHeaders); none when they couldn't be. */
   readonly bitcoinHeaders?: BundleHeaders | null;
-  /** Other roots the holder's backup files give for this batch (source `backup-file` only, stamps.ts). */
-  readonly carried?: readonly import('../stamps').CarriedEvidence[];
-  /** Roots the registry gave the same batch, when they differ from every carried section's. */
+  /** Source `backup-file`: each root the file gives for the record, on its own (stamps.ts evidenceFromFile). */
+  readonly fileRoots?: readonly import('../stamps').FileEvidence[];
+  /** Roots the registry gave this browser for the same batch that the file doesn't give. */
   readonly registryRoots?: readonly string[];
 };
 
@@ -271,6 +271,10 @@ export const reconcile = async (
 };
 
 const unreachable = 'Couldn’t reach VeilCore. Check your connection and try again.';
+/** What gatherEvidence says when the registry can't be reached (the dialog then offers the backup file). */
+export const UNREACHABLE = unreachable;
+/** A backup file with no date proof for the record that checks. */
+export const NOTHING_IN_FILE = 'That backup file has no date proofs for this record.';
 
 /** From a registry without /records/:id/evidence: the public routes, one at a time. */
 const fromPublicRoutes = async (fingerprint: string, fetcher: typeof fetch): Promise<Gathered | { error: string }> => {
@@ -305,35 +309,44 @@ const fromPublicRoutes = async (fingerprint: string, fetcher: typeof fetch): Pro
 
 /**
  * With the registry out of reach: the inclusion proof, the Bitcoin stamp file and the batch's
- * RFC 3161 token this browser kept (stamps.ts, from its backups or a restore), held to the record
- * exactly as the registry's answer is. Lab signatures served by the registry aren't kept here.
+ * RFC 3161 token the registry gave this browser before (stamps.ts), held to the record exactly as
+ * the registry's answer is. Lab signatures served by the registry aren't kept here.
  */
 const fromThisDevice = async (fingerprint: string): Promise<Gathered | null> => {
   try {
     const kept = await (await import('../stamps')).keptEvidence(fingerprint);
     if (!kept) return null;
-    if (kept.confirmed) {
-      const { confirmed: _c, ...raw } = kept;
-      void _c;
-      const g = await reconcile(fingerprint, { source: 'this-device', ...raw, attestations: [] });
-      return g.proof ? g : null;
-    }
-    // Only backup files cover it: every section side by side, none taken as the record's proof.
-    return {
-      source: 'backup-file',
-      registryFirstSeen: null,
-      proof: null,
-      proofRefused: false,
-      batch: null,
-      ots: null,
-      tst: null,
-      attestations: [],
-      carried: kept.sections,
-      ...(kept.registryRoots.length ? { registryRoots: kept.registryRoots } : {}),
-    };
+    const g = await reconcile(fingerprint, { source: 'this-device', ...kept, attestations: [] });
+    return g.proof ? g : null;
   } catch {
     return null;
   }
+};
+
+/**
+ * Straight from a backup file the holder picked (read in memory, nothing stored): each root it
+ * gives for the record, side by side, none taken as the record's proof. Null when it has none
+ * that checks.
+ */
+export const gatherFromFile = async (
+  record: Pick<StrainRecord, 'recordFingerprint'>,
+  file: import('../stamps').BackupFileStamps,
+): Promise<Gathered | null> => {
+  if (!isHex64(record.recordFingerprint)) return null;
+  const got = await (await import('../stamps')).evidenceFromFile(record.recordFingerprint, file);
+  if (got.roots.length === 0) return null;
+  return {
+    source: 'backup-file',
+    registryFirstSeen: null,
+    proof: null,
+    proofRefused: false,
+    batch: null,
+    ots: null,
+    tst: null,
+    attestations: [],
+    fileRoots: got.roots,
+    ...(got.registryRoots.length ? { registryRoots: got.registryRoots } : {}),
+  };
 };
 
 /** Everything the registry has for this record, checked against it; what this browser kept when it can't be reached. */
@@ -450,6 +463,11 @@ export type EvidenceOptions = {
   /** For tests: when the bundle was made. */
   readonly now?: Date;
   /**
+   * Make it straight from this backup file's date proofs (read in memory, nothing stored), not
+   * from the registry: every page says so (gatherFromFile).
+   */
+  readonly fromBackupFile?: import('../stamps').BackupFileStamps;
+  /**
    * The holder's sent deliveries (transfers.ts sentByMe), for the sample details on this
    * plant's deliveries. downloadEvidenceBundle reads them; absent, the bundle has none.
    */
@@ -533,11 +551,11 @@ export type Evidence = {
     readonly source: Gathered['source'];
     readonly note: string;
     /**
-     * Source `backup-file`: every carried section that covers the record (stamps.ts), each in its
-     * own folder, none ranked first, none confirmed. `ots` is the stamp file, base64, for verify.html.
+     * Source `backup-file`: each root the backup file gives for the record, each in its own
+     * folder, none ranked first, none confirmed. `ots` is the stamp file, base64, for verify.html.
      */
-    readonly carried?: readonly CarriedFacts[];
-    /** Roots VeilCore's registry gave the same batch (for another of the holder's records). */
+    readonly fileRoots?: readonly FileRootFacts[];
+    /** Roots VeilCore's registry gave this browser for the same batch that the file doesn't give. */
     readonly registryRoots?: readonly string[];
   };
   readonly proof: InclusionProof | null;
@@ -727,15 +745,13 @@ export const custodyEntries = async (
   return out;
 };
 
-/** One carried section in evidence.json (source `backup-file`). */
-export type CarriedFacts = {
+/** One root the backup file gives, in evidence.json (source `backup-file`). */
+export type FileRootFacts = {
   readonly folder: string;
-  /** The ids of the kept sections that give this batch and root. */
-  readonly sections: readonly string[];
-  /** How many copies kept from backup files give this batch and root (shown once, review 6). */
-  readonly copies: number;
   readonly batchId: string;
   readonly root: string;
+  /** A root VeilCore's registry gave later for a batch it had already given (should never happen). */
+  readonly later: boolean;
   readonly proof: InclusionProof;
   readonly anchor: unknown;
   readonly opentimestamps: {
@@ -743,10 +759,8 @@ export type CarriedFacts = {
     readonly status: string;
     readonly bitcoinBlockHeight?: number;
   };
-  /** The first stamp file (a finished one when there is one), base64, so verify.html can read it. */
+  /** The stamp file, base64, so verify.html can read it. */
   readonly ots?: string;
-  /** How many distinct stamp files the copies carry (more than one: they differ; check each). */
-  readonly otsFiles: number;
   readonly tokens: number;
   readonly files: readonly string[];
 };
@@ -755,43 +769,39 @@ const toB64 = (b: Uint8Array): string => btoa(String.fromCharCode(...b));
 
 const tstNames = (n: number): string[] =>
   n === 1 ? ['root.tst'] : Array.from({ length: n }, (_, i) => `root-${i + 1}.tst`);
-const otsNames = (n: number): string[] =>
-  n === 1 ? ['root.bin.ots'] : Array.from({ length: n }, (_, i) => `root-${i + 1}.bin.ots`);
 
-const carriedFacts = (c: import('../stamps').CarriedEvidence, i: number): CarriedFacts => {
+const fileRootFacts = (c: import('../stamps').FileEvidence, i: number): FileRootFacts => {
   const folder = `proof/backup-file-${i + 1}`;
   return {
     folder,
-    sections: c.sections,
-    copies: c.copies,
     batchId: c.batchId,
     root: c.root,
+    later: c.later,
     proof: c.proof,
     anchor: c.proof.anchor ?? null,
-    opentimestamps: c.ots[0]
+    opentimestamps: c.ots
       ? {
           available: true,
-          status: c.ots[0].status,
-          ...(c.ots[0].height !== undefined ? { bitcoinBlockHeight: c.ots[0].height } : {}),
+          status: c.ots.status,
+          ...(c.ots.height !== undefined ? { bitcoinBlockHeight: c.ots.height } : {}),
         }
       : { available: false, status: 'none' },
-    ...(c.ots[0] ? { ots: toB64(c.ots[0].bytes) } : {}),
-    otsFiles: c.ots.length,
+    ...(c.ots ? { ots: toB64(c.ots.bytes) } : {}),
     tokens: c.tsts.length,
     files: [
       'inclusion-proof.json',
       'batch-root.txt',
       'root.bin',
-      ...otsNames(c.ots.length),
+      ...(c.ots ? ['root.bin.ots'] : []),
       ...tstNames(c.tsts.length),
       'check-on-midnight.mjs',
     ].map((f) => `${folder}/${f}`),
   };
 };
 
-/** Whether the carried sections (and any root the registry gave the batch) name more than one root. */
-export const carriedDisagree = (ev: Evidence): boolean =>
-  new Set([...(ev.registry.carried ?? []).map((c) => `${c.batchId} ${c.root}`), ...(ev.registry.registryRoots ?? [])])
+/** Whether the backup file (and any root the registry gave this browser for the batch) names more than one root. */
+export const fileRootsDisagree = (ev: Evidence): boolean =>
+  new Set([...(ev.registry.fileRoots ?? []).map((c) => `${c.batchId} ${c.root}`), ...(ev.registry.registryRoots ?? [])])
     .size > 1;
 
 export const buildEvidence = async (
@@ -940,11 +950,11 @@ export const buildEvidence = async (
       source: gathered.source,
       note:
         gathered.source === 'backup-file'
-          ? `${UNCONFIRMED_WORDS} The proof, the Bitcoin stamp file and the RFC 3161 token were each checked against the record or that batch root in the holder’s browser; that shows they belong together, not that this is the root VeilCore recorded. Lab signatures the registry serves are not in this copy.`
+          ? `${UNCONFIRMED_WORDS} The proof, the Bitcoin stamp file and the RFC 3161 tokens were each checked against the record or that batch root in the holder’s browser; that shows they belong together, not that this is the root VeilCore recorded. Nothing from the file was kept in the browser. Lab signatures the registry serves are not in this bundle.`
           : gathered.source === 'this-device'
             ? 'Made from the copy kept in the holder’s browser (from its backups): VeilCore’s registry could not be reached. The proof, the Bitcoin stamp file and the RFC 3161 token were each checked against the record or its batch root in that browser; the anchor is the transaction the registry operator reported when the copy was made; nobody has looked it up on the chain for you. Lab signatures the registry serves are not in this copy.'
             : 'firstSeen is VeilCore’s registry’s own clock, its word only. The anchor is the transaction the registry operator reported; nobody has looked it up on the chain for you.',
-      ...(gathered.carried?.length ? { carried: gathered.carried.map(carriedFacts) } : {}),
+      ...(gathered.fileRoots?.length ? { fileRoots: gathered.fileRoots.map(fileRootFacts) } : {}),
       ...(gathered.registryRoots?.length ? { registryRoots: gathered.registryRoots } : {}),
     },
     proof: gathered.proof,
@@ -1353,21 +1363,21 @@ export const readmeText = (
     L.push('');
     L.push(`NOT CONFIRMED: ${UNCONFIRMED_WORDS}`);
   }
-  const carried = ev.registry.carried ?? [];
-  if (carried.length) {
+  const fileRoots = ev.registry.fileRoots ?? [];
+  if (fileRoots.length) {
     L.push('');
     L.push(
-      `RESTORED FROM BACKUP FILES: ${carried.length} copy${carried.length === 1 ? '' : 'ies'} of what the holder's backup files said cover this record, each in its own folder with all its files. None is confirmed and none is ranked first.`,
+      `FROM THIS BACKUP FILE: ${fileRoots.length === 1 ? 'the batch root' : `${fileRoots.length} batch roots`} the holder's backup file gives for this record, ${fileRoots.length === 1 ? 'in its own folder' : 'each in its own folder'} with all its files. Not confirmed with VeilCore's registry${fileRoots.length === 1 ? '' : ', and none is ranked first'}.`,
     );
-    for (const c of carried)
+    for (const c of fileRoots)
       L.push(
-        `- ${c.folder}: batch ${oneLine(c.batchId)}, batch root ${c.root}${c.copies > 1 ? ` (given by ${c.copies} copies kept from backup files)` : ''}${c.opentimestamps.available ? `, ${c.otsFiles > 1 ? `${c.otsFiles} different Bitcoin stamp files: they differ, check each; the first` : 'a Bitcoin stamp file'} (${c.opentimestamps.status === 'bitcoin' ? `names block ${c.opentimestamps.bitcoinBlockHeight ?? '?'}` : 'pending'})` : ''}${c.tokens ? `, ${c.tokens} RFC 3161 token${c.tokens === 1 ? '' : 's'}` : ''}.`,
+        `- ${c.folder}: batch ${oneLine(c.batchId)}, batch root ${c.root}${c.later ? " (VeilCore's registry gave this root later, after giving another for the same batch)" : ''}${c.opentimestamps.available ? `, a Bitcoin stamp file (${c.opentimestamps.status === 'bitcoin' ? `names block ${c.opentimestamps.bitcoinBlockHeight ?? '?'}` : 'pending'})` : ''}${c.tokens ? `, ${c.tokens} RFC 3161 token${c.tokens === 1 ? '' : 's'}` : ''}.`,
       );
-    if (carriedDisagree(ev)) L.push(`BACKUP FILES DISAGREE: ${DISAGREE_WORDS}`);
+    if (fileRootsDisagree(ev)) L.push(`MORE THAN ONE ROOT: ${DISAGREE_WORDS}`);
     for (const r of ev.registry.registryRoots ?? [])
-      L.push(`- VeilCore's registry gave this batch another root, for another of the holder's records: ${r}.`);
+      L.push(`- VeilCore's registry gave the holder's browser another root for this batch: ${r}.`);
     L.push(
-      'To date the record from any one of them: in its folder, check on Midnight that the transaction it names wrote its batch root (README steps below, and verify.html), and check its stamp files with the tools named below. Only a root Midnight holds dates anything.',
+      'To date the record: in the folder, check on Midnight that the transaction it names wrote its batch root (README steps below, and verify.html), and check its stamp files with the tools named below. Only a root Midnight holds dates anything.',
     );
   }
   const tsa = ev.batch?.rfc3161?.available ? ev.batch.rfc3161 : null;
@@ -1414,11 +1424,11 @@ export const readmeText = (
     L.push(
       `2. Date it: the batch (${ev.batch.batchId}) isn't recorded on Midnight yet. Download a new bundle once it is.`,
     );
-  } else if (ev.registry.carried?.length) {
+  } else if (ev.registry.fileRoots?.length) {
     L.push(
-      '2. Date it on Midnight, from each folder restored from a backup file (none is confirmed; only a root Midnight holds dates anything):',
+      "2. Date it on Midnight, from each folder made from the holder's backup file (not confirmed; only a root Midnight holds dates anything):",
     );
-    for (const c of ev.registry.carried) {
+    for (const c of ev.registry.fileRoots) {
       const a = isObject(c.anchor) ? anchorLookup(c.anchor, c.root, undefined, true) : null;
       L.push(`   ${c.folder} (batch root ${c.root}):`);
       if (a) midnightSteps(a).forEach((step, i) => L.push(`     ${String.fromCharCode(97 + i)}. ${step}`));
@@ -1644,9 +1654,9 @@ export const bundleFiles = async (
     const script = checkScriptFor(ev);
     if (script) add('proof/check-on-midnight.mjs', text(script));
   }
-  // Every carried section that covers the record, each in its own folder with all its files.
-  (ev.registry.carried ?? []).forEach((c, i) => {
-    const g = gathered.carried?.[i];
+  // Each root the backup file gives for the record, in its own folder with all its files.
+  (ev.registry.fileRoots ?? []).forEach((c, i) => {
+    const g = gathered.fileRoots?.[i];
     if (!g) return;
     const at = (f: string) => `${c.folder}/${f}`;
     add(at('inclusion-proof.json'), json(c.proof));
@@ -1655,7 +1665,7 @@ export const bundleFiles = async (
       at('root.bin'),
       Uint8Array.from(c.root.match(/../g) ?? [], (x) => parseInt(x, 16)),
     );
-    otsNames(g.ots.length).forEach((n, k) => add(at(n), g.ots[k].bytes));
+    if (g.ots) add(at('root.bin.ots'), g.ots.bytes);
     tstNames(g.tsts.length).forEach((n, k) => add(at(n), g.tsts[k]));
     const anchor = isObject(c.anchor) ? c.anchor : null;
     const script = checkScriptFor({
@@ -1708,7 +1718,9 @@ export const downloadEvidenceBundle = async (
   keys: RecordKeys | undefined,
   options: EvidenceOptions,
 ): Promise<{ ok: true; name: string } | { error: string }> => {
-  const first = await gatherEvidence(record);
+  const first = options.fromBackupFile
+    ? ((await gatherFromFile(record, options.fromBackupFile)) ?? { error: NOTHING_IN_FILE })
+    : await gatherEvidence(record);
   if ('error' in first) return first;
   const gathered = options.bitcoinHeaders ? await withBitcoinHeaders(first) : first;
   // The sample details on this plant's deliveries: the holder's own, from the registry.

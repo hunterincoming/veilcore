@@ -173,25 +173,19 @@ export const backup = {
   'app.intake.err.hasHash': 'Seine Rückkehradresse hat bereits einen #-Teil.',
   'app.intake.err.badState': 'Sein Sicherheitswert (state) fehlt oder ist fehlerhaft.',
   'app.backup.fromFileAdded': 'Aus der Datei selbst wiederhergestellte Datensätze: {n}.',
-  'app.backup.stampsDisagree':
-    'Ihre Sicherungsdateien sind sich uneinig, wann einige Ihrer Datensätze datiert wurden ({n}). Prüfen Sie diese Daten auf Midnight, bevor Sie sich darauf verlassen: Die technischen Details des Datensatzes sagen, wie.',
-  'app.backup.stampsRefused':
-    'Dieser Browser bewahrt bereits Kopien der Datumsnachweise so vieler Sicherungsdateien auf, wie er kann, daher wurden die dieser Datei nicht aufbewahrt. Bis Sie die Kopien aus anderen Dateien löschen, enthalten die hier heruntergeladenen Datumsnachweise und spätere Sicherungen von hier die dieser Datei nicht. Nichts bereits Aufbewahrte wurde geändert, und Ihre Sicherungsdateien sind unverändert.',
-  'app.backup.stampsTooBig':
-    'Die Datumsnachweise dieser Sicherungsdatei sind zu groß, als dass dieser Browser eine Kopie aufbewahren könnte. Nichts bereits Aufbewahrte wurde geändert. Die Datei selbst enthält sie alle: Bewahren Sie sie sicher auf.',
-  'app.carried.clear': 'Kopien aus Sicherungsdateien löschen',
-  'app.carried.confirmTitle': 'Kopien aus Sicherungsdateien löschen?',
-  'app.carried.confirmText':
-    'Das entfernt nur die Kopien der Datumsnachweise, die dieser Browser aus wiederhergestellten Sicherungsdateien aufbewahrt hat. Was der Server von VeilCore diesem Browser gegeben hat, bleibt. Ihre Sicherungsdateien auf Ihrem Gerät sind unverändert, und Sie können die richtige erneut wiederherstellen.',
-  'app.carried.confirm': 'Löschen',
-  'app.carried.cleared':
-    'Gelöscht. Ihre Sicherungsdateien auf Ihrem Gerät sind unverändert. Stellen Sie Ihre Sicherungsdatei jetzt erneut wieder her, damit ihre Datumsnachweise hier aufbewahrt werden; Sicherungen von vorher enthalten sie nicht.',
-  'app.carried.what':
-    'Kopien der Datumsnachweise aus Sicherungsdateien, die Sie wiederhergestellt haben. Sie werden nur genutzt, wenn VeilCore nicht erreichbar ist, und gelten nie als von VeilCore geprüft.',
-  'app.backup.stampsLimits':
-    'Diese Sicherungsdatei enthält mehr Datumsnachweise, als dieser Browser aus einer Datei aufbewahrt, daher wurde keiner davon aufbewahrt: einige aufzubewahren hieße, andere wegzulassen. Nichts bereits Aufbewahrte wurde geändert. Die Datei selbst enthält sie alle: Bewahren Sie sie sicher auf.',
-  'app.backup.stampsContradicts':
-    'Diese Sicherungsdatei nennt einen Ihrer Datensätze an zwei verschiedenen Stellen zugleich, daher wurde keiner ihrer Datumsnachweise aufbewahrt. Nichts bereits Aufbewahrte wurde geändert. Bewahren Sie die Datei auf und stellen Sie eine wieder her, der Sie vertrauen.',
+  'app.filebundle.open': 'Nachweispaket aus einer Sicherungsdatei erstellen',
+  'app.filebundle.what':
+    'Dafür werden die Datumsnachweise in Ihrer Sicherungsdatei verwendet, es geht also auch, wenn VeilCore nicht erreichbar ist. Nichts aus der Datei wird hier aufbewahrt, und im Paket steht, dass es aus Ihrer Sicherungsdatei stammt und nicht mit VeilCore geprüft ist.',
+  'app.filebundle.offline':
+    'VeilCore ist gerade nicht erreichbar. Sie können das Paket stattdessen aus Ihrer Sicherungsdatei erstellen.',
+  'app.filebundle.pick': 'Sicherungsdatei wählen',
+  'app.filebundle.which': 'Datensatz',
+  'app.filebundle.make': 'Paket erstellen',
+  'app.filebundle.makeFor': 'Paket für {name} erstellen',
+  'app.filebundle.noneForRecord':
+    'Diese Sicherungsdatei hat keine Datumsnachweise für diesen Datensatz. Versuchen Sie eine neuere Sicherungsdatei.',
+  'app.filebundle.noneHere':
+    'Keiner der Datensätze in dieser Datei ist schon auf diesem Gerät. Stellen Sie die Datei zuerst wieder her und erstellen Sie dann hier das Paket.',
   'app.backup.fileIsLasting':
     'Ihre Sicherungsdatei auf Ihrem eigenen Gerät wird durch das Wiederherstellen nie verändert; bewahren Sie sie auf – sie ist die dauerhafte Kopie.',
   'app.backup.rootChanged':

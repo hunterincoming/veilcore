@@ -168,25 +168,19 @@ export const backup = {
   'app.intake.err.hasHash': 'Su dirección de regreso ya tiene una parte #.',
   'app.intake.err.badState': 'Su valor de seguridad (state) falta o no es válido.',
   'app.backup.fromFileAdded': 'Registros recuperados del propio archivo: {n}.',
-  'app.backup.stampsDisagree':
-    'Sus archivos de copia de seguridad no coinciden en cuándo se fecharon algunos de sus registros ({n}). Antes de fiarse de esas fechas, compruébelas en Midnight: los detalles técnicos del registro explican cómo.',
-  'app.backup.stampsRefused':
-    'Este navegador ya guarda copias de las pruebas de fecha de tantos archivos de copia de seguridad como puede, así que no se guardaron las de este archivo. Hasta que borre las copias de otros archivos, las pruebas de fecha que descargue aquí y las copias de seguridad que haga aquí no tendrán las de este archivo. No se cambió nada de lo ya guardado, y sus archivos de copia de seguridad siguen igual.',
-  'app.backup.stampsTooBig':
-    'Las pruebas de fecha de este archivo de copia de seguridad son demasiado grandes para que este navegador guarde una copia. No se cambió nada de lo ya guardado. El archivo mismo las sigue teniendo todas: guárdelo bien.',
-  'app.carried.clear': 'Borrar las copias de archivos de copia de seguridad',
-  'app.carried.confirmTitle': '¿Borrar las copias de archivos de copia de seguridad?',
-  'app.carried.confirmText':
-    'Esto quita solo las copias de pruebas de fecha que este navegador guardó de archivos de copia de seguridad que restauró. Lo que el servidor de VeilCore le dio a este navegador se queda. Sus archivos de copia de seguridad en su dispositivo siguen igual, y puede volver a restaurar el correcto.',
-  'app.carried.confirm': 'Borrarlas',
-  'app.carried.cleared':
-    'Borradas. Sus archivos de copia de seguridad en su dispositivo siguen igual. Ahora vuelva a restaurar su archivo de copia de seguridad para guardar aquí sus pruebas de fecha; las copias de seguridad hechas antes no las tendrán.',
-  'app.carried.what':
-    'Copias de pruebas de fecha de archivos de copia de seguridad que restauró. Solo se usan cuando no se puede contactar con VeilCore, y nunca cuentan como comprobadas por VeilCore.',
-  'app.backup.stampsLimits':
-    'Este archivo de copia de seguridad tiene más pruebas de fecha de las que este navegador guarda de un solo archivo, así que no se guardó ninguna: guardar algunas significaría dejar fuera otras. No se cambió nada de lo ya guardado. El archivo mismo las sigue teniendo todas: guárdelo bien.',
-  'app.backup.stampsContradicts':
-    'Este archivo de copia de seguridad nombra uno de sus registros en dos lugares distintos a la vez, así que no se guardó ninguna de sus pruebas de fecha. No se cambió nada de lo ya guardado. Conserve el archivo y restaure uno en el que confíe.',
+  'app.filebundle.open': 'Crear un paquete de evidencia a partir de un archivo de copia de seguridad',
+  'app.filebundle.what':
+    'Usa las pruebas de fecha que hay dentro de su archivo de copia de seguridad, así que funciona aunque no se pueda conectar con VeilCore. No se guarda aquí nada del archivo, y el paquete dice que viene de su archivo de copia de seguridad, sin comprobar con VeilCore.',
+  'app.filebundle.offline':
+    'Ahora no se puede conectar con VeilCore. Puede crear el paquete a partir de su archivo de copia de seguridad.',
+  'app.filebundle.pick': 'Elegir archivo de copia de seguridad',
+  'app.filebundle.which': 'Registro',
+  'app.filebundle.make': 'Crear el paquete',
+  'app.filebundle.makeFor': 'Crear el paquete de {name}',
+  'app.filebundle.noneForRecord':
+    'Ese archivo de copia de seguridad no tiene pruebas de fecha para este registro. Pruebe con uno más reciente.',
+  'app.filebundle.noneHere':
+    'Ninguno de los registros de ese archivo está todavía en este dispositivo. Restaure primero el archivo y luego cree aquí el paquete.',
   'app.backup.fileIsLasting':
     'Restaurar nunca cambia su archivo de copia de seguridad en su propio dispositivo; consérvelo: es la copia duradera.',
   'app.backup.rootChanged':

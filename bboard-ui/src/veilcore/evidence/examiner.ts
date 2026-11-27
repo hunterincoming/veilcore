@@ -13,7 +13,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { isNumber, isObject, isString } from '../json';
-import { carriedDisagree, type Evidence, type SignatureLine } from './bundle';
+import { fileRootsDisagree, type Evidence, type SignatureLine } from './bundle';
 import {
   anchorLookup,
   bitcoinSteps,
@@ -341,14 +341,14 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   // How it was checked: what the site did when it made the bundle, and what it did not do.
   const checked: string[] = [
     ...(fromFile ? [`Not confirmed: ${UNCONFIRMED_WORDS}`] : []),
-    ...(ev.registry.carried?.length
+    ...(ev.registry.fileRoots?.length
       ? [
-          `Restored from backup files, none confirmed and none ranked first: ${ev.registry.carried
+          `From the holder’s backup file, not confirmed with VeilCore’s registry: ${ev.registry.fileRoots
             .map((c) => `${c.folder} (batch ${oneLine(c.batchId)}, batch root ${c.root})`)
             .join('; ')}.`,
-          ...(carriedDisagree(ev) ? [`Backup files disagree: ${DISAGREE_WORDS}`] : []),
+          ...(fileRootsDisagree(ev) ? [`More than one root: ${DISAGREE_WORDS}`] : []),
           ...(ev.registry.registryRoots ?? []).map(
-            (r) => `VeilCore’s registry gave this batch another root, for another of the holder’s records: ${r}.`,
+            (r) => `VeilCore’s registry gave the holder’s browser another root for this batch: ${r}.`,
           ),
         ]
       : []),

@@ -733,27 +733,26 @@ var VeilcoreVerify = (function () {
       if (e && e.txHash) midnight.push(e);
     }
     var ots = batch && isObject(batch.opentimestamps) ? batch.opentimestamps : null;
-    // Every section restored from a backup file that covers the record (registry.carried), each
-    // looked up the same way, none ranked first.
-    var carried = [];
-    var secs = fromFile && Array.isArray(registry.carried) ? registry.carried : [];
+    // Each root the holder's backup file gives for the record (registry.fileRoots), each looked
+    // up the same way, none ranked first.
+    var fileRoots = [];
+    var secs = fromFile && Array.isArray(registry.fileRoots) ? registry.fileRoots : [];
     for (var j = 0; j < secs.length && j < 16; j++) {
       var x = secs[j];
       if (!isObject(x) || !isHex64(x.root)) continue;
-      carried.push({
+      fileRoots.push({
         index: j,
         folder: typeof x.folder === 'string' ? x.folder : '',
         batchId: typeof x.batchId === 'string' ? x.batchId : '',
         root: x.root,
         files: Array.isArray(x.files) ? x.files.filter(function (f) { return typeof f === 'string'; }) : [],
-        // Copies giving the same root are shown once, with their number (review 6).
-        copies: typeof x.copies === 'number' && x.copies > 0 ? x.copies : 1,
-        otsFiles: typeof x.otsFiles === 'number' ? x.otsFiles : 0,
+        // A root the registry gave later, after giving another for the same batch.
+        later: x.later === true,
         midnight: anchorLookup(x.anchor, x.root, true, contracts, true),
       });
     }
     var distinct = {};
-    for (var q = 0; q < carried.length; q++) distinct[carried[q].batchId + ' ' + carried[q].root] = true;
+    for (var q = 0; q < fileRoots.length; q++) distinct[fileRoots[q].batchId + ' ' + fileRoots[q].root] = true;
     var registryRoots = Array.isArray(registry.registryRoots) ? registry.registryRoots.filter(isHex64) : [];
     for (var r = 0; r < registryRoots.length; r++) distinct['registry ' + registryRoots[r]] = true;
     return {
@@ -762,9 +761,9 @@ var VeilcoreVerify = (function () {
       // the holder's backup file says it, not confirmed with VeilCore's registry or Midnight.
       source: source,
       fromBackupFile: fromFile,
-      carried: carried,
+      fileRoots: fileRoots,
       registryRoots: registryRoots,
-      // More than one root across the backup files' sections (and the registry's): they disagree.
+      // More than one root from the backup file (and the registry's): at most one is Midnight's.
       disagree: Object.keys(distinct).length > 1,
       midnight: midnight,
       // The registry's report of the stamp, named as such; what the file itself shows is readStamp's.
@@ -887,11 +886,11 @@ var VeilcoreVerify = (function () {
     out.datable = datable(out);
     var embeddedOts = opts && opts.ots instanceof Uint8Array ? opts.ots : null;
     if (embeddedOts) out.stamp = await readStamp(embeddedOts, out.lookups.root);
-    // Each carried section's own checks: its proof leads from this record to its root, and its
-    // stamp file (carried in evidence.json) starts from that root.
-    out.carried = [];
-    var cs = out.lookups.carried;
-    var raw = isObject(ev.registry) && Array.isArray(ev.registry.carried) ? ev.registry.carried : [];
+    // Each root's own checks: its proof leads from this record to its root, and its stamp file
+    // (in evidence.json) starts from that root.
+    out.fileRoots = [];
+    var cs = out.lookups.fileRoots;
+    var raw = isObject(ev.registry) && Array.isArray(ev.registry.fileRoots) ? ev.registry.fileRoots : [];
     for (var ci = 0; ci < cs.length; ci++) {
       var src = raw[cs[ci].index] || {};
       var otsBytes = null;
@@ -902,7 +901,7 @@ var VeilcoreVerify = (function () {
           otsBytes = null;
         }
       }
-      out.carried.push({
+      out.fileRoots.push({
         proof: await checkProof(src.proof, fingerprint, cs[ci].root),
         stamp: otsBytes ? await readStamp(otsBytes, cs[ci].root) : null,
         tokens: typeof src.tokens === 'number' ? src.tokens : 0,

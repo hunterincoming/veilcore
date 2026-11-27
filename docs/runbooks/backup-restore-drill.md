@@ -33,61 +33,43 @@ The app's own code, in several pretend browsers against a stand-in registry:
 - The two dates that don't depend on Midnight (from 26 Nov): the stand-in registry stamps the
   batch root on Bitcoin (an OpenTimestamps file, pending at first) and with a local
   timestamp authority (RFC 3161, made with openssl), and gives each record's proof code a token
-  of its own. The file carries all of them (`stamps`). Restored with the registry gone, the
-  file's date proofs are kept on the new device as one sealed section (`src/veilcore/stamps.ts`),
-  never as the registry's answer, and the evidence bundle made there carries that section in
-  its own folder (`proof/backup-file-1`) with all its files: `verify.html`'s own reader reads
-  the Bitcoin file against the batch root, and the SDK and `openssl ts -verify` (the bundle
-  README's step) both pass the token. README.txt, EXAMINER-SUMMARY.html, evidence.json and
-  verify.html's own code all say it is from a backup file and not yet confirmed, and none says
-  our registry reported it. A backup made there, still without the registry, carries the section
-  exactly as kept (`stamps.carried`), nothing in `proofs`; restoring the same file again changes
-  nothing; the first backup with the registry back fills the registry's part again.
+  of its own. The file carries all of them (`stamps`), and only what the registry gave. Restored
+  with the registry gone, the new device stores none of them (restoring doesn't import a file's
+  stamps, `src/veilcore/stamps.ts`); the evidence bundle made straight from the backup file
+  there, in memory, has the file's root in its own folder (`proof/backup-file-1`) with all its
+  files: `verify.html`'s own reader reads the Bitcoin file against the batch root, and the SDK and
+  `openssl ts -verify` (the bundle README's step) both pass the token. README.txt,
+  EXAMINER-SUMMARY.html, evidence.json and verify.html's own code all say it is from the
+  holder's backup file and not confirmed, and none says our registry reported it. Making the
+  bundle stores nothing; a backup made there, still without the registry, carries nothing from
+  the file; the first backup with the registry back carries the registry's stamps again. A
+  locked file needs its password, and a wrong one is refused.
 - A pending Bitcoin stamp is kept, the next backup takes the finished one once the registry
   has it, and neither a registry serving the pending one again nor an older file takes the
   finished one away.
-- Doctored stamps are refused (the bundle has none, no later backup carries them): another
-  batch's files under this batch (with its own root, or said to start from this root), this
-  batch's files under another batch's name, a changed token or Bitcoin file, one record's token
-  moved onto another record, a token from a timestamp authority the site doesn't pin, a pinned
-  authority's token outside its certificate's dates, and Bitcoin files padded past 16 KB. A
-  section naming a record under more than one batch gives nothing for it, and proofs for codes
-  not held here add nothing.
-- Made-up files (reviews 1 to 4 of PR #233; proof codes are public, so anyone can build one).
-  Each file's date proofs are their own sealed section: nothing a later file says can change or
-  remove an earlier one. The drill checks:
+- Doctored stamps are left out of the bundle, and nothing is stored: another batch's files
+  under this batch (with its own root, or said to start from this root), this batch's files
+  under another batch's name, a changed token or Bitcoin file, a token from a timestamp
+  authority the site doesn't pin, and a pinned authority's token outside its certificate's
+  dates. A proof that doesn't lead from the record to its root gives nothing, and the holder
+  is told. A null or junk in a file never stops the rest.
+- Made-up files (reviews 1 to 7 of PR #233; proof codes are public, so anyone can build one).
+  Nothing from a file is kept, so none can spread. The drill checks:
   - on the original device, a made-up file changes nothing the registry gave;
-  - a made-up stamp file for the genuine root, pending or finished, can't replace the genuine
-    one: both sections are kept and both are in the bundle, side by side;
-  - a made-up file restored first can't keep the genuine tokens out;
-  - one made-up file giving other batches, or other roots for the genuine batch, can't push the
-    genuine section out, and the restore page says the backup files disagree;
-  - every section in a bundle gets all its files, the genuine one included;
-  - eight made-up files restored after the genuine one can't push it out: seven fit beside it,
-    the eighth is refused and the restore page says so;
-  - what a made-up file brings is never counted as put back;
+  - a made-up file restored before the genuine one never reaches a later backup, on that device
+    or on a third one; the genuine file's bundle shows the genuine root, transaction and dates,
+    with nothing from the made-up one (review 7, R7-1 and R7-2); the made-up file's own bundle
+    is labelled as from that file;
   - flags in a file saying its data is confirmed change nothing;
-  - a made-up root for a record whose batch the registry gave names the registry's root too,
-    and the genuine file then counts as the registry's;
-  - if the registry later gives another root for a sealed batch, the first root and its
-    finished Bitcoin stamp stay, the new answer is carried, and the backup page warns;
-  - (review 5) one made-up file carrying eight sections takes one place, and the genuine file
-    still gets in; when the browser is full, clearing the copies lets the genuine file in, and
-    never touches the registry's part; the same evidence in another order, or with a token
-    twice, is already kept; a file's proof for a root the registry gave the batch brings only its
-    path, never a transaction or date; a null in a registry answer never takes the stamps out of
-    later backups; a null or junk in a file's proofs never drops the rest; a file too big alone
-    is refused with its own reason.
-  - (review 6) nothing from a file is ever cut: a made-up 15-part section kept first can't push
-    the genuine section out of later backups, and the genuine root is still there after a
-    backup made on that device is restored on a third one; the same root from many copies is
-    shown once with its count and every Bitcoin file; files that carried each other are
-    recognised as the same; a proof keeps its `formatVersion` as text, in the bundle's
-    `inclusion-proof.json` and in later backups; after clearing, a backup made before restoring
-    again doesn't hold the proofs, restoring again brings them back, and the message says so;
-    more sections than kept, more than 64 parts in a section, more than 8 tokens on an item, a
-    Bitcoin file over 16 KB, or a record under two batches in one part each refuse the whole
-    file's date proofs with a reason, and nothing already kept changes.
+  - a made-up root for a batch the registry gave this browser names the registry's root too,
+    and every page says there is more than one root;
+  - if the registry later gives other roots for a sealed batch (twice), the first root and its
+    finished Bitcoin stamp stay, the backup page warns, the file carries each later root once
+    (`stamps.changed`), and a bundle from that file shows every root in its own folder, the
+    first one first (review 7, R7-3);
+  - a null in a registry answer never takes the stamps out of later backups;
+  - a proof keeps its `formatVersion` as text, in the bundle's `inclusion-proof.json` and in
+    later backups.
 - Kept stamps go only when their record is deleted on that browser, not when a record is missing
   from one backup.
 - A wrong password, no password, a cut-off file and a changed file are all refused, and nothing
@@ -117,19 +99,15 @@ signature or a real license on chain.
 
 Both were checked to fail when restore is broken on purpose (licenses held left out of the
 restore, and lab signatures left out), then put back. The stamp tests were checked the same way
-on the design as it is now (26 Nov, after the fourth review of PR #233), one break at a time:
-a later section merged into an earlier one, the oldest section evicted when full, no limit on
-sections, the same section stored twice, the bundle showing only the newest section, a record
-named under many batches in one section kept, a disagreement not reported, unpinned tokens
-taken, a registry root change overwriting the first, no pruning on delete, verify.html not
-reading the sections, and README not labelled. After the fifth review, the same for its fixes:
-the file's proof taken whole for a registry batch, proofs not rebuilt from known fields, each
-carried section taking its own place, items not sorted, tokens not deduped, clearing doing
-nothing, and no too-big reason. After the sixth review, the same for its fixes: a whole-file
-cap of 15 parts put back (the genuine root went missing), each section's parts cut instead of
-refused, the section, token, Bitcoin-file-size and two-batch checks each removed, the format
-version kept only as a number, and copies of the same root not grouped. Each made at least one
-test fail.
+on the design as it is now (27 Nov, after the seventh review of PR #233 dropped importing a
+file's stamps), one break at a time:
+a restore importing the file's proofs and stamps again, making a bundle from a file storing
+what it read, a file's proof taken without checking it leads to the root, a Bitcoin file taken
+without reading it, tokens taken without the pinned authorities, the file's later roots not
+read, the later roots merged into one entry per batch, README not labelled, verify.html not
+reading the file's roots, a registry root change overwriting the first, a finished Bitcoin
+stamp swapped back for a pending one, no pruning on delete, the format version dropped, and the
+registry's own root not named beside a file's. Each made at least one test fail.
 
 ## What the drill found (26 Nov 2026)
 
@@ -145,12 +123,14 @@ Fixed in the same change:
 
 3. (Foundation review, 26 Nov.) **The Bitcoin stamp files and RFC 3161 tokens were not in the
    file.** With the registry and its backups gone, a holder kept only the Midnight date. The
-   file now carries them (`stamps`). The browser keeps what the registry gave; what a restored
-   file brings is kept as one sealed section per file, checked for form, limited to 8 sections
-   (the holder can clear them), never merged, evicted or cut (a file past a limit is refused
-   whole, with its reason), and labelled as not confirmed wherever it is used
-   (`src/veilcore/stamps.ts`). Your backup file on your own device is never changed by
-   restoring; keep it — it's the lasting copy.
+   file now carries them (`stamps`), only as the registry gave them. Restoring doesn't import
+   them; with the registry out of reach, an evidence bundle is made straight from the file
+   (read in memory, checked for form, nothing stored), labelled on every page as from the
+   holder's backup file and not confirmed (`src/veilcore/stamps.ts`). An earlier version of
+   this change imported each restored file's stamps and carried them into later backups;
+   review 7 found every problem left came from that, so it was removed before release. Your
+   backup file on your own device is never changed by restoring; keep it — it's the lasting
+   copy.
 
 Known gaps, not fixed here:
 
@@ -167,11 +147,11 @@ Known gaps, not fixed here:
    this repository. The drill expects exactly this one failure, so a fixed version makes it fail
    and the line gets updated.
 6. **`npx veilcore-records backup` doesn't read `stamps` yet.** The files are in the backup as
-   the registry served them (base64 `.ots` and `.tst`), and the app checks them on restore;
-   checking them from the command line is a change for `veilcore-sdk`.
+   the registry served them (base64 `.ots` and `.tst`), and the app checks them when it makes a
+   bundle from the file; checking them from the command line is a change for `veilcore-sdk`.
 7. **An evidence bundle made with the registry gone has no lab signatures the registry
    serves** (no `lab/signatures.json`, and `evidence.json` says the bundle was made from the
-   browser's copy). The record's own lab signature still comes back onto the record.
+   browser's copy, or from the backup file). The record's own lab signature still comes back onto the record.
 8. Small things a new device doesn't get, by design or for later: payment partner keys a checker
    named, records a checker watches, remembered spreadsheet column layouts, and which spreadsheet
    rows were already sealed. None of them is a holder's record or key.

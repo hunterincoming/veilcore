@@ -230,18 +230,18 @@ export const sealedNameOf = (fields: unknown): string => {
 };
 
 /**
- * Said wherever a bundle's batch data came only from a backup file (source `backup-file`,
- * stamps.ts): README.txt, EXAMINER-SUMMARY.html and evidence.json.
+ * Said wherever a bundle was made straight from a backup file (source `backup-file`, stamps.ts
+ * evidenceFromFile): README.txt, EXAMINER-SUMMARY.html, evidence.json and verify.html.
  */
 export const UNCONFIRMED_WORDS =
-  'The batch root, the proof that leads to it and its stamps were restored from a backup file and are not yet confirmed with VeilCore’s registry or Midnight. Look the batch root up on Midnight before relying on any date in this bundle.';
+  'The batch root, the proof that leads to it and its stamps come from the holder’s backup file and are not confirmed with VeilCore’s registry. Look the batch root up on Midnight before relying on any date in this bundle.';
 
 /**
- * Said wherever the carried sections in a bundle name more than one root (evidence.json
- * registry.carried, stamps.ts): README.txt, EXAMINER-SUMMARY.html and verify.html.
+ * Said wherever a backup file gives more than one root for a record (evidence.json
+ * registry.fileRoots): README.txt, EXAMINER-SUMMARY.html and verify.html.
  */
 export const DISAGREE_WORDS =
-  'The holder’s backup files disagree: they give more than one batch root for this record, and all of them are in this bundle (proof/backup-file-*), none ranked first. At most one can be the root Midnight holds. Look each one up on Midnight; rely only on the one the transaction wrote.';
+  'The holder’s backup file gives more than one batch root for this record (VeilCore’s registry gave a second one later, which should never happen). Each is in this bundle in its own folder (proof/backup-file-*), none ranked first. At most one can be the root Midnight holds. Look each one up on Midnight; rely only on the one the transaction wrote.';
 
 /** Who said where the batch root was recorded: VeilCore's registry, or only the holder's backup file. */
 export const reporterWords = (source: string): string =>

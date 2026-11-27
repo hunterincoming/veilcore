@@ -17,10 +17,12 @@
 //   - the licensee's file brings back the license and its deal;
 //   - with the registry gone, the file alone brings back every record, key, lab signature and
 //     claim; the license itself is the one gap, as the runbook says;
-//   - and the two dates that don't depend on Midnight: the evidence bundle downloaded then, from
-//     the real record page, still carries the batch's Bitcoin stamp file and RFC 3161 token, kept
-//     from the file and marked as not yet confirmed with the registry; openssl checks the token
-//     and verify.html, opened from disk offline, reads the Bitcoin file;
+//   - and the two dates that don't depend on Midnight: restoring stores none of the file's date
+//     proofs; the record page's evidence bundle, made straight from the backup file when the
+//     registry can't be reached, carries the batch's Bitcoin stamp file and RFC 3161 token, marked
+//     as from the backup file and not confirmed with the registry; openssl checks the token and
+//     verify.html, opened from disk offline, reads the Bitcoin file; the restore page offers the
+//     same under Technical details;
 //   - the file opens with veilcore-records, without the website.
 // The stand-in registry is in this file. All names, keys and figures are practice data.
 // SPDX-License-Identifier: Apache-2.0
@@ -444,6 +446,15 @@ test('the backup restore drill: everything comes back from the file alone, and s
   await expect(A3.page.locator('[data-restore-file-lasting]')).toHaveText(
     'Your backup file on your own device is never changed by restoring; keep it — it’s the lasting copy.',
   );
+  // Restoring brought no date proofs into the browser; the restore page offers a bundle from the file.
+  expect(await A3.page.evaluate(() => localStorage.getItem('veilcore.stamps.v1'))).toBeNull();
+  await A3.page.locator('[data-restore-tech]').click();
+  await expect(A3.page.getByText('Make an evidence bundle from a backup file')).toBeVisible();
+  await A3.page.locator('[data-from-file-input]').setInputFiles(fileA);
+  await A3.page.getByLabel("The backup's password").fill(PASSWORD);
+  await A3.page.getByRole('button', { name: 'Open it' }).click();
+  await expect(A3.page.locator('[data-from-file-make]')).toBeVisible();
+  await expect(A3.page.locator('[data-from-file-which]')).toHaveCount(1);
   const gotA3 = await step<Snapshot>(A3.page, 'step=snapshot');
   // The one gap, as the runbook says: the license itself lives on the registry only.
   expect(differ(wantA.snapshot, gotA3.snapshot), 'came back different (beyond the known gap)').toEqual([
@@ -457,15 +468,23 @@ test('the backup restore drill: everything comes back from the file alone, and s
   };
   expect(Object.keys(inner.stamps.batches)).toEqual([BATCH_ID]);
   expect(Object.keys(inner.stamps.records)).toHaveLength(5);
-  // The evidence bundle, from the real record page, with the registry gone: the stamps kept
-  // from the file are in it.
+  // The evidence bundle, from the real record page, with the registry gone: VeilCore can't be
+  // reached, so the dialog offers the backup file, and the bundle is made straight from it.
   await A3.page.goto(`/record/${plant}?lang=en`);
   await A3.page.getByRole('button', { name: 'Technical details' }).click();
   await A3.page.getByRole('button', { name: 'Download evidence bundle' }).first().click();
   const dialog = A3.page.getByRole('dialog', { name: 'Download evidence bundle' });
-  const zipped = A3.page.waitForEvent('download');
   await dialog.getByRole('button', { name: /^Download$/ }).click();
-  await expect(dialog.getByText(/^Downloaded .+\.zip\./)).toBeVisible({ timeout: 60_000 });
+  await expect(dialog.locator('[data-bundle-offline]')).toContainText(
+    'VeilCore can’t be reached right now. You can make the bundle from your backup file instead.',
+  );
+  await dialog.locator('[data-from-file-input]').setInputFiles(fileA);
+  await dialog.getByLabel("The backup's password").fill(PASSWORD);
+  await dialog.getByRole('button', { name: 'Open it' }).click();
+  const zipped = A3.page.waitForEvent('download');
+  await dialog.locator('[data-from-file-make]').click();
+  await expect(dialog.locator('[data-from-file-done]')).toContainText(/^Downloaded .+\.zip\./, { timeout: 60_000 });
+  expect(await A3.page.evaluate(() => localStorage.getItem('veilcore.stamps.v1')), 'nothing stored').toBeNull();
   const bundleDir = path.join(dir, 'bundle');
   for (const [name, bytes] of Object.entries(unzipSync(new Uint8Array(fs.readFileSync(await (await zipped).path()))))) {
     const out = path.join(bundleDir, name);
@@ -477,16 +496,16 @@ test('the backup restore drill: everything comes back from the file alone, and s
   const ev = JSON.parse(fs.readFileSync(path.join(top, 'evidence.json'), 'utf8')) as {
     registry: {
       source: string;
-      carried?: { folder: string; opentimestamps: { available: boolean }; tokens: number }[];
+      fileRoots?: { folder: string; opentimestamps: { available: boolean }; tokens: number }[];
     };
   };
   // A new device with the registry gone can't confirm anything, and the bundle says so: the
-  // file's date proofs are one section, in its own folder with all its files.
+  // file's root is in its own folder with all its files.
   expect(ev.registry.source).toBe('backup-file');
   expect(fs.readFileSync(path.join(top, 'README.txt'), 'utf8')).toContain('NOT CONFIRMED:');
-  expect(ev.registry.carried?.map((c) => c.folder)).toEqual(['proof/backup-file-1']);
-  expect(ev.registry.carried?.[0].opentimestamps.available).toBe(true);
-  expect(ev.registry.carried?.[0].tokens).toBe(1);
+  expect(ev.registry.fileRoots?.map((c) => c.folder)).toEqual(['proof/backup-file-1']);
+  expect(ev.registry.fileRoots?.[0].opentimestamps.available).toBe(true);
+  expect(ev.registry.fileRoots?.[0].tokens).toBe(1);
   const folder = path.join(top, 'proof/backup-file-1');
   // The README's own step for the token, with no network.
   const ssl = await run('openssl', [
@@ -502,19 +521,19 @@ test('the backup restore drill: everything comes back from the file alone, and s
   ]);
   expect(ssl.stdout).toContain('Verification: OK');
   // verify.html from disk, offline: it reads where the data came from, says so first, and lists
-  // the section with its own checks; it never says our registry reported it.
+  // the file's root with its own checks; it never says our registry reported it.
   const offline = await browser.newContext({ offline: true });
   const v = await offline.newPage();
   await v.goto(`file://${path.join(top, 'verify.html')}`);
   await expect(v.locator('body')).toHaveAttribute('data-checked', 'yes');
   await expect(v.locator('[data-check="unconfirmed"]')).toContainText(
-    'restored from a backup file, not yet confirmed with VeilCore’s registry or Midnight',
+    'come from the holder’s backup file, not confirmed with VeilCore’s registry',
   );
-  const carried = v.locator('[data-check="carried"]');
-  await expect(carried).toContainText('proof/backup-file-1');
-  await expect(carried).toContainText('Its proof leads from this record’s proof code to that root.');
-  await expect(carried).toContainText(`names block ${STAMP_BLOCK}`);
-  await expect(carried).toContainText('The holder’s backup file says it is');
+  const fromFile = v.locator('[data-check="from-file"]');
+  await expect(fromFile).toContainText('proof/backup-file-1');
+  await expect(fromFile).toContainText('Its proof leads from this record’s proof code to that root.');
+  await expect(fromFile).toContainText(`names block ${STAMP_BLOCK}`);
+  await expect(fromFile).toContainText('The holder’s backup file says it is');
   await expect(v.locator('body')).not.toContainText('VeilCore’s registry reported this transaction');
   await expect(v.locator('body')).not.toContainText('VeilCore’s registry reports it is');
   await offline.close();
