@@ -74,8 +74,9 @@ const LIVE_ROWS = [
 
 /**
  * With the mainnet sponsor live (scripts/deploy-mainnet.mjs), "prove it by link" is offered on
- * veilcore.org as on the test site. Its veilcore.org cell says "built, not yet tried" until it has
- * worked there (config/copy.ts PROVE_BY_LINK_RUN_ON_MAINNET), then the same as the test cell.
+ * veilcore.org as on the test site. Its veilcore.org cell said "built, not yet tried" until it had
+ * worked there; since 27 Nov 2026 (config/copy.ts PROVE_BY_LINK_RUN_ON_MAINNET) it says the same
+ * as the test cell.
  */
 type LiveRow = (typeof LIVE_ROWS)[number];
 // Read when drawn, not when this file loads: it is in a chunk the How it works page shares, and

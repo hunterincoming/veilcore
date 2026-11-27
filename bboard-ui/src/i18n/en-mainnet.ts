@@ -36,6 +36,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { StringKey } from './en';
+import { PROVE_BY_LINK_RUN_ON_MAINNET } from '../config/copy';
 import { applyLiveSwaps, withoutCadence, type LiveSwaps } from './mainnet-overlay';
 
 type Overlay = Partial<Record<StringKey, string>>;
@@ -211,7 +212,14 @@ const sendsStrings = (o: Overlay): Overlay => ({
     'On this website the pairing is saved with your record but not yet dated.',
     'On this website you can date the pairing from your browser, and nobody can copy it to their own record.',
   ),
-  'm.for.6p': swapIn(o['m.for.6p'], " This website can't do it yet.", ' Not yet tried on the main network.'),
+  // Proving a record by link has worked on veilcore.org since 27 Nov 2026 (config/copy.ts).
+  'm.for.6p': swapIn(
+    o['m.for.6p'],
+    " This website can't do it yet.",
+    PROVE_BY_LINK_RUN_ON_MAINNET
+      ? " This works on veilcore.org, on Midnight's main network."
+      : ' Not yet tried on the main network.',
+  ),
   'm.live.stamp.main':
     "Yes. Batches are dated automatically, and that dates your record. Your browser also date stamps your record's own key, which dates only the key.",
   'm.live.dna.main': 'Yes, sent from your browser. VeilCore pays the fee.',

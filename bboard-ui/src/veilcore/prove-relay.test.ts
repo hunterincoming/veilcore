@@ -80,6 +80,27 @@ describe('the checker asks', () => {
     expect(relay.tokenFromHash(`#x=${TOKEN}`)).toBeUndefined();
   });
 
+  it('keeps what the record is about, so the answer says "animal" on a page that does not hold it', async () => {
+    vi.stubGlobal('fetch', (url: string, init?: RequestInit) => {
+      sent.push({ url, init });
+      return respond(200, { id: ID });
+    });
+    const relay = await import('./prove-relay');
+    const r = await relay.askToProve({ identity: IDENTITY, subject: 'animal' });
+    if ('error' in r) throw new Error(r.error);
+    expect(r.ask.subject).toBe('animal');
+    expect(relay.askSubject(relay.myAsk(ID))).toBe('animal');
+    // Only this browser keeps it: the registry is told nothing about the record.
+    expect(sent[0].init?.body).not.toContain('animal');
+    // A request made before this, or anything else stored, reads as a plant.
+    expect(relay.askSubject({})).toBe('plant');
+    expect(relay.askSubject(undefined)).toBe('plant');
+    expect(relay.askSubject({ subject: 'document' as never })).toBe('plant');
+    const plain = await relay.askToProve({ identity: IDENTITY, subject: 'plant' as never });
+    if ('error' in plain) throw new Error(plain.error);
+    expect('subject' in plain.ask).toBe(false);
+  });
+
   it('says so when the registry is down or answers nonsense, and keeps nothing', async () => {
     vi.stubGlobal('fetch', () => Promise.reject(new TypeError('Failed to fetch')));
     const relay = await import('./prove-relay');

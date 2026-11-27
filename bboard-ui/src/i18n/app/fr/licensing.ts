@@ -436,6 +436,10 @@ export const licensing = {
   'app.lic.proof.okText':
     'La personne qui a répondu à votre lien détenait une licence valide émise à partir de l’enregistrement de clé {key} au moment où sa réponse est arrivée, le {when}. Cela n’indique ni quelle licence, ni ses conditions, ni qui elle est. Une licence peut être révoquée plus tard : pour une réponse récente, faites une nouvelle demande.',
   'app.lic.proof.sendLink': 'Envoyez-lui ce lien. Sa réponse s’affiche ici, vérifiée sur la chaîne.',
+  'app.lic.proof.share':
+    'Je vous demande de prouver sur VeilCore que vous détenez une licence valide issue de cet enregistrement. Ouvrez ce lien : {link}',
+  'app.lic.proof.shareAsker':
+    '{asker} vous demande de prouver sur VeilCore que vous détenez une licence valide issue de cet enregistrement. Ouvrez ce lien : {link}',
   'app.lic.proof.ended': 'Cette demande est terminée. Faites-en une nouvelle.',
   'app.lic.proof.unreachable': 'Le registre VeilCore est injoignable pour le moment. Cette page continue d’essayer.',
   'app.lic.proof.pending': 'Une réponse est arrivée. En attente que le réseau l’affiche…',

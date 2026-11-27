@@ -4,7 +4,9 @@
 
 import type { Strings } from './en';
 import { buildMainnet } from './mainnet-overlay';
+import { PROVE_BY_LINK_RUN_ON_MAINNET } from '../config/copy';
 
+// m.for.6p: proving a record by link has worked on veilcore.org since 27 Nov 2026 (config/copy.ts).
 const sendsCommon: Strings = {
   'm.hero.status':
     'Der Smart Contract von VeilCore läuft im Hauptnetz von Midnight. Datensätze, die auf dieser Website versiegelt werden, sind echte Datensätze: Sie kommen in Stapel, die dort automatisch verankert werden. Einen DNA-Bericht datieren funktioniert hier ebenfalls, und VeilCore zahlt die Netzwerkgebühr. Lizenzen und Laborvereinbarungen sind hier noch simuliert.',
@@ -21,7 +23,10 @@ const sendsCommon: Strings = {
   'm.for.1p':
     'Versiegeln Sie einen Datensatz und koppeln Sie seinen DNA-Bericht. Taucht die Pflanze unter anderem Namen auf, kann ein Labor einen neuen Test mit Ihrem Bericht vergleichen. Auf dieser Website können Sie die Kopplung aus Ihrem Browser datieren, und niemand kann sie in seinen eigenen Datensatz kopieren. VeilCore testet keine DNA.',
   'm.for.6p':
-    'Man schickt Ihnen einen Link. Sie tippen einmal, und die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel Ihres Datensatzes kontrollieren. Ihr Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen. Wer Sie sind oder wer die Pflanze gezüchtet hat, zeigt es nicht. Im Hauptnetz noch nicht ausprobiert.',
+    'Man schickt Ihnen einen Link. Sie tippen einmal, und die Seite der anderen Person prüft im Netzwerk, dass Sie den eigenen Schlüssel Ihres Datensatzes kontrollieren. Ihr Datensatz hat diesen Schlüssel beim Versiegeln benannt, deshalb lässt er sich nicht austauschen. Wer Sie sind oder wer die Pflanze gezüchtet hat, zeigt es nicht.' +
+    (PROVE_BY_LINK_RUN_ON_MAINNET
+      ? ' Das funktioniert auf veilcore.org, im Hauptnetz von Midnight.'
+      : ' Im Hauptnetz noch nicht ausprobiert.'),
   'm.live.stamp.main':
     'Ja. Stapel werden automatisch datiert, und das datiert Ihren Datensatz. Ihr Browser setzt außerdem einen Datumsstempel auf den eigenen Schlüssel Ihres Datensatzes, der nur den Schlüssel datiert.',
   'm.live.dna.main': 'Ja, aus Ihrem Browser gesendet. VeilCore zahlt die Gebühr.',

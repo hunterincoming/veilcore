@@ -4,7 +4,9 @@
 
 import type { Strings } from './en';
 import { buildMainnet } from './mainnet-overlay';
+import { PROVE_BY_LINK_RUN_ON_MAINNET } from '../config/copy';
 
+// m.for.6p: proving a record by link has worked on veilcore.org since 27 Nov 2026 (config/copy.ts).
 const sendsCommon: Strings = {
   'm.hero.status':
     'Le smart contract de VeilCore est sur le réseau principal de Midnight. Les enregistrements scellés sur ce site sont de vrais enregistrements : ils vont dans des lots qui y sont ancrés automatiquement. Dater un rapport ADN fonctionne aussi ici, et VeilCore paie les frais du réseau. Les licences et les accords avec les laboratoires sont encore simulés ici.',
@@ -21,7 +23,10 @@ const sendsCommon: Strings = {
   'm.for.1p':
     'Scellez un enregistrement et associez-y son rapport ADN. Si la plante réapparaît sous un autre nom, un laboratoire peut comparer un nouveau test avec votre rapport. Sur ce site, vous pouvez dater l’association depuis votre navigateur, et personne ne peut la copier sur son propre enregistrement. VeilCore ne fait pas de tests ADN.',
   'm.for.6p':
-    'On vous envoie un lien. Vous touchez une fois, et la page de votre interlocuteur vérifie sur le réseau que vous contrôlez la clé propre à votre enregistrement. Votre enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée. Cela ne dit rien de qui vous êtes ni de qui a obtenu la plante. Pas encore essayé sur le réseau principal.',
+    'On vous envoie un lien. Vous touchez une fois, et la page de votre interlocuteur vérifie sur le réseau que vous contrôlez la clé propre à votre enregistrement. Votre enregistrement a nommé cette clé au moment où il a été scellé : elle ne peut donc pas être remplacée. Cela ne dit rien de qui vous êtes ni de qui a obtenu la plante.' +
+    (PROVE_BY_LINK_RUN_ON_MAINNET
+      ? ' Cela fonctionne sur veilcore.org, sur le réseau principal de Midnight.'
+      : ' Pas encore essayé sur le réseau principal.'),
   'm.live.stamp.main':
     'Oui. Les lots sont datés automatiquement, et cela date votre enregistrement. Votre navigateur appose aussi un horodatage sur la clé propre à votre enregistrement, qui ne date que la clé.',
   'm.live.dna.main': 'Oui, envoyé depuis votre navigateur. VeilCore paie les frais.',

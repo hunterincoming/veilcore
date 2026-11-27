@@ -41,6 +41,7 @@ import { useChainCall } from '../chain/useChainCall';
 import { ChainStatusLine } from '../chain/ChainStatusLine';
 import { SendLink } from '../chain/ProveWatch';
 import { rich, useT } from '../../i18n/app';
+import { forKind, type RecordKind } from '../../i18n/translate';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 import { errorReason } from '../../i18n/error-words';
 import { CODE_FONT } from '../../config/theme';
@@ -145,7 +146,7 @@ export const LicenseProofWatch: React.FC<{ ask: MyAsk; asker?: string }> = ({ as
       {state !== 'expired' && (
         <>
           <Typography variant="body2">{tr.t('app.lic.proof.sendLink')}</Typography>
-          <SendLink link={proveLink(ask.id, ask.token, 'license')} asker={asker} />
+          <SendLink link={proveLink(ask.id, ask.token, 'license')} asker={asker} sentence="license" />
         </>
       )}
       {state === 'expired' ? (
@@ -179,8 +180,13 @@ export const LicenseProofWatch: React.FC<{ ask: MyAsk; asker?: string }> = ({ as
 };
 
 /** On a record's check page: ask someone to prove they hold a live license from it. */
-export const LicenseProofPanel: React.FC<{ identity: string; recordId?: string }> = ({ identity: raw, recordId }) => {
-  const tr = useT();
+export const LicenseProofPanel: React.FC<{ identity: string; recordId?: string; kind?: RecordKind }> = ({
+  identity: raw,
+  recordId,
+  kind = 'plant',
+}) => {
+  // An animal's panel says "breed from or sell this animal", never "grow" (translate.ts forKind).
+  const tr = forKind(useT(), kind);
   const identity = raw.trim().toLowerCase();
   const [ask, setAsk] = useState<MyAsk | undefined>(() =>
     myAsks().find((a) => a.kind === 'license' && a.identity === identity && (!recordId || a.recordId === recordId)),

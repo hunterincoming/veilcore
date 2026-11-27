@@ -190,6 +190,8 @@ export const animal = {
   'app.animal.v.app.verify.ownReceiptTail':
     ' Usted lo ve porque el animal está en este navegador; quien reciba el enlace solo ve la línea de firma de arriba.',
   'app.animal.v.app.prove.openCheckPage': 'Abrir la página de comprobación del animal',
+  'app.animal.v.app.prove.youAsked':
+    'Usted pidió al titular de este animal que demuestre que tiene su registro. Envíele este enlace si todavía no lo hizo.',
   'app.animal.v.app.prove.doneText':
     'Verán la respuesta en su página. No se envió nada sobre el animal: solo la prueba de que usted tiene su registro.',
   'app.animal.v.app.prove.thePlant': 'el animal',
@@ -205,6 +207,12 @@ export const animal = {
     'La clave de su animal recibió el sello de fecha el {when}. Eso fecha la clave, no el registro.',
   'app.animal.v.app.prove.watch.stampedThisEarlier':
     'La clave de este animal recibió antes un sello de fecha en la red. Eso fecha la clave, no el registro.',
+  'app.animal.v.app.prove.watch.shareAsker':
+    '{asker} le pide que demuestre en VeilCore que tiene este animal. Abra este enlace: {link}',
+  'app.animal.v.app.prove.watch.share':
+    'Le pido que demuestre en VeilCore que tiene este animal. Abra este enlace: {link}',
+  'app.animal.v.app.lic.proof.panelText':
+    '¿Alguien dice tener licencia para criar con este animal o venderlo? Envíele un enlace; responde desde el dispositivo que tiene su licencia, y esta página lo comprueba en Midnight. Usted solo sabrá que tenía una licencia vigente de este registro cuando respondió.',
   'app.animal.v.app.prove.own.title': 'Demuestre que tiene la clave de este animal (red de pruebas)',
   'app.animal.v.app.prove.own.stampFirst':
     'Agregue primero el sello de fecha de la clave: pulse «Agregar el sello de fecha de la clave» en la página del animal. La prueba trata de la identidad en la cadena del registro, que crea ese paso.',

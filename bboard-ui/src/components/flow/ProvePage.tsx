@@ -14,6 +14,7 @@ import { Alert, Box, Button, CircularProgress, Stack, Typography } from '@mui/ma
 import {
   getProveRequest,
   answerProveRequest,
+  askSubject,
   myAsk,
   tokenFromHash,
   type ProveRequest,
@@ -26,6 +27,9 @@ import { ChainStatusLine } from '../chain/ChainStatusLine';
 import { ProveWatch } from '../chain/ProveWatch';
 import { FlowFrame } from './FlowFrame';
 import { rich, useRecordT, useT } from '../../i18n/app';
+import { forKind, type RecordKind } from '../../i18n/translate';
+import { isAnimal } from '../../veilcore/animal-profile';
+import { isStrain } from '../../veilcore/strain-profile';
 import { DatingPausedNotice } from '../DatingPausedNotice';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 import { CODE_FONT } from '../../config/theme';
@@ -54,7 +58,16 @@ export const ProvePage: React.FC = () => {
   const { t } = useT();
   // The asker's own record, when this browser has it: its page says animal or strain, not plant.
   const asked = mine?.recordId ? getRecord(mine.recordId) : undefined;
-  const askedT = useRecordT(asked);
+  // The asker's words: the record's kind as its check page saw it when the request was made
+  // (askSubject), so a checker who doesn't hold the record still reads "animal".
+  const askedKind: RecordKind = mine?.subject
+    ? askSubject(mine)
+    : isAnimal(asked)
+      ? 'animal'
+      : isStrain(asked)
+        ? 'strain'
+        : 'plant';
+  const askedT = forKind(useT(), askedKind);
   const b = (c: React.ReactNode) => <b>{c}</b>;
 
   useEffect(() => {
@@ -77,9 +90,9 @@ export const ProvePage: React.FC = () => {
         <Typography variant="body1" sx={{ mb: 2 }}>
           {record
             ? rich(askedT.t('app.prove.youAskedNamed'), { b }, { name: record.strainName })
-            : t('app.prove.youAsked')}
+            : askedT.t('app.prove.youAsked')}
         </Typography>
-        <ProveWatch ask={mine} />
+        <ProveWatch ask={mine} kind={askedKind} />
         {mine.recordId && (
           <Button component={RouterLink} to={`/verify/${mine.recordId}`} sx={{ mt: 2 }}>
             {askedT.t('app.prove.openCheckPage')}

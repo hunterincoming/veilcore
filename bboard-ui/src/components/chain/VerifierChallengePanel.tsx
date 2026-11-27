@@ -21,6 +21,7 @@ import { chainNotReady } from '../../veilcore/chain/config';
 import { useChainCall } from './useChainCall';
 import { ChainStatusLine } from './ChainStatusLine';
 import { useT } from '../../i18n/app';
+import type { RecordKind } from '../../i18n/translate';
 import { keyReasonWords } from './key-reason-words';
 import { errorReason } from '../../i18n/error-words';
 import { CODE_FONT } from '../../config/theme';
@@ -55,10 +56,12 @@ const KeyRefused: React.FC<{ reason: string }> = ({ reason }) => {
   );
 };
 
-export const VerifierChallengePanel: React.FC<{ claim?: ClaimedChainAnchor | null; recordId?: string }> = ({
-  claim,
-  recordId,
-}) => {
+export const VerifierChallengePanel: React.FC<{
+  claim?: ClaimedChainAnchor | null;
+  recordId?: string;
+  /** What the record is about (the registry's subjectKind): the answer's words follow it. */
+  kind?: RecordKind;
+}> = ({ claim, recordId, kind }) => {
   const identity = claim?.identity.trim().toLowerCase() ?? '';
   const keyCheck: KeyCheck = checkLinkKey({
     identity,
@@ -95,6 +98,7 @@ export const VerifierChallengePanel: React.FC<{ claim?: ClaimedChainAnchor | nul
       recordId,
       anchorTx: claim.txId,
       ...(bound ? { record: bound } : {}),
+      ...(kind && kind !== 'plant' ? { subject: kind } : {}),
     }).catch((e: unknown) => ({
       error: errorReason(e, tr),
     }));
@@ -131,7 +135,7 @@ export const VerifierChallengePanel: React.FC<{ claim?: ClaimedChainAnchor | nul
             <KeyRefused reason={keyCheck.reason} />
           ) : ask ? (
             <>
-              <ProveWatch ask={ask} asker={asker.trim() || undefined} />
+              <ProveWatch ask={ask} asker={asker.trim() || undefined} kind={kind} />
               <Button variant="text" onClick={() => setAsk(undefined)} sx={{ alignSelf: 'flex-start' }}>
                 {t('app.prove.ask.newRequest')}
               </Button>

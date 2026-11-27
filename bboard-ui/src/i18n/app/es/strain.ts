@@ -119,6 +119,8 @@ export const strain = {
   'app.strain.v.app.verify.ownReceiptTail':
     ' Usted lo ve porque la cepa está en este navegador; quien reciba el enlace solo ve la línea de firma de arriba.',
   'app.strain.v.app.prove.openCheckPage': 'Abrir la página de comprobación de la cepa',
+  'app.strain.v.app.prove.youAsked':
+    'Usted pidió al titular de esta cepa que demuestre que tiene su registro. Envíele este enlace si todavía no lo hizo.',
   'app.strain.v.app.prove.doneText':
     'Verán la respuesta en su página. No se envió nada sobre la cepa: solo la prueba de que usted tiene su registro.',
   'app.strain.v.app.prove.thePlant': 'la cepa',
@@ -134,6 +136,12 @@ export const strain = {
     'La clave de su cepa recibió el sello de fecha el {when}. Eso fecha la clave, no el registro.',
   'app.strain.v.app.prove.watch.stampedThisEarlier':
     'La clave de esta cepa recibió antes un sello de fecha en la red. Eso fecha la clave, no el registro.',
+  'app.strain.v.app.prove.watch.shareAsker':
+    '{asker} le pide que demuestre en VeilCore que tiene esta cepa. Abra este enlace: {link}',
+  'app.strain.v.app.prove.watch.share':
+    'Le pido que demuestre en VeilCore que tiene esta cepa. Abra este enlace: {link}',
+  'app.strain.v.app.lic.proof.panelText':
+    '¿Alguien dice tener licencia para usar o suministrar esta cepa? Envíele un enlace; responde desde el dispositivo que tiene su licencia, y esta página lo comprueba en Midnight. Usted solo sabrá que tenía una licencia vigente de este registro cuando respondió.',
   'app.strain.v.app.prove.own.title': 'Demuestre que tiene la clave de esta cepa (red de pruebas)',
   'app.strain.v.app.prove.own.stampFirst':
     'Agregue primero el sello de fecha de la clave: pulse «Agregar el sello de fecha de la clave» en la página de la cepa. La prueba trata de la identidad en la cadena del registro, que crea ese paso.',

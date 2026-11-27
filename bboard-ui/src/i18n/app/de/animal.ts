@@ -192,6 +192,8 @@ export const animal = {
   'app.animal.v.app.verify.ownReceiptTail':
     ' Sie sehen das, weil das Tier in diesem Browser ist; wer Ihren Link erhält, sieht nur die Signaturzeile oben.',
   'app.animal.v.app.prove.openCheckPage': 'Die Prüfseite des Tieres öffnen',
+  'app.animal.v.app.prove.youAsked':
+    'Sie haben den Inhaber dieses Tieres gebeten zu beweisen, dass er den Datensatz dazu hält. Senden Sie ihm diesen Link, falls noch nicht geschehen.',
   'app.animal.v.app.prove.doneText':
     'Die Antwort erscheint auf der Seite des Anfragenden. Über das Tier wurde nichts gesendet: nur der Beweis, dass Sie seinen Datensatz halten.',
   'app.animal.v.app.prove.thePlant': 'das Tier',
@@ -207,6 +209,12 @@ export const animal = {
     'Der Schlüssel Ihres Tieres erhielt am {when} einen Datumsstempel. Das datiert den Schlüssel, nicht den Datensatz.',
   'app.animal.v.app.prove.watch.stampedThisEarlier':
     'Der Schlüssel dieses Tieres erhielt schon früher einen Datumsstempel im Netzwerk. Das datiert den Schlüssel, nicht den Datensatz.',
+  'app.animal.v.app.prove.watch.shareAsker':
+    '{asker} bittet Sie, auf VeilCore zu beweisen, dass Sie dieses Tier halten. Öffnen Sie diesen Link: {link}',
+  'app.animal.v.app.prove.watch.share':
+    'Ich bitte Sie, auf VeilCore zu beweisen, dass Sie dieses Tier halten. Öffnen Sie diesen Link: {link}',
+  'app.animal.v.app.lic.proof.panelText':
+    'Jemand sagt, er habe eine Lizenz, mit diesem Tier zu züchten oder es zu verkaufen. Senden Sie einen Link; die Person antwortet von dem Gerät, auf dem ihre Lizenz liegt, und diese Seite prüft das auf Midnight. Sie erfahren nur, dass sie beim Antworten eine gültige Lizenz von diesem Datensatz hielt.',
   'app.animal.v.app.prove.own.title': 'Beweisen Sie, dass Sie den Schlüssel dieses Tieres halten (Testnetz)',
   'app.animal.v.app.prove.own.stampFirst':
     'Setzen Sie zuerst den Datumsstempel des Schlüssels: „Datumsstempel des Schlüssels setzen“ auf der Seite des Tieres. Der Nachweis bezieht sich auf die On-Chain-Identität des Datensatzes, die dieser Schritt erzeugt.',

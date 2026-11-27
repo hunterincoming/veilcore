@@ -438,6 +438,11 @@ export const licensing = {
   'app.lic.proof.okText':
     'Whoever answered your link held a live license issued from the record with key {key} when their answer landed, on {when}. It does not show which license, its terms, or who they are. Licenses can be revoked later: for a fresh answer, make a new request.',
   'app.lic.proof.sendLink': 'Send them this link. Their answer shows here, checked on chain.',
+  // The license link's share text names no kind, so it fits every record (PR #239).
+  'app.lic.proof.share':
+    'I’m asking you to prove on VeilCore that you hold a live license from this record. Open this link: {link}',
+  'app.lic.proof.shareAsker':
+    '{asker} is asking you to prove on VeilCore that you hold a live license from this record. Open this link: {link}',
   'app.lic.proof.ended': 'This request has ended. Make a new one.',
   'app.lic.proof.unreachable': 'Can’t reach the VeilCore registry right now. This page keeps trying.',
   'app.lic.proof.pending': 'An answer came in. Waiting for the network to show it…',
