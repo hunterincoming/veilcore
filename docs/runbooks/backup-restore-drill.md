@@ -36,8 +36,10 @@ The app's own code, in several pretend browsers against a stand-in registry:
   of its own. The file carries all of them (`stamps`). Restored with the registry gone, the
   evidence bundle made on the new device still carries `root.bin.ots` and `root.tst`:
   `verify.html`'s own reader reads the Bitcoin file against the batch root, and the SDK and
-  `openssl ts -verify` (the bundle README's step) both pass the token. A backup made there,
-  still without the registry, carries every stamp and proof again.
+  `openssl ts -verify` (the bundle README's step) both pass the token; the bundle says the batch
+  root is not yet confirmed with the registry. A backup made there, still without the registry,
+  carries every stamp and proof again, marked unconfirmed; the first backup made with the
+  registry back confirms them.
 - A pending Bitcoin stamp is kept, the next backup takes the finished one once the registry
   has it, and a registry that serves the pending one again doesn't take the finished one away.
 - Doctored stamps are refused and nothing of them is written (no stamp comes back, the bundle
@@ -49,6 +51,17 @@ The app's own code, in several pretend browsers against a stand-in registry:
   can build one) takes nothing away: the finished Bitcoin stamp and token kept in the browser
   are still in the next backup and the evidence bundle (review of PR #233). Kept stamps go only
   when their record is deleted on that browser, not when a record is missing from one backup.
+- Confirmed and unconfirmed (second review of PR #233). What comes only from a backup file is
+  unconfirmed until the registry gives the same root for its batch. The drill checks: a made-up
+  root on a device with no kept copy is kept only as unconfirmed, the bundle says so on every
+  page (README, examiner summary, evidence.json), and the next backup carries it apart
+  (`stamps.unconfirmedProofs`), never in `proofs`; the genuine file restored after a made-up one
+  is not blocked (its stamps go back; with two files disagreeing and no registry, the batch is
+  used nowhere), and once the registry is back its answer wins and the made-up root's files go;
+  a made-up root for a record in a batch the registry already confirmed is refused; a file naming
+  two roots for one batch gives nothing for it; two files disagreeing leave the batch unused for
+  every record in it. On a new device with the registry gone, everything restored is
+  unconfirmed until a backup is made online.
 - A wrong password, no password, a cut-off file and a changed file are all refused, and nothing
   is written. A file with a record that was edited after sealing puts back none of the records
   (all or nothing) and says why; the keys come back.
@@ -83,7 +96,10 @@ and a finished stamp swapped back. Each break made at least one of them fail. Af
 of PR #233, the same for the new tests: the restore as it was (the file's proof first, no check
 for a batch named with two roots, another root's files replacing the kept ones), tokens from an
 unpinned authority taken, kept stamps removed when a record is missing from a backup, and kept
-stamps never removed on delete.
+stamps never removed on delete. After the second review: file proofs kept as confirmed, a
+registry-confirmed root not required, two roots in one file not refused, a first unconfirmed
+proof blocking later files, a torn batch still used, unconfirmed proofs spread into `proofs`,
+and the bundle not saying it is unconfirmed. Each made at least one test fail.
 
 ## What the drill found (26 Nov 2026)
 

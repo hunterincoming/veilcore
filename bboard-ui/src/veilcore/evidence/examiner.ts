@@ -23,6 +23,7 @@ import {
   sealedNameOf,
   subjectOf,
   utcWords,
+  UNCONFIRMED_WORDS,
 } from './words';
 
 export const EXAMINER_FILE = 'EXAMINER-SUMMARY.html';
@@ -333,6 +334,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
 
   // How it was checked: what the site did when it made the bundle, and what it did not do.
   const checked: string[] = [
+    ...(ev.registry.source === 'backup-file' ? [`Not confirmed: ${UNCONFIRMED_WORDS}`] : []),
     `The record’s proof code was worked out again from the sealed fields below and matched${keyBound ? ' (with the record’s key binding folded in)' : ''}. The bundle can’t be made if it doesn’t.`,
     ev.proof && ev.batch
       ? `The proof leads from the record’s proof code to the root of batch ${ev.batch.batchId}. The batch root is one code that stands for every record in the batch.`

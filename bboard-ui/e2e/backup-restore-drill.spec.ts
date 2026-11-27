@@ -19,8 +19,8 @@
 //     claim; the license itself is the one gap, as the runbook says;
 //   - and the two dates that don't depend on Midnight: the evidence bundle downloaded then, from
 //     the real record page, still carries the batch's Bitcoin stamp file and RFC 3161 token, kept
-//     from the file; openssl checks the token and verify.html, opened from disk offline, reads
-//     the Bitcoin file;
+//     from the file and marked as not yet confirmed with the registry; openssl checks the token
+//     and verify.html, opened from disk offline, reads the Bitcoin file;
 //   - the file opens with veilcore-records, without the website.
 // The stand-in registry is in this file. All names, keys and figures are practice data.
 // SPDX-License-Identifier: Apache-2.0
@@ -475,7 +475,9 @@ test('the backup restore drill: everything comes back from the file alone, and s
     registry: { source: string };
     batch: { opentimestamps: { available: boolean }; rfc3161: { available: boolean } };
   };
-  expect(ev.registry.source).toBe('this-device');
+  // A new device with the registry gone can't confirm the batch root, and the bundle says so.
+  expect(ev.registry.source).toBe('backup-file');
+  expect(fs.readFileSync(path.join(top, 'README.txt'), 'utf8')).toContain('NOT CONFIRMED:');
   expect(ev.batch.opentimestamps.available).toBe(true);
   expect(ev.batch.rfc3161.available).toBe(true);
   // The README's own step for the token, with no network.

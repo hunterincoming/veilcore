@@ -22,11 +22,23 @@
 //     verify against the bytes it stamps (the batch root, or the record's proof code) and be
 //     signed by a timestamp authority this site pins (config/tsa-pins.json, as instant-stamp.ts
 //     shows them). An item that fails is left out; nothing of it is written;
+//   - confirmed and unconfirmed (second review of PR #233): an inclusion proof the registry gave is
+//     confirmed. One that came only from a backup file is kept as unconfirmed (proof codes are
+//     public, so anyone can build a file that puts them under a root of its own): it never goes
+//     in a file's `proofs` (only in `stamps.unconfirmedProofs`, with its batch marked
+//     `unconfirmed`), never blocks or overrides a later file or the registry, and becomes
+//     confirmed only when the registry gives that root for its batch. What a whole file says is
+//     weighed before anything of it is kept: a root the registry confirmed for a batch wins; a
+//     file naming two roots for one batch gives nothing for it; two files disagreeing about a
+//     batch leave it torn, and a torn batch is used nowhere until the registry answers. The
+//     evidence bundle says when what it carries is unconfirmed;
 //   - nothing kept is ever replaced by a file, or by an answer for another root: a batch's files
 //     are kept by batch id AND root, so a file (or a registry) naming the same batch with another
 //     root adds an entry beside the kept one and never removes it (review of PR #233). What is
-//     kept goes only when its record is deleted on this browser (record-keys.ts wasForgotten),
-//     never because a record is missing from one backup (a locked record, say);
+//     kept goes only when its record is deleted on this browser (record-keys.ts wasForgotten), or
+//     when the registry's answer settles it (an unconfirmed proof for a root the registry didn't
+//     give, and files no proof leads to any more), never because a record is missing from one
+//     backup (a locked record, say), and never in a restore;
 //   - the evidence bundle (evidence/bundle.ts gatherEvidence) uses what is kept here when the
 //     registry can't be reached, so it still carries root.bin.ots and root.tst.
 //
@@ -70,6 +82,8 @@ export type BatchStamps = {
   readonly bitcoinBlockHeight?: number;
   /** root.tst from each TSA. */
   readonly tsts?: readonly TokenEntry[];
+  /** In a file only: the batch's root came from a backup file and VeilCore's registry hasn't confirmed it. */
+  readonly unconfirmed?: true;
 };
 
 /** A record's own RFC 3161 tokens on its proof code. */
@@ -88,23 +102,34 @@ export type StampsInFile = {
   readonly batches: Readonly<Record<string, BatchStamps>>;
   /** By proof code. */
   readonly records: Readonly<Record<string, RecordStamps>>;
+  /**
+   * Inclusion proofs this browser has only from a backup file, by proof code: not in `proofs`,
+   * because VeilCore's registry hasn't confirmed their root (see the top of this file).
+   */
+  readonly unconfirmedProofs?: Readonly<Record<string, unknown>>;
 };
 
 /**
- * What this browser keeps: the same, with batches by batch id and root (batchKey), each record's
- * inclusion proof (by proof code), and which record each proof code is (so a deleted record's go).
+ * What this browser keeps: the same, with batches by batch id and root (batchKey); each record's
+ * inclusion proof the registry gave (`proofs`, confirmed); the proofs that came only from backup
+ * files (`candidates`, unconfirmed, one per root, at most MAX_CANDIDATES); and which record each
+ * proof code is (so a deleted record's go).
  */
 type Kept = {
   batches: Record<string, BatchStamps>;
   records: Record<string, RecordStamps>;
   proofs: Record<string, InclusionProof>;
+  candidates: Record<string, InclusionProof[]>;
   ids: Record<string, string>;
 };
+
+/** At most this many unconfirmed proofs per proof code (each from a file that named another root). */
+const MAX_CANDIDATES = 4;
 
 /** A kept batch's key: its id and its root, so one root's files never stand in for another's. */
 const batchKey = (batchId: string, root: string): string => `${batchId} ${root}`;
 
-const empty = (): Kept => ({ batches: {}, records: {}, proofs: {}, ids: {} });
+const empty = (): Kept => ({ batches: {}, records: {}, proofs: {}, candidates: {}, ids: {} });
 
 const load = (): Kept => {
   try {
@@ -124,6 +149,7 @@ const load = (): Kept => {
       batches,
       records: isObject(v.records) ? (v.records as Kept['records']) : {},
       proofs: isObject(v.proofs) ? (v.proofs as Kept['proofs']) : {},
+      candidates: isObject(v.candidates) ? (v.candidates as Kept['candidates']) : {},
       ids: isObject(v.ids) ? (v.ids as Kept['ids']) : {},
     };
   } catch {
@@ -229,26 +255,73 @@ const checkedTokens = async (list: unknown, stamped: Uint8Array, pins?: readonly
   return out;
 };
 
+/** The roots each batch id has: in the registry's proofs kept here, and in the unconfirmed ones. */
+const rootsBy = (proofs: Iterable<InclusionProof>): Map<string, Set<string>> => {
+  const out = new Map<string, Set<string>>();
+  for (const p of proofs) {
+    const set = out.get(p.batchId) ?? new Set<string>();
+    set.add(p.root);
+    out.set(p.batchId, set);
+  }
+  return out;
+};
+const confirmedRoots = (kept: Kept) => rootsBy(Object.values(kept.proofs));
+const candidateRoots = (kept: Kept) => rootsBy(Object.values(kept.candidates).flat());
+
+/**
+ * Whether a batch (id and root) this browser keeps can be used, and how: `confirmed` when the
+ * registry gave a proof with that root; `unconfirmed` when only backup files named it and they
+ * all name this one root for the batch (and the registry named none); otherwise `torn`: the
+ * files disagree, or the registry named another root. A torn batch is used nowhere.
+ */
+const standing = (kept: Kept, batchId: string, root: string): 'confirmed' | 'unconfirmed' | 'torn' => {
+  const conf = confirmedRoots(kept).get(batchId);
+  if (conf) return conf.has(root) ? 'confirmed' : 'torn';
+  const cand = candidateRoots(kept).get(batchId);
+  return cand && cand.size === 1 && cand.has(root) ? 'unconfirmed' : 'torn';
+};
+
+/**
+ * Tidy what is kept: an unconfirmed proof goes once the registry has confirmed its proof code or
+ * another root for its batch (the registry's answer wins), or becomes confirmed when the registry
+ * confirmed its root for that batch; a batch's files go once no proof kept here (confirmed or not)
+ * leads to them.
+ */
+const tidy = (kept: Kept): void => {
+  const conf = confirmedRoots(kept);
+  for (const [fp, list] of Object.entries(kept.candidates)) {
+    if (kept.proofs[fp]) {
+      delete kept.candidates[fp];
+      continue;
+    }
+    const same = list.find((p) => conf.get(p.batchId)?.has(p.root));
+    if (same) {
+      kept.proofs[fp] = same;
+      delete kept.candidates[fp];
+      continue;
+    }
+    const left = list.filter((p) => !conf.has(p.batchId));
+    if (left.length) kept.candidates[fp] = left;
+    else delete kept.candidates[fp];
+  }
+  const used = new Set(
+    [...Object.values(kept.proofs), ...Object.values(kept.candidates).flat()].map((p) => batchKey(p.batchId, p.root)),
+  );
+  for (const k of Object.keys(kept.batches)) if (!used.has(k)) delete kept.batches[k];
+};
+
 /**
  * Take out what belongs only to records deleted on this browser: their proofs and own tokens, and
  * a batch's files once no record kept here leads to that batch and root. Nothing else is removed.
  */
 const pruneDeleted = (kept: Kept): void => {
   const gone = Object.keys(kept.ids).filter((fp) => wasForgotten(kept.ids[fp]));
-  if (gone.length === 0) return;
-  const before = new Set(
-    gone
-      .map((fp) => kept.proofs[fp])
-      .filter(Boolean)
-      .map((p) => batchKey(p.batchId, p.root)),
-  );
   for (const fp of gone) {
     delete kept.proofs[fp];
+    delete kept.candidates[fp];
     delete kept.records[fp];
     delete kept.ids[fp];
   }
-  const still = new Set(Object.values(kept.proofs).map((p) => batchKey(p.batchId, p.root)));
-  for (const k of before) if (!still.has(k)) delete kept.batches[k];
 };
 
 /** A proof as kept here: the registry's anchors without the batch tokens (kept once, per batch). */
@@ -341,12 +414,14 @@ export const stampsForBackup = async (
     wanted.add(fp);
     kept.ids[fp] = r.id;
   }
-  // Proofs: the registry's new answer, or the one kept here.
+  // Proofs: the registry's new answer (confirmed, and it wins over anything only a file said),
+  // or the confirmed one kept here. One only from a file never goes in `proofs` (below).
   for (const fp of wanted) {
     const fresh = proofs[fp];
     if (fresh !== undefined) {
       const s = await checkProof(fp, fresh);
       if (s.status !== 'none') kept.proofs[fp] = keepable(s.proof);
+      else delete proofs[fp];
       continue;
     }
     const old = kept.proofs[fp];
@@ -355,6 +430,7 @@ export const stampsForBackup = async (
     if (s.status === 'none') delete kept.proofs[fp];
     else proofs[fp] = s.proof;
   }
+  tidy(kept);
   // Each batch (id and root) these records sit in, once.
   const batchOf = new Map<string, InclusionProof>();
   for (const fp of wanted) {
@@ -406,9 +482,15 @@ export const stampsForBackup = async (
   return inFile(kept, wanted);
 };
 
+/**
+ * What the file carries: the confirmed batches of these records, then the unconfirmed ones that
+ * aren't torn, marked so (with their proofs in `unconfirmedProofs`, never in `proofs`), and each
+ * record's own tokens.
+ */
 const inFile = (kept: Kept, wanted: ReadonlySet<string>): StampsInFile | undefined => {
   const batches: Record<string, BatchStamps> = {};
   const records: Record<string, RecordStamps> = {};
+  const unconfirmedProofs: Record<string, InclusionProof> = {};
   for (const fp of wanted) {
     const p = kept.proofs[fp];
     const b = p ? kept.batches[batchKey(p.batchId, p.root)] : undefined;
@@ -416,8 +498,18 @@ const inFile = (kept: Kept, wanted: ReadonlySet<string>): StampsInFile | undefin
     const r = kept.records[fp];
     if (r?.instant?.length) records[fp] = { instant: r.instant };
   }
-  return Object.keys(batches).length || Object.keys(records).length
-    ? { format: STAMPS_FORMAT, batches, records }
+  for (const fp of wanted) {
+    if (kept.proofs[fp]) continue;
+    const c = (kept.candidates[fp] ?? []).filter((p) => standing(kept, p.batchId, p.root) === 'unconfirmed');
+    if (c.length !== 1) continue;
+    const p = c[0];
+    unconfirmedProofs[fp] = p;
+    const b = kept.batches[batchKey(p.batchId, p.root)];
+    if (b && (b.ots || b.tsts?.length) && !batches[p.batchId]) batches[p.batchId] = { ...b, unconfirmed: true };
+  }
+  const hasUnconfirmed = Object.keys(unconfirmedProofs).length > 0;
+  return Object.keys(batches).length || Object.keys(records).length || hasUnconfirmed
+    ? { format: STAMPS_FORMAT, batches, records, ...(hasUnconfirmed ? { unconfirmedProofs } : {}) }
     : undefined;
 };
 
@@ -442,35 +534,59 @@ export const restoreStamps = async (
     kept.ids[fp] = r.id;
   }
   if (here.size === 0) return 0;
-  // The batches an inclusion proof of a record here leads to, and each one's root: the proof this
-  // browser kept comes first, the file's only for a record it has none for. A batch id two proofs
-  // give different roots for is left out altogether: one of them isn't that batch's.
-  const roots = new Map<string, string>();
-  const torn = new Set<string>();
+  const file = isObject(fromFile) && fromFile.format === STAMPS_FORMAT ? fromFile : undefined;
+  // 1. Every proof the file carries for a record here, checked (its `proofs`, and the ones it
+  //    holds as unconfirmed): what they say each batch's root is. Nothing is kept yet.
+  const sources = [fileProofs, file?.unconfirmedProofs].filter(isObject);
+  const fromIt = new Map<string, InclusionProof[]>();
   for (const fp of here) {
-    for (const c of [kept.proofs[fp], isObject(fileProofs) ? fileProofs[fp] : undefined]) {
-      if (c === undefined) continue;
-      const s = await checkProof(fp, c);
-      if (s.status === 'none') continue;
-      kept.proofs[fp] ??= keepable(s.proof);
-      const had = roots.get(s.proof.batchId);
-      if (had !== undefined && had !== s.proof.root) torn.add(s.proof.batchId);
-      roots.set(s.proof.batchId, s.proof.root);
-      break;
+    for (const src of sources) {
+      if (src[fp] === undefined) continue;
+      const st = await checkProof(fp, src[fp]);
+      if (st.status === 'none') continue;
+      const list = fromIt.get(fp) ?? [];
+      if (!list.some((p) => p.batchId === st.proof.batchId && p.root === st.proof.root)) list.push(keepable(st.proof));
+      fromIt.set(fp, list);
     }
   }
-  for (const k of Object.keys(kept.batches)) {
-    const id = k.slice(0, k.indexOf(' '));
-    if (roots.has(id) && roots.get(id) !== kept.batches[k].root) torn.add(id);
+  // 2. Decided for the whole file and what is kept here, before anything is kept: for each batch
+  //    the file names, the root it may have. A root the registry confirmed for that batch wins
+  //    (the file's other roots are ignored); with none confirmed, a file naming two roots for one
+  //    batch is torn and nothing of that batch is taken; otherwise the file's one root.
+  const conf = confirmedRoots(kept);
+  const fileRoots = rootsBy([...fromIt.values()].flat());
+  const allowed = new Map<string, string>();
+  for (const [id, set] of fileRoots) {
+    const c = conf.get(id);
+    if (c) {
+      const hit = [...set].find((r) => c.has(r));
+      if (hit) allowed.set(id, hit);
+    } else if (set.size === 1) allowed.set(id, [...set][0]);
   }
+  // 3. The proofs: one whose root the registry confirmed for its batch is confirmed; otherwise it
+  //    is kept as unconfirmed beside any other (a kept unconfirmed one naming another root makes
+  //    the batch torn: neither is used until the registry answers). A proof the registry gave for
+  //    this proof code is never replaced.
+  for (const [fp, list] of fromIt) {
+    if (kept.proofs[fp]) continue;
+    for (const p of list) {
+      if (allowed.get(p.batchId) !== p.root) continue;
+      if (conf.get(p.batchId)?.has(p.root)) {
+        kept.proofs[fp] = p;
+        delete kept.candidates[fp];
+        break;
+      }
+      const had = kept.candidates[fp] ?? [];
+      if (!had.some((x) => x.batchId === p.batchId && x.root === p.root) && had.length < MAX_CANDIDATES)
+        kept.candidates[fp] = [...had, p];
+    }
+  }
+  // 4. A batch's files, only for the root allowed above; kept by id and root, beside anything kept.
   let back = 0;
-  const file = isObject(fromFile) && fromFile.format === STAMPS_FORMAT ? fromFile : undefined;
   const batches = file && isObject(file.batches) ? file.batches : {};
   for (const [id, raw] of Object.entries(batches)) {
-    const root = roots.get(id);
-    // Not a batch a record here sits in, a root that isn't that batch's, or a batch whose root is
-    // in doubt: none of it.
-    if (!root || torn.has(id) || !isObject(raw) || raw.root !== root) continue;
+    const root = allowed.get(id);
+    if (!root || !isObject(raw) || raw.root !== root) continue;
     let b: BatchStamps = kept.batches[batchKey(id, root)] ?? { root };
     const read = await readOts(raw.ots, root);
     if (read && better(b, read.status, false)) {
@@ -501,15 +617,28 @@ export const restoreStamps = async (
   return back;
 };
 
-/** What this browser keeps for one record, for the evidence bundle when the registry is out of reach. */
+/**
+ * What this browser keeps for one record, for the evidence bundle when the registry is out of
+ * reach: the registry's proof (`confirmed`), or else the one proof only backup files gave, when
+ * they agree on its batch's root (`confirmed: false`: the bundle says so). A batch the files
+ * disagree about, or whose root the registry named otherwise, gives nothing.
+ */
 export const keptEvidence = async (
   fp: string,
-): Promise<{ proof: InclusionProof; batch: Record<string, unknown>; ots: Uint8Array | null } | null> => {
+): Promise<{
+  proof: InclusionProof;
+  batch: Record<string, unknown>;
+  ots: Uint8Array | null;
+  confirmed: boolean;
+} | null> => {
   if (!HEX64.test(fp)) return null;
   const kept = load();
-  const raw = kept.proofs[fp];
-  if (raw === undefined) return null;
-  const s = await checkProof(fp, raw);
+  const confirmed = kept.proofs[fp] !== undefined;
+  const pick = confirmed
+    ? [kept.proofs[fp]]
+    : (kept.candidates[fp] ?? []).filter((p) => standing(kept, p.batchId, p.root) === 'unconfirmed');
+  if (pick.length !== 1) return null;
+  const s = await checkProof(fp, pick[0]);
   if (s.status === 'none') return null;
   const proof = s.proof;
   const mine = kept.batches[batchKey(proof.batchId, proof.root)];
@@ -517,6 +646,7 @@ export const keptEvidence = async (
   const tst = mine?.tsts?.[0];
   return {
     proof,
+    confirmed,
     batch: {
       batchId: proof.batchId,
       root: proof.root,

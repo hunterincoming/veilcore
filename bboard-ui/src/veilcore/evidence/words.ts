@@ -223,3 +223,10 @@ export const sealedNameOf = (fields: unknown): string => {
     if (isString(f[k]) && f[k]) return f[k];
   return '';
 };
+
+/**
+ * Said wherever a bundle's batch data came only from a backup file (source `backup-file`,
+ * stamps.ts): README.txt, EXAMINER-SUMMARY.html and evidence.json.
+ */
+export const UNCONFIRMED_WORDS =
+  'The batch root, the proof that leads to it and its stamps were restored from a backup file and are not yet confirmed with VeilCore’s registry or Midnight. Look the batch root up on Midnight before relying on any date in this bundle.';

@@ -57,6 +57,7 @@ import {
   tsaSteps,
   utcWords,
   wrap,
+  UNCONFIRMED_WORDS,
 } from './words';
 import { enT, forKind } from '../../i18n/translate';
 import { isAnimal } from '../animal-profile';
@@ -117,9 +118,11 @@ export type BatchFacts = {
 export type Gathered = {
   /**
    * Where it came from: the one-call evidence route, the older public routes, or, with the
-   * registry out of reach, what this browser kept from its backups (stamps.ts).
+   * registry out of reach, what this browser kept from its backups (stamps.ts): `this-device`
+   * when the registry gave that proof before, `backup-file` when it came only from a backup file
+   * and the registry hasn't confirmed its batch root (every page of the bundle says so).
    */
-  readonly source: 'evidence-route' | 'public-routes' | 'this-device';
+  readonly source: 'evidence-route' | 'public-routes' | 'this-device' | 'backup-file';
   /** This registry's own clock: when it first saw this record's content. */
   readonly registryFirstSeen: string | null;
   /** The inclusion proof, checked here against the record. */
@@ -303,7 +306,12 @@ const fromThisDevice = async (fingerprint: string): Promise<Gathered | null> => 
   try {
     const kept = await (await import('../stamps')).keptEvidence(fingerprint);
     if (!kept) return null;
-    const g = await reconcile(fingerprint, { source: 'this-device', ...kept, attestations: [] });
+    const { confirmed, ...raw } = kept;
+    const g = await reconcile(fingerprint, {
+      source: confirmed ? 'this-device' : 'backup-file',
+      ...raw,
+      attestations: [],
+    });
     return g.proof ? g : null;
   } catch {
     return null;
@@ -835,9 +843,11 @@ export const buildEvidence = async (
       firstSeen: gathered.registryFirstSeen,
       source: gathered.source,
       note:
-        gathered.source === 'this-device'
-          ? 'Made from the copy kept in the holder’s browser (from its backups): VeilCore’s registry could not be reached. The proof, the Bitcoin stamp file and the RFC 3161 token were each checked against the record or its batch root in that browser; the anchor is the transaction the registry operator reported when the copy was made; nobody has looked it up on the chain for you. Lab signatures the registry serves are not in this copy.'
-          : 'firstSeen is VeilCore’s registry’s own clock, its word only. The anchor is the transaction the registry operator reported; nobody has looked it up on the chain for you.',
+        gathered.source === 'backup-file'
+          ? `${UNCONFIRMED_WORDS} The proof, the Bitcoin stamp file and the RFC 3161 token were each checked against the record or that batch root in the holder’s browser; that shows they belong together, not that this is the root VeilCore recorded. Lab signatures the registry serves are not in this copy.`
+          : gathered.source === 'this-device'
+            ? 'Made from the copy kept in the holder’s browser (from its backups): VeilCore’s registry could not be reached. The proof, the Bitcoin stamp file and the RFC 3161 token were each checked against the record or its batch root in that browser; the anchor is the transaction the registry operator reported when the copy was made; nobody has looked it up on the chain for you. Lab signatures the registry serves are not in this copy.'
+            : 'firstSeen is VeilCore’s registry’s own clock, its word only. The anchor is the transaction the registry operator reported; nobody has looked it up on the chain for you.',
     },
     proof: gathered.proof,
     batch: gathered.batch,
@@ -1238,6 +1248,10 @@ export const readmeText = (
   L.push(
     "A batch is a group of records dated together. Its batch root is one code that stands for every record in it: the batch root is what gets recorded on Midnight, and this record's proof leads from its own proof code to it.",
   );
+  if (ev.registry.source === 'backup-file') {
+    L.push('');
+    L.push(`NOT CONFIRMED: ${UNCONFIRMED_WORDS}`);
+  }
   const tsa = ev.batch?.rfc3161?.available ? ev.batch.rfc3161 : null;
   if (ev.batch && (bitcoin || tsa)) {
     L.push('');
