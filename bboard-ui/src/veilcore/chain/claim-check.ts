@@ -60,6 +60,18 @@ const readFromIndexer: ClaimReader = async (contract, txId) => {
   };
 };
 
+/**
+ * What one call on the claims contract recorded at a transaction, read the way this page reads it:
+ * `two` for a claim about two records. Throws when it can't be read (link-hashes.ts uses it to
+ * check a hash the indexer gave before saving it).
+ */
+export const readClaimAt = async (
+  contract: string,
+  txId: string,
+  two: boolean,
+): Promise<ReturnType<typeof claimFromCells>> =>
+  (await (two ? readTwoFromIndexer : readFromIndexer)(contract, txId)).claim;
+
 /** Check a claim link against the chain. Never throws: a failure is a verdict with a reason. */
 export const checkClaim = async (
   link: MadeClaim,

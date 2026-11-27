@@ -75,6 +75,7 @@ import {
 import { enT } from '../i18n/translate';
 import {
   addClaim,
+  addTwoClaim,
   allRecords,
   getRecord,
   setLabOnChain,
@@ -834,7 +835,7 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
     if (v.heldEvidence !== undefined)
       evidence = await (
         await import('./held-evidence')
-      ).restoreHeldEvidence(v.heldEvidence, { getRecord, setLabSignature, setLabOnChain, addClaim });
+      ).restoreHeldEvidence(v.heldEvidence, { getRecord, setLabSignature, setLabOnChain, addClaim, addTwoClaim });
   } catch {
     /* a record's evidence that can't be checked here stays out; the rest of the restore stands */
   }

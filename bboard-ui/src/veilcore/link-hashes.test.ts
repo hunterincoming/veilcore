@@ -8,7 +8,19 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it, vi } from 'vitest';
 import { claimLink, readClaimLink, type MadeClaim } from './claim-link';
 import { readTwoClaimLink, type TwoClaim } from './two-record-claims';
-import { claimTxIds, hashesFor, LinkNotReady, readyClaimLink, readyTwoClaimLink } from './link-hashes';
+import {
+  claimLinkNow,
+  claimTxIds,
+  hashesFor,
+  LinkNotReady,
+  readyClaimLink,
+  readyTwoClaimLink,
+  twoClaimLinkNow,
+  type ClaimAt,
+} from './link-hashes';
+import type { Claim } from '../../../contract/src/verify-claims';
+import { fieldSchemaId } from '../../../contract/src/field-schema';
+import { SCHEMAS } from './field-set';
 import { recordWithHashes } from './tx-rename';
 import { txHashOf } from './chain/tx-hash';
 import { MATCH_SCHEMA } from './marker-claims';
@@ -36,6 +48,19 @@ const indexer = (up = true) =>
   });
 const lookupWith = (f: typeof fetch) => (id: string) => txHashOf(id, { fetch: f, indexer: 'https://i.example' });
 
+const bytes = (h: string) => Uint8Array.from(h.match(/../g)!.map((x) => parseInt(x, 16)));
+const schemaId = (s: string) => fieldSchemaId(SCHEMAS[s]);
+const LAB_KEY = { x: BigInt('0x' + 'aa'.repeat(32)), y: BigInt('0x' + 'aa'.repeat(32)) };
+
+/**
+ * Midnight's claims contract as the check page reads it (chain/claim-check.ts readClaimAt): what
+ * the call at each hash recorded. `at` maps a hash to its claim; anything else can't be read.
+ */
+const chain = (at: Record<string, Claim>) =>
+  vi.fn<ClaimAt>((_contract, txHash) =>
+    at[txHash] ? Promise.resolve(at[txHash]) : Promise.reject(new Error('no such transaction')),
+  );
+
 /** A claim as an older build kept it, with the lab signature's call it put in every link. */
 const saved: MadeClaim = {
   kind: 'range',
@@ -49,6 +74,20 @@ const saved: MadeClaim = {
   attested: { txId: LAB_ID, attester: 'aa'.repeat(64) },
 };
 
+/** What Midnight really recorded at each hash in HASH. */
+const ON_CHAIN: Record<string, Claim> = {
+  [HASH[CLAIM_ID]]: {
+    kind: 'range',
+    record: bytes(saved.record),
+    schema: schemaId(saved.schema),
+    slot: 0,
+    op: 'at most',
+    bound: 300n,
+  },
+  [HASH[LAB_ID]]: { kind: 'attested', record: bytes(saved.record), schema: new Uint8Array(32), attester: LAB_KEY },
+};
+const honest = () => chain(ON_CHAIN);
+
 describe('a claim and lab signature saved before the hash fix', () => {
   it('as saved, the link would be refused by the check page', () => {
     expect(readClaimLink(hashOf(claimLink(saved, ORIGIN)))).toBeUndefined();
@@ -57,8 +96,11 @@ describe('a claim and lab signature saved before the hash fix', () => {
   it('gets a link that checks, every transaction by its hash, and the hashes are saved back once', async () => {
     const f = indexer();
     const save = vi.fn();
-    const link = await readyClaimLink(saved, ORIGIN, { lookup: lookupWith(f), save });
+    const atHash = honest();
+    const link = await readyClaimLink(saved, ORIGIN, { lookup: lookupWith(f), read: atHash, save });
     const read = readClaimLink(hashOf(link));
+    // Each new hash was read back from Midnight before it was saved.
+    expect(atHash.mock.calls.map((c) => c[1]).sort()).toEqual([HASH[CLAIM_ID], HASH[LAB_ID]].sort());
     expect(read).toMatchObject({ txId: HASH[CLAIM_ID], attested: { txId: HASH[LAB_ID] } });
     expect(save).toHaveBeenCalledTimes(1);
     expect([...(save.mock.calls[0][0] as Map<string, string>)]).toEqual([
@@ -68,8 +110,10 @@ describe('a claim and lab signature saved before the hash fix', () => {
     // Once saved as hashes, the next link asks nothing and saves nothing.
     const again = vi.fn();
     const f2 = indexer();
-    await readyClaimLink(read as MadeClaim, ORIGIN, { lookup: lookupWith(f2), save: again });
+    const reads = honest();
+    await readyClaimLink(read as MadeClaim, ORIGIN, { lookup: lookupWith(f2), read: reads, save: again });
     expect(f2).not.toHaveBeenCalled();
+    expect(reads).not.toHaveBeenCalled();
     expect(again).not.toHaveBeenCalled();
   });
 
@@ -83,8 +127,24 @@ describe('a claim and lab signature saved before the hash fix', () => {
       more: [{ kind: 'range', txId: MORE_ID, slot: 1, op: 'at-least', bound: '1' }],
     };
     expect(claimTxIds(marker)).toEqual([CLAIM_ID, LAB_ID, MORE_ID]);
-    const link = await readyClaimLink(marker, ORIGIN, { lookup: lookupWith(indexer()) });
+    const id = schemaId(MATCH_SCHEMA);
+    const markerChain = {
+      ...ON_CHAIN,
+      [HASH[CLAIM_ID]]: { kind: 'range', record: bytes(saved.record), schema: id, slot: 2, op: 'at least', bound: 30n },
+      [HASH[MORE_ID]]: { kind: 'range', record: bytes(saved.record), schema: id, slot: 1, op: 'at least', bound: 1n },
+    } as Record<string, Claim>;
+    const link = await readyClaimLink(marker, ORIGIN, { lookup: lookupWith(indexer()), read: chain(markerChain) });
     expect(readClaimLink(hashOf(link))?.more?.[0].txId).toBe(HASH[MORE_ID]);
+    // The further claim's hash naming some other bound: no link, nothing saved.
+    const save = vi.fn();
+    await expect(
+      readyClaimLink(marker, ORIGIN, {
+        lookup: lookupWith(indexer()),
+        read: chain({ ...markerChain, [HASH[MORE_ID]]: { ...markerChain[HASH[MORE_ID]], bound: 2n } }),
+        save,
+      }),
+    ).rejects.toBeInstanceOf(LinkNotReady);
+    expect(save).not.toHaveBeenCalled();
   });
 
   it('indexer down: no link at all, nothing saved; never a link the check page would refuse', async () => {
@@ -130,11 +190,122 @@ describe('a claim and lab signature saved before the hash fix', () => {
       other: 'dd'.repeat(32),
       schema: 'veilcore/schema/potency/v1',
     } as TwoClaim;
-    const link = await readyTwoClaimLink(two, ORIGIN, { lookup: lookupWith(indexer()) });
+    const twoOnChain = {
+      [HASH[CLAIM_ID]]: {
+        kind: 'distinct',
+        record: bytes(two.record),
+        other: bytes(two.other),
+        schema: schemaId(two.schema),
+      },
+    } as Record<string, Claim>;
+    const read = chain(twoOnChain);
+    const link = await readyTwoClaimLink(two, ORIGIN, { lookup: lookupWith(indexer()), read });
     expect(readTwoClaimLink(hashOf(link))?.txId).toBe(HASH[CLAIM_ID]);
+    expect(read).toHaveBeenCalledWith(CONTRACT, HASH[CLAIM_ID], true);
+    // The indexer's hash names a claim about other records: no link, nothing saved.
+    const save = vi.fn();
+    await expect(
+      readyTwoClaimLink(two, ORIGIN, {
+        lookup: lookupWith(indexer()),
+        read: chain({ [HASH[CLAIM_ID]]: { ...twoOnChain[HASH[CLAIM_ID]], other: bytes('cc'.repeat(32)) } }),
+        save,
+      }),
+    ).rejects.toBeInstanceOf(LinkNotReady);
+    expect(save).not.toHaveBeenCalled();
     await expect(
       readyTwoClaimLink(two, ORIGIN, { lookup: lookupWith(indexer(false) as typeof fetch) }),
     ).rejects.toBeInstanceOf(LinkNotReady);
+  });
+});
+
+// The indexer's answer to "which hash has this id" is not taken on its word (fourth review, polish
+// 1): a lying or broken indexer could name someone else's transaction, and a saved hash is never
+// looked up again, so that holder's link would fail for good. The claim at the hash is read and
+// compared with the holder's own, as the check page compares it, before anything is saved.
+describe('a lying indexer: the hash it gives is checked before it is saved', () => {
+  /** An indexer that answers every id with `liar`'s hash (as if that transaction carried it). */
+  const lying = (liar: string) =>
+    vi.fn((_u: unknown, init?: RequestInit) => {
+      const body = JSON.parse(init?.body as string) as { variables: { byId: { identifier: string } } };
+      const id = body.variables.byId.identifier;
+      return Promise.resolve(
+        new Response(JSON.stringify({ data: { transactions: [{ hash: liar, identifiers: [id] }] } })),
+      );
+    });
+  const OTHER = 'f7'.repeat(32);
+
+  it.each<[string, Claim | undefined]>([
+    ['someone else’s claim about another record', { ...ON_CHAIN[HASH[CLAIM_ID]], record: bytes('ab'.repeat(32)) }],
+    ['a claim with another bound', { ...ON_CHAIN[HASH[CLAIM_ID]], bound: 301n }],
+    ['a claim in the other direction', { ...ON_CHAIN[HASH[CLAIM_ID]], op: 'at least' }],
+    ['a claim about another number', { ...ON_CHAIN[HASH[CLAIM_ID]], slot: 1 }],
+    ['a claim under another schema', { ...ON_CHAIN[HASH[CLAIM_ID]], schema: new Uint8Array(32) }],
+    ['a laboratory signature', ON_CHAIN[HASH[LAB_ID]]],
+    ['nothing that can be read', undefined],
+  ])('the claim’s hash naming %s: no link, nothing saved', async (_what, atLie) => {
+    const save = vi.fn();
+    const only: MadeClaim = { ...saved, attested: undefined };
+    await expect(
+      readyClaimLink(only, ORIGIN, {
+        lookup: lookupWith(lying(OTHER) as typeof fetch),
+        read: chain(atLie ? { [OTHER]: atLie } : {}),
+        save,
+      }),
+    ).rejects.toBeInstanceOf(LinkNotReady);
+    expect(save).not.toHaveBeenCalled();
+  });
+
+  it('the lab signature’s hash naming another key’s signature, or one on another record: no link, nothing saved', async () => {
+    for (const lie of [
+      { ...ON_CHAIN[HASH[LAB_ID]], attester: { x: 1n, y: 2n } },
+      { ...ON_CHAIN[HASH[LAB_ID]], record: bytes('ab'.repeat(32)) },
+      ON_CHAIN[HASH[CLAIM_ID]],
+    ] as Claim[]) {
+      const save = vi.fn();
+      // The claim itself is honest (its id already a hash); only the lab's call is looked up.
+      const c: MadeClaim = { ...saved, txId: HASH[CLAIM_ID] };
+      await expect(
+        readyClaimLink(c, ORIGIN, {
+          lookup: lookupWith(lying(OTHER) as typeof fetch),
+          read: chain({ ...ON_CHAIN, [OTHER]: lie }),
+          save,
+        }),
+      ).rejects.toBeInstanceOf(LinkNotReady);
+      expect(save).not.toHaveBeenCalled();
+    }
+  });
+
+  it('a later try asks again, and an honest answer then makes the link and saves it', async () => {
+    const save = vi.fn();
+    await expect(
+      readyClaimLink(saved, ORIGIN, { lookup: lookupWith(lying(OTHER) as typeof fetch), read: honest(), save }),
+    ).rejects.toBeInstanceOf(LinkNotReady);
+    expect(save).not.toHaveBeenCalled();
+    const link = await readyClaimLink(saved, ORIGIN, { lookup: lookupWith(indexer()), read: honest(), save });
+    expect(readClaimLink(hashOf(link))?.txId).toBe(HASH[CLAIM_ID]);
+    expect(save).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('a link that needs nothing looked up is ready at once (for the clipboard, copy-link.ts)', () => {
+  it('only when every id is a hash', () => {
+    expect(claimLinkNow(saved, ORIGIN)).toBeUndefined();
+    const hashed: MadeClaim = { ...saved, txId: HASH[CLAIM_ID], attested: { ...saved.attested!, txId: HASH[LAB_ID] } };
+    expect(readClaimLink(hashOf(claimLinkNow(hashed, ORIGIN)!))).toMatchObject({ txId: HASH[CLAIM_ID] });
+    const two = {
+      kind: 'distinct',
+      contract: CONTRACT,
+      txId: CLAIM_ID,
+      record: 'ee'.repeat(32),
+      other: 'dd'.repeat(32),
+      schema: 'veilcore/schema/potency/v1',
+    } as TwoClaim;
+    expect(twoClaimLinkNow(two, ORIGIN)).toBeUndefined();
+    expect(readTwoClaimLink(hashOf(twoClaimLinkNow({ ...two, txId: HASH[CLAIM_ID] }, ORIGIN)!))?.txId).toBe(
+      HASH[CLAIM_ID],
+    );
+    // Never a link the check page would refuse.
+    expect(claimLinkNow({ ...hashed, record: 'not a record' }, ORIGIN)).toBeUndefined();
   });
 });
 
@@ -186,5 +357,40 @@ describe('the pages make claim links only through link-hashes.ts', () => {
     expect(src).toContain(`${ready}(`);
     expect(src).toContain('renameTransactions');
     expect(src).not.toMatch(/\b(claimLink|twoClaimLink)\(/);
+  });
+
+  // Safari refuses a clipboard write that comes after a wait (copy-link.ts): the clipboard must be
+  // asked before the first `await` of the tap handler, and a link made but not copied gets a button.
+  it.each(['components/document/ProveNumber.tsx', 'components/document/TwoRecordClaims.tsx'])(
+    '%s: the clipboard is asked inside the tap, and a ready link has its own button',
+    (file) => {
+      const src = fs.readFileSync(path.join(HERE, '..', file), 'utf8');
+      const body = src.slice(src.indexOf('const copy = async'));
+      const handler = body.slice(0, body.indexOf('\n  };\n'));
+      expect(handler.indexOf('copyLink(')).toBeGreaterThan(-1);
+      expect(handler.indexOf('copyLink(')).toBeLessThan(handler.indexOf('await '));
+      expect(src).not.toContain('await navigator.clipboard.writeText');
+      expect(src).toContain("t('app.claim.linkReady')");
+      expect(src).toContain('data-claim-copy-ready');
+    },
+  );
+});
+
+describe('the words for a link that can’t be made, or is ready to copy', () => {
+  const HERE = path.dirname(fileURLToPath(import.meta.url));
+  const budget = JSON.parse(fs.readFileSync(path.join(HERE, '..', '..', 'complexity-budget.json'), 'utf8')) as {
+    jargon: { terms: Record<string, string[]> };
+  };
+  it.each(['en', 'de', 'es', 'fr', 'ja'])('%s: there, in its own words, with no banned word', async (lang) => {
+    const { document: words } = (await import(`../i18n/app/${lang}/document.ts`)) as {
+      document: Record<string, string>;
+    };
+    const { document: en } = await import('../i18n/app/en/document');
+    for (const key of ['app.claim.linkLater', 'app.claim.linkReady']) {
+      const w = words[key];
+      expect(w, `${lang} ${key}`).toBeTruthy();
+      if (lang !== 'en') expect(w, `${lang} ${key} is translated`).not.toBe((en as Record<string, string>)[key]);
+      for (const term of budget.jargon.terms[lang]) expect(w.toLowerCase(), `${lang} ${key}`).not.toContain(term);
+    }
   });
 });
