@@ -14,7 +14,10 @@ import {
   fileDating,
   fileDatingNote,
   fileRootAnchor,
+  fileRootGiven,
   fileRootsDisagree,
+  fileTxConflictLines,
+  keptAnchorLine,
   type Evidence,
   type SignatureLine,
 } from './bundle';
@@ -68,6 +71,7 @@ export const declarationText = async (
   // roots the file gives, each in its own folder, not in a batch the registry confirmed.
   const fd = fileDating(ev);
   const fileRoots = fd.roots;
+  const distinctRoots = new Set(fileRoots.map((c) => `${c.batchId} ${c.root}`)).size;
   const tstFiles = (n: number): string[] =>
     n === 1 ? ['root.tst'] : Array.from({ length: n }, (_, i) => `root-${i + 1}.tst`);
 
@@ -203,6 +207,12 @@ export const declarationText = async (
         `   ${tx}`,
         '   [On [date] I / ___ looked that transaction up on [explorer or indexer] and saw that it succeeded, that it called contract [address], and that it was in block [number] at [time]. / I have not looked it up myself.]',
       );
+      const kept = keptAnchorLine(ev);
+      if (kept)
+        add(
+          `   ${t(kept)}`,
+          '   [On [date] I / ___ looked up each of the two transactions on [explorer or indexer]. Result for each: ___. / I have not looked them up myself.]',
+        );
     } else {
       add('   The batch had not been recorded on a network when this bundle was made.');
     }
@@ -214,14 +224,11 @@ export const declarationText = async (
     add('');
   } else if (fileRoots.length) {
     add(
-      `3. How the record was dated. This bundle was made from my backup file of the record, not with VeilCore's registry. [I made that backup file on the VeilCore website on [date], in [browser] on [device], and have kept it [where].] The backup file gives ${fileRoots.length === 1 ? 'one batch root' : `${fileRoots.length} batch roots`} for the record's proof code, ${fileRoots.length === 1 ? 'in its own folder' : 'each in its own folder'} of the bundle. The website checked in my browser that the proof in ${fileRoots.length === 1 ? 'that folder leads from the proof code to its' : "each folder leads from the proof code to that folder's"} batch root. None of this has been confirmed with VeilCore's registry.`,
+      `3. How the record was dated. This bundle was made from my backup file of the record, not with VeilCore's registry. [I made that backup file on the VeilCore website on [date], in [browser] on [device], and have kept it [where].] The backup file gives ${distinctRoots === fileRoots.length ? `${fileRoots.length === 1 ? 'one batch root' : `${fileRoots.length} batch roots`} for the record's proof code, ${fileRoots.length === 1 ? 'in its own folder' : 'each in its own folder'} of the bundle.` : `${distinctRoots === 1 ? 'one batch root' : `${distinctRoots} batch roots`} for the record's proof code, in ${fileRoots.length} folders of the bundle: one for each Midnight transaction it names for a root.`} The website checked in my browser that the proof in ${fileRoots.length === 1 ? 'that folder leads from the proof code to its' : "each folder leads from the proof code to that folder's"} batch root. None of this has been confirmed with VeilCore's registry.`,
     );
     for (const c of fileRoots) {
       const a = fileRootAnchor(c);
-      add(
-        `   - ${t(c.folder)}: batch ${t(c.batchId)}${c.later ? " (VeilCore's registry gave this root later, after giving another for the same batch)" : ''}. Its batch root is:`,
-        `     ${t(c.root)}`,
-      );
+      add(`   - ${t(c.folder)}: batch ${t(c.batchId)}${fileRootGiven(c)}. Its batch root is:`, `     ${t(c.root)}`);
       if (a)
         add(
           `     The backup file says this batch root was recorded on ${t(networkWords(a.network))}${isNumber(a.blockHeight) ? `, in block ${a.blockHeight}` : ''}${utcWords(a.anchoredAt) ? `, at ${utcWords(a.anchoredAt)}` : ''}, in transaction:`,
@@ -245,6 +252,7 @@ export const declarationText = async (
         );
     }
     if (fileRootsDisagree(ev)) add(`   ${t(DISAGREE_WORDS)}`);
+    for (const l of fileTxConflictLines(ev)) add(`   ${t(l)}`);
     add('');
   } else {
     add(

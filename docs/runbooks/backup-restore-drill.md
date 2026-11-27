@@ -44,6 +44,13 @@ The app's own code, in several pretend browsers against a stand-in registry:
   bundle stores nothing; a backup made there, still without the registry, carries nothing from
   the file; the first backup with the registry back carries the registry's stamps again. A
   locked file needs its password, and a wrong one is refused.
+- If the registry names a second main-network transaction for a root it already gave one for,
+  the first stays, the second is kept aside and the holder is warned (at most four per record).
+  A bundle made from the backup file gives each transaction its own folder, and README.txt,
+  EXAMINER-SUMMARY.html, DECLARATION-TEMPLATE.txt and verify.html each name both, say the
+  registry gave two date records for one root, and give the look-up steps for each; none says
+  which is genuine. verify.html is run as written (`src/veilcore/fixtures/verify-dom.ts`) to read
+  what its "From the holder's backup file" card says: never that only Midnight dates a record.
 - A pending Bitcoin stamp is kept, the next backup takes the finished one once the registry
   has it, and neither a registry serving the pending one again nor an older file takes the
   finished one away.

@@ -716,6 +716,16 @@ var VeilcoreVerify = (function () {
     };
   }
 
+  // The transaction the holder's browser kept: the bundle's check-on-midnight.mjs is written for
+  // the registry's current one only.
+  function keptLookup(k) {
+    if (k) {
+      k.script = false;
+      k.otherThanScript = true;
+    }
+    return k;
+  }
+
   function lookups(ev, contracts) {
     var batch = isObject(ev.batch) ? ev.batch : null;
     var proof = isObject(ev.proof) ? ev.proof : null;
@@ -754,8 +764,31 @@ var VeilcoreVerify = (function () {
         files: files,
         // A root the registry gave later, after giving another for the same batch.
         later: x.later === true,
+        // The same root as an earlier folder, with another Midnight transaction the registry gave later.
+        otherTransaction: x.otherTransaction === true,
         midnight: m,
       });
+    }
+    // Each root the file names more than one Midnight transaction for (review 10 of PR #233):
+    // every one is named, none ranked first.
+    var txByRoot = {};
+    var txOrder = [];
+    for (var t = 0; t < fileRoots.length; t++) {
+      var fr = fileRoots[t];
+      if (!fr.midnight || !fr.midnight.txHash) continue;
+      var key = fr.batchId + ' ' + fr.root;
+      if (!txByRoot[key]) {
+        txByRoot[key] = [];
+        txOrder.push(key);
+      }
+      txByRoot[key].push(fr);
+    }
+    var twoTx = [];
+    for (var u = 0; u < txOrder.length; u++) {
+      var group = txByRoot[txOrder[u]];
+      var seen = {};
+      for (var v = 0; v < group.length; v++) seen[group[v].midnight.txHash] = true;
+      if (Object.keys(seen).length > 1) twoTx.push({ root: group[0].root, folders: group });
     }
     var distinct = {};
     for (var q = 0; q < fileRoots.length; q++) distinct[fileRoots[q].batchId + ' ' + fileRoots[q].root] = true;
@@ -769,8 +802,13 @@ var VeilcoreVerify = (function () {
       fromBackupFile: fromFile,
       fileRoots: fileRoots,
       registryRoots: registryRoots,
-      // More than one root from the backup file (and the registry's): at most one is Midnight's.
+      // More than one root from the backup file (and the registry's).
       disagree: Object.keys(distinct).length > 1,
+      // More than one Midnight transaction for one root from the backup file.
+      twoTx: twoTx,
+      // The main-network transaction the holder's browser kept for this root from an earlier
+      // registry answer, when the registry now names another (bundle.ts keptAnchorLine).
+      kept: keptLookup(!fromFile && isObject(registry.keptAnchor) && isHex64(registry.keptAnchor.txHash) ? anchorLookup(registry.keptAnchor, root, false, contracts, false) : null),
       midnight: midnight,
       // The registry's report of the stamp, named as such; what the file itself shows is readStamp's.
       bitcoin: ots && ots.available ? { status: ots.status === 'bitcoin' ? 'bitcoin' : 'pending', file: ots.file || 'proof/root.bin.ots', bitcoinBlockHeight: typeof ots.bitcoinBlockHeight === 'number' ? ots.bitcoinBlockHeight : null } : null,
@@ -832,7 +870,7 @@ var VeilcoreVerify = (function () {
     // a.script: a root from a backup file names its own folder's script, or false where none is
     // written for its network (bundle.ts inFolder); otherwise the bundle's proof/ script.
     var script = a.script === false
-      ? 'This bundle has no script that reads it for this network.'
+      ? (a.otherThanScript ? 'This bundle’s script reads only the other transaction, not this one.' : 'This bundle has no script that reads it for this network.')
       : 'A technical person can run ' + (typeof a.script === 'string' ? a.script : 'proof/check-on-midnight.mjs') + ' (README.txt, “For technical readers”, says how): it asks a Midnight indexer directly, with no VeilCore server involved, though the code it runs is VeilCore’s published code.';
     out.push('We haven’t confirmed that any Midnight explorer shows the batch root: it sits inside the contract’s state after the call, not in plain text. If yours doesn’t show it, we know of no way to see it without running a command. ' + script + ' This record’s check page on VeilCore’s site does the same look-up in your browser, but that page is VeilCore’s too.');
     out.push('If the transaction succeeded, called that contract and wrote that root, this record existed, unchanged, by that transaction’s time: whoever had it sealed held this record by then. If any of it doesn’t match, nothing here dates the record.');
@@ -919,16 +957,25 @@ var VeilcoreVerify = (function () {
       });
     }
     var list = Array.isArray(files) ? files : [];
+    // The batch roots a chosen root.bin or stamp file may be about: the bundle's, then each folder's.
+    var knownRoots = [];
+    if (out.lookups.root) knownRoots.push(out.lookups.root);
+    for (var kf = 0; kf < cs.length; kf++) if (knownRoots.indexOf(cs[kf].root) < 0) knownRoots.push(cs[kf].root);
     for (var k = 0; k < list.length; k++) {
       var f = list[k];
       var sha = await sha256Hex(f.bytes);
       var entry = { name: f.name, sha256: sha, is: 'other' };
       if (/(^|\/)root\.bin$/.test(f.name)) {
         entry.is = 'root.bin';
-        entry.ok = out.lookups.root !== null && f.bytes.length === 32 && toHex(f.bytes) === out.lookups.root;
+        entry.ok = f.bytes.length === 32 && knownRoots.indexOf(toHex(f.bytes)) >= 0;
       } else if (/(^|\/)root\.bin\.ots$/.test(f.name)) {
         entry.is = 'root.bin.ots';
-        entry.stamp = await readStamp(f.bytes, out.lookups.root);
+        // The bundle's root, or (a bundle made from a backup file) any folder's root.
+        entry.stamp = await readStamp(f.bytes, knownRoots[0] || null);
+        for (var kr = 1; kr < knownRoots.length && !(entry.stamp.status === 'bitcoin' || entry.stamp.status === 'pending'); kr++) {
+          var again = await readStamp(f.bytes, knownRoots[kr]);
+          if (again.status === 'bitcoin' || again.status === 'pending') entry.stamp = again;
+        }
         entry.ok = entry.stamp.status === 'bitcoin' || entry.stamp.status === 'pending';
         if (!out.stamp) out.stamp = entry.stamp;
       } else if (record && isObject(record.sealedFields) && Array.isArray(record.sealedFields.files)) {

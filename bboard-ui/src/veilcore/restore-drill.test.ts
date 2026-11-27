@@ -42,6 +42,7 @@ import { differ, snapshotOf } from '../e2e-fixtures/restore-drill-snapshot';
 import { sealOnDevice } from './fixtures/device-only-doc';
 import { otsFile, testTsa, type TestTsa } from './fixtures/test-stamps';
 import { MAINNET_PINNED } from '../../../api/src/pinned-contracts';
+import { renderVerifyPage } from './fixtures/verify-dom';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PASSWORD = 'practice drill password';
@@ -1771,7 +1772,9 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
 
   it('a bundle from a backup file with a pending Bitcoin stamp says to run ots upgrade first, on every page (R9 polish 5)', async () => {
     const { readme, examiner } = await pagesFromFile(null, false);
-    expect(readme).toContain('ots verify root.bin.ots (it stamps root.bin); run ots upgrade root.bin.ots first');
+    expect(readme).toContain(
+      'Bitcoin: in that folder, first run ots upgrade root.bin.ots (it needs the internet once), then ots verify root.bin.ots (it stamps root.bin).',
+    );
     expect(examiner).toContain('run ots upgrade root.bin.ots first');
   });
 
@@ -1811,6 +1814,215 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
       }
       expect(textOf(file('README.txt')), label).toContain('names no Midnight transaction');
     }
+  });
+
+  // ---- review 10 of PR #233 --------------------------------------------------------------
+
+  /** What verify.html says it can't be relied on for: no page may say only Midnight dates a record. */
+  const ONLY_MIDNIGHT = [
+    ...UNTRUE_FOR_A_FILE,
+    'look the batch root up on Midnight before relying',
+    'rely only on the one the transaction wrote',
+    'At most one can be the root Midnight holds',
+  ];
+  const dumpTo = (kind: string, file: (p: string) => Uint8Array | undefined) => {
+    const dump = process.env.VEILCORE_DUMP_PAGES;
+    if (!dump) return;
+    const dir = path.join(dump, kind);
+    fs.mkdirSync(dir, { recursive: true });
+    for (const f of ['README.txt', 'EXAMINER-SUMMARY.html', 'DECLARATION-TEMPLATE.txt', 'verify.html', 'evidence.json'])
+      if (file(f)) fs.writeFileSync(path.join(dir, f), Buffer.from(file(f)!));
+  };
+  /** A bundle made from a backup file whose record has no Midnight transaction, with only what `keep` leaves. */
+  const fileBundleWithout = async (kind: string, finished: boolean, keep: (s: StampsJson, fp: string) => void) => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    if (finished) w.upgrade();
+    anchorAll(null);
+    const inner = await opened(A, await backUp(A));
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    keep(stampsOf(inner)!, fp);
+    w.goDown();
+    const { b: N } = await restoreInto(`nd-${kind}`, JSON.stringify(inner));
+    const got = (await bundleFromFile(N, made.plant, JSON.stringify(inner)))!;
+    dumpTo(kind, got.file);
+    const page = await renderVerifyPage(Buffer.from(got.file('verify.html')!).toString());
+    return { ...got, page };
+  };
+
+  /** What verify.html's card and every page of a file-made bundle say: never that only Midnight dates it. */
+  const neverOnlyMidnight = (name: string, got: Awaited<ReturnType<typeof fileBundleWithout>>) => {
+    const card = got.page.text('summary');
+    expect(card, name).toContain('From the holder’s backup file');
+    expect(card, name).toContain('proof/backup-file-1');
+    expect(card, name).toContain('once you check it yourself');
+    for (const bad of ONLY_MIDNIGHT) expect(card, `${name}: ${bad}`).not.toContain(bad);
+    for (const f of ['README.txt', 'EXAMINER-SUMMARY.html', 'DECLARATION-TEMPLATE.txt', 'verify.html'])
+      for (const bad of ONLY_MIDNIGHT) expect(textOf(got.file(f)), `${name} ${f}: ${bad}`).not.toContain(bad);
+    // Check other files: this bundle's proof files are in its folder (R10 polish 2).
+    expect(got.page.text('other-proof-files'), name).toContain('proof/backup-file-1/');
+    expect(got.page.text('other-proof-files'), name).not.toContain('proof/root.bin');
+  };
+
+  it('verify.html’s card for a bundle from a Bitcoin-only backup file never says only Midnight dates it (R10 blocker 2)', async () => {
+    const btc = await fileBundleWithout('btc-only', true, (s, fp) => {
+      for (const b of Object.values(s.batches)) delete b.tsts;
+      delete s.records[fp];
+    });
+    neverOnlyMidnight('btc', btc);
+    expect(btc.page.text('summary')).toContain('names block 870123');
+    expect(btc.page.text('summary')).toContain('No RFC 3161 token.');
+    // What the page says nothing dates without: each thing this bundle has, and nothing it doesn't (R10 polish 1).
+    expect(btc.page.text('no-date-yet')).toContain('a folder’s Bitcoin stamp checks');
+    expect(btc.page.text('no-date-yet')).not.toMatch(/transaction|token/);
+  });
+
+  it('verify.html’s card for a bundle from a backup file with a pending stamp and a token never says only Midnight dates it (R10 blocker 2)', async () => {
+    const tok = await fileBundleWithout('pending-token', false, () => {});
+    neverOnlyMidnight('tok', tok);
+    expect(tok.page.text('summary')).toContain('holds only a promise');
+    expect(tok.page.text('summary')).toContain('1 RFC 3161 token in that folder');
+    expect(tok.page.text('no-date-yet')).toContain('a folder’s RFC 3161 token checks');
+    expect(tok.page.text('no-date-yet')).not.toMatch(/transaction/);
+  });
+
+  it('a second main-network transaction kept aside reaches a bundle made from the backup file: every page names both and how to look each up (R10-3)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const OTHER = { ...MAINNET, txHash: 'cd'.repeat(32), blockHeight: 12000, anchoredAt: '2027-03-01T12:00:00.000Z' };
+    w.upgrade();
+    serveFolded(MAINNET);
+    await backUp(A);
+    serveFolded(OTHER);
+    const text = await backUp(A);
+    // Made while the registry serves the other one: that bundle names the one this browser kept too (R10 polish 5).
+    const online = await bundleOf(A, made.plant);
+    dumpTo('aside-online', online.file);
+    for (const f of ['README.txt', 'EXAMINER-SUMMARY.html', 'DECLARATION-TEMPLATE.txt']) {
+      const page = textOf(online.file(f));
+      expect(page, `online ${f}`).toContain(OTHER.txHash);
+      expect(page, `online ${f}`).toContain(MAINNET.txHash);
+      expect(page, `online ${f}`).toContain('two different date records');
+    }
+    const onlinePage = await renderVerifyPage(Buffer.from(online.file('verify.html')!).toString());
+    expect(onlinePage.text('summary')).toContain(`it named transaction ${MAINNET.txHash}`);
+    expect(onlinePage.text('summary')).toContain(`now it names transaction ${OTHER.txHash}`);
+    // The bundle's script reads only the registry's current transaction: not offered for the kept one.
+    expect(onlinePage.text('summary')).toContain(
+      'This bundle’s script reads only the other transaction, not this one.',
+    );
+
+    w.goDown();
+    const { b: N } = await restoreInto('new-device', text);
+    const before = await storageOf(N);
+    const got = (await bundleFromFile(N, made.plant, text))!;
+    expect(await storageOf(N)).toEqual(before);
+    dumpTo('two-transactions', got.file);
+    const roots = got.ev.registry.fileRoots!;
+    expect(roots.map((c) => [c.folder, (c.anchor as { txHash: string }).txHash, c.otherTransaction === true])).toEqual([
+      ['proof/backup-file-1', MAINNET.txHash, false],
+      ['proof/backup-file-2', OTHER.txHash, true],
+    ]);
+    expect(roots[0].root).toBe(roots[1].root);
+    // The second folder has all the files the first has: the same root, with its own transaction.
+    expect(roots[1].files.map((f) => f.replace('backup-file-2', 'backup-file-1'))).toEqual(roots[0].files);
+    expect(textOf(got.file('proof/backup-file-2/inclusion-proof.json'))).toContain(OTHER.txHash);
+    const readme = textOf(got.file('README.txt'));
+    const examiner = textOf(got.file('EXAMINER-SUMMARY.html'))
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ');
+    const declaration = textOf(got.file('DECLARATION-TEMPLATE.txt'));
+    const page = await renderVerifyPage(Buffer.from(got.file('verify.html')!).toString());
+    const verify = page.text('summary').replace(/\s+/g, ' ');
+    for (const [name, p] of Object.entries({ readme, examiner, declaration, verify })) {
+      expect(p, name).toContain(MAINNET.txHash);
+      expect(p, name).toContain(OTHER.txHash);
+      expect(p, name).toContain('two different date records for the same batch root');
+      expect(p, name).toMatch(/Look up each one/i);
+      expect(p, name).toContain(`proof/backup-file-2: transaction ${OTHER.txHash}`);
+      for (const bad of ONLY_MIDNIGHT) expect(p, `${name}: ${bad}`).not.toContain(bad);
+      // Neither is said to be the genuine one.
+      expect(p, name).not.toMatch(/(is|was) the genuine/);
+    }
+    // The look-up steps for each: README and verify.html give each folder's own.
+    for (const folder of ['proof/backup-file-1', 'proof/backup-file-2']) {
+      expect(readme).toContain(`A technical person can run ${folder}/check-on-midnight.mjs`);
+      expect(verify).toContain(`A technical person can run ${folder}/check-on-midnight.mjs`);
+    }
+    expect(readme).toContain("the batch root the holder's backup file gives for this record, in 2 folders");
+    expect(readme).not.toContain('2 batch roots');
+    expect(declaration).toContain('in 2 folders of the bundle: one for each Midnight transaction');
+    // The declaration lists both: what the file says of each, and a look-up line for each.
+    expect(declaration).toContain(`in transaction: ${OTHER.txHash}`);
+    expect(declaration).toContain(`in transaction: ${MAINNET.txHash}`);
+    expect(declaration).toContain(`I looked up transaction ${OTHER.txHash}`);
+    expect(declaration).toContain(`I looked up transaction ${MAINNET.txHash}`);
+  });
+
+  it('an anchor a registry would refuse is junk in a backup file: a negative block, a time that isn’t a full date and time, a test-network flag that contradicts the network (R10 polish 3)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    w.upgrade();
+    serveFolded(MAINNET);
+    const inner = await opened(A, await backUp(A));
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    const p = (inner.proofs as Record<string, Record<string, unknown>>)[fp];
+    w.goDown();
+    const cases: [Record<string, unknown>, boolean][] = [
+      [{ blockHeight: -5 }, false],
+      [{ anchoredAt: '1' }, false],
+      [{ anchoredAt: '2026-11-27' }, false],
+      [{ anchoredAt: 'Fri, 27 Nov 2026 12:00:00 GMT' }, false],
+      [{ network: 'preview', testNetwork: false }, false],
+      [{ network: 'mainnet', testNetwork: true }, false],
+      [{ blockHeight: 0 }, true],
+      [{ anchoredAt: '2026-11-27T14:00:00+02:00' }, true],
+      [{ anchoredAt: '2026-11-27T12:00Z' }, true],
+      [{ network: 'mainnet', testNetwork: false }, true],
+    ];
+    for (const [bad, kept] of cases) {
+      p.anchor = { ...MAINNET, ...bad };
+      const label = JSON.stringify(bad);
+      const { b: N } = await restoreInto(`n-${label.replace(/\W/g, '')}`, JSON.stringify(inner));
+      const got = (await bundleFromFile(N, made.plant, JSON.stringify(inner)))!;
+      const a = got.ev.registry.fileRoots![0].anchor as Record<string, unknown> | null;
+      if (kept) expect(a, label).toMatchObject(bad);
+      else {
+        expect(a, label).toBeNull();
+        expect(textOf(got.file('README.txt')), label).not.toContain(MAINNET.txHash);
+      }
+    }
+  });
+
+  it('a registry that keeps giving new transactions can’t fill the browser: at most four kept aside per record, the earliest, and the holder is still warned (R10 polish 4)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    serveFolded(MAINNET);
+    await backUp(A);
+    const txs = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7'].map((x) => x.repeat(32));
+    for (const tx of txs) {
+      serveFolded({ ...MAINNET, txHash: tx });
+      await backUp(A);
+    }
+    const sizeAfterFour = await A.run(() => A.m.stamps.keptSize());
+    serveFolded({ ...MAINNET, txHash: 'c8'.repeat(32) });
+    const inner = await opened(A, await backUp(A));
+    expect(await A.run(() => A.m.stamps.keptSize())).toBe(sizeAfterFour);
+    const aside = (stampsOf(inner)?.changed ?? [])
+      .filter((c) => c.proofs[fp])
+      .map((c) => (c.proofs[fp] as { anchor?: { txHash: string } }).anchor?.txHash);
+    expect(aside).toEqual(txs.slice(0, 4));
+    expect(anchorIn(inner, fp)?.txHash).toBe(MAINNET.txHash);
+    expect(await A.run(() => A.m.stamps.rootChanges())).toBe(w.proofs.size);
   });
 });
 

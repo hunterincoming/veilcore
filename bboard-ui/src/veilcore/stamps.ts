@@ -18,7 +18,9 @@
 // anchor once kept is never replaced (anchorChoice, the registry's own rule). If the registry ever
 // answers with another root for a record whose batch it already gave, or another main-network
 // transaction for it (an honest registry does neither), the first answer stays, the new one is
-// kept aside and goes in the file too, and the backup page warns (rootChanges). Nothing here is deleted except when its record is
+// kept aside (at most MAX_ASIDE per record, the earliest) and goes in the file too, and the backup
+// page warns (rootChanges). A bundle made from the file gives each such root, and each such
+// transaction for one root, its own folder. Nothing here is deleted except when its record is
 // deleted on this browser (record-keys.ts wasForgotten).
 //
 // Restoring a backup file never brings stamps into this browser (review 7 of PR #233: every
@@ -56,6 +58,12 @@ const MAX_TOKENS = 8;
 const MAX_FILE_CHARS = 64 * 1024;
 /** Other roots a backup file may give one record (the registry's later answers): more is junk. */
 const MAX_FILE_ROOTS = 16;
+/**
+ * Later answers kept aside per record (rootChanges): the earliest ones. A registry that keeps
+ * giving new ones can't fill this browser's storage or the backup file; the holder is warned
+ * all the same (review 10 of PR #233, polish 4).
+ */
+export const MAX_ASIDE = 4;
 const FETCHES = 6;
 
 /** An RFC 3161 token, base64 DER, and which TSA's (the registry's word, for the reader). */
@@ -267,13 +275,17 @@ const plain = (v: unknown, depth = 0): unknown => {
 const ANCHOR_FIELDS = ['chain', 'network', 'txHash', 'contractAddress', 'blockHeight', 'anchoredAt', 'testNetwork'];
 /** A chain or network name as the registry takes one (veilcore-api server.js NAME). */
 const NAME = /^[a-z][a-z0-9-]{0,31}$/;
+/** A date and time with a time zone, as the registry takes anchoredAt (veilcore-api server.js ISO_INSTANT). */
+const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,9})?)?(Z|[+-]\d{2}:\d{2})$/;
 
 /**
  * An anchor's fields in the form the registry stores them (veilcore-api recordAnchor: 64 lowercase
- * hex, a short lower-case name, an instant), or false. These reach README.txt and every page of
- * a bundle, so one from a doctored backup file that isn't in that form is junk (review 9, R9-5).
+ * hex, a short lower-case name, a block number of 0 or more, a date and time with a time zone,
+ * and a test-network flag that agrees with the network's name), or false. These reach README.txt
+ * and every page of a bundle, so one from a doctored backup file that isn't in that form is junk
+ * (review 9, R9-5; review 10, polish 3).
  */
-const anchorFormOk = (a: Record<string, unknown>): boolean =>
+export const anchorFormOk = (a: Record<string, unknown>): boolean =>
   isString(a.chain) &&
   NAME.test(a.chain) &&
   isString(a.network) &&
@@ -281,10 +293,14 @@ const anchorFormOk = (a: Record<string, unknown>): boolean =>
   isString(a.txHash) &&
   HEX64.test(a.txHash) &&
   (a.contractAddress === undefined || (isString(a.contractAddress) && HEX64.test(a.contractAddress))) &&
-  (a.blockHeight === undefined || (isNumber(a.blockHeight) && Number.isSafeInteger(a.blockHeight))) &&
+  (a.blockHeight === undefined ||
+    (isNumber(a.blockHeight) && Number.isSafeInteger(a.blockHeight) && a.blockHeight >= 0)) &&
   (a.anchoredAt === undefined ||
-    (isString(a.anchoredAt) && a.anchoredAt.length <= 40 && Number.isFinite(Date.parse(a.anchoredAt)))) &&
-  (a.testNetwork === undefined || typeof a.testNetwork === 'boolean');
+    (isString(a.anchoredAt) &&
+      a.anchoredAt.length <= 40 &&
+      ISO_INSTANT.test(a.anchoredAt) &&
+      Number.isFinite(Date.parse(a.anchoredAt)))) &&
+  (a.testNetwork === undefined || a.testNetwork === (a.network !== 'mainnet'));
 
 /**
  * A proof as kept here, rebuilt from its known fields only (review 5): the format version, the
@@ -523,7 +539,8 @@ const refreshFromRegistry = async (own: Own, wanted: ReadonlySet<string>, proofs
           // An honest registry never changes a sealed batch: the first answer stays (rootChanges).
           proofs[fp] = first;
           const aside = own.changed[fp] ?? [];
-          if (!aside.some((p) => sameBatch(p, st.proof))) own.changed[fp] = [...aside, keepable(st.proof)];
+          if (aside.length < MAX_ASIDE && !aside.some((p) => sameBatch(p, st.proof)))
+            own.changed[fp] = [...aside, keepable(st.proof)];
         } else {
           // Same batch and root: the anchor anchorChoice picks is kept, and the file carries the
           // same, so a backup made offline later names it too.
@@ -533,7 +550,10 @@ const refreshFromRegistry = async (own: Own, wanted: ReadonlySet<string>, proofs
             // Another main-network transaction for a batch already on it: kept aside and warned of.
             const later = keepable(st.proof);
             const aside = own.changed[fp] ?? [];
-            if (!aside.some((p) => sameBatch(p, later) && sameAnchor(anchorOf(p), anchorOf(later))))
+            if (
+              aside.length < MAX_ASIDE &&
+              !aside.some((p) => sameBatch(p, later) && sameAnchor(anchorOf(p), anchorOf(later)))
+            )
               own.changed[fp] = [...aside, later];
           }
           const fr = proofs[fp];
@@ -605,7 +625,7 @@ const inFile = (own: Own, wanted: ReadonlySet<string>): StampsInFile | undefined
     if (p && b && (b.ots || b.tsts?.length) && !batches[p.batchId]) batches[p.batchId] = b;
     const r = own.records[fp];
     if (r?.instant?.length) records[fp] = { instant: r.instant };
-    for (const c of own.changed[fp] ?? []) {
+    for (const c of (own.changed[fp] ?? []).slice(0, MAX_ASIDE)) {
       const tx = anchorOf(c)?.txHash;
       const k = `${batchKey(c.batchId, c.root)} ${isString(tx) ? tx : ''}`;
       const e = changed.get(k) ?? { batchId: c.batchId, root: c.root, proofs: {} };
@@ -672,6 +692,24 @@ export const keptEvidence = async (
   return { proof: st.proof, ...(await batchFacts(st.proof, own.batches[batchKey(st.proof.batchId, st.proof.root)])) };
 };
 
+/**
+ * The main-network anchor this browser kept for a record, when the registry now names another
+ * transaction for the same batch and root (review 10 of PR #233, polish 5): a bundle made from
+ * the registry's answer names the kept one too. Null when they agree, or nothing is kept.
+ */
+export const keptAnchorBeside = (
+  fp: string,
+  served: { readonly batchId: string; readonly root: string },
+  servedAnchor: unknown,
+): Record<string, unknown> | null => {
+  if (!HEX64.test(fp)) return null;
+  const p = load().proofs[fp];
+  if (!p || !sameBatch(p, served)) return null;
+  const kept = anchorOf(p);
+  if (!kept || kept.network !== 'mainnet' || !anchorFormOk(kept)) return null;
+  return sameAnchor(kept, isObject(servedAnchor) ? servedAnchor : undefined) ? null : kept;
+};
+
 // ---- an evidence bundle straight from a backup file (nothing stored) ------------------------
 
 /** A backup file's date proofs as read from it, in memory only: its `stamps` and its `proofs`. */
@@ -688,6 +726,11 @@ export type FileEvidence = {
   readonly tsts: readonly Uint8Array[];
   /** True for a root the registry gave later for a batch it had already given (the file's `changed`). */
   readonly later: boolean;
+  /**
+   * True when an earlier folder has this same batch and root with another Midnight transaction:
+   * the registry gave a second date record for one root (review 10 of PR #233, blocker 3).
+   */
+  readonly otherTransaction?: boolean;
 };
 
 /** The proof codes a backup file has a proof for. */
@@ -725,7 +768,12 @@ export const evidenceFromFile = async (
       const st = await checkProof(fp, c.proof);
       if (st.status === 'none') continue;
       const { batchId, root } = st.proof;
-      if (roots.some((r) => sameBatch(r, { batchId, root }))) continue;
+      // The same batch and root again: left out, unless it names another Midnight transaction
+      // (one in the registry's form, keepable): then it gets its own folder, so every page names
+      // both and no offline bundle loses the one the registry gave later.
+      const same = roots.filter((r) => sameBatch(r, { batchId, root }));
+      const tx = anchorOf(keepable(st.proof));
+      if (same.length && (!tx || same.some((r) => sameAnchor(anchorOf(r.proof), tx)))) continue;
       const f = isObject(c.files) && c.files.root === root ? c.files : {};
       const read = await readOts(f.ots, root);
       const bytes = read && isString(f.ots) ? b64Bytes(f.ots) : undefined;
@@ -741,6 +789,7 @@ export const evidenceFromFile = async (
           : {}),
         tsts,
         later: c.later,
+        ...(same.length ? { otherTransaction: true } : {}),
       });
     } catch {
       /* junk: left out; the rest stand */

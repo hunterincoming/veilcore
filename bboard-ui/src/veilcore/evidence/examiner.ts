@@ -17,8 +17,11 @@ import {
   fileDating,
   fileDatingNote,
   fileRootAnchor,
+  fileRootGiven,
   fileRootsDisagree,
+  fileTxConflictLines,
   inFolder,
+  keptAnchorLine,
   type Evidence,
   type FileRootFacts,
   type SignatureLine,
@@ -366,6 +369,18 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   const anyTx = !!tx || fd.tx;
   const anyAnchor = !!anchor || fd.tx;
 
+  // Two Midnight transactions for one batch root (review 10 of PR #233): each named, none ranked.
+  const kept = keptAnchorLine(ev);
+  const twoTx = [...(kept ? [kept] : []), ...fileTxConflictLines(ev)];
+  // Each "- folder: transaction" line goes in one list under the line before it.
+  const twoTxHtml = twoTx
+    .reduce<{ head: string; items: string[] }[]>((out, l) => {
+      if (l.startsWith('- ') && out.length) out[out.length - 1].items.push(l.slice(2));
+      else out.push({ head: l, items: [] });
+      return out;
+    }, [])
+    .map((g) => `${p(g.head)}${g.items.length ? list(g.items) : ''}`)
+    .join('');
   const banner = fileRoots.length
     ? fileDatingNote(ev)
     : test
@@ -382,7 +397,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     ...(ev.registry.fileRoots?.length
       ? [
           `From the holder’s backup file, not confirmed with VeilCore’s registry: ${ev.registry.fileRoots
-            .map((c) => `${c.folder} (batch ${oneLine(c.batchId)}, batch root ${c.root})`)
+            .map((c) => `${c.folder} (batch ${oneLine(c.batchId)}, batch root ${c.root}${fileRootGiven(c)})`)
             .join('; ')}.`,
           ...(fileRootsDisagree(ev) ? [`More than one root: ${DISAGREE_WORDS}`] : []),
           ...(ev.registry.registryRoots ?? []).map(
@@ -445,7 +460,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
           ? `${[...new Set(fileRoots.map((c) => oneLine(c.batchId)))].join(', ')} (${said})`
           : 'not in a batch yet'),
     ],
-    ['Batch root', ev.batch?.root ?? (fileRoots.length ? fileRoots.map((c) => c.root).join(', ') : null)],
+    ['Batch root', ev.batch?.root ?? (fileRoots.length ? [...new Set(fileRoots.map((c) => c.root))].join(', ') : null)],
     ['Batch sealed by the registry at', ev.batch?.sealedAt ? (utcWords(ev.batch.sealedAt) ?? ev.batch.sealedAt) : null],
     [
       'Registry first saw the record',
@@ -508,9 +523,11 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
       ['Batch root', c.root],
       [
         'Given',
-        c.later
-          ? 'Later in the backup file: one it says VeilCore’s registry gave after another for the same batch'
-          : 'First in the backup file: the proof it gives for this record',
+        c.otherTransaction
+          ? 'Later in the backup file: the same batch root as another folder, with another Midnight transaction VeilCore’s registry gave later (a second date record for this root)'
+          : c.later
+            ? 'Later in the backup file: one it says VeilCore’s registry gave after another for the same batch'
+            : 'First in the backup file: the proof it gives for this record',
       ],
       ['Midnight network', a ? networkWords(a.network) : 'The backup file names no Midnight transaction for this root'],
       ['Contract', a && isString(a.contractAddress) ? a.contractAddress : null],
@@ -752,6 +769,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   <h1>${escapeHtml(title)}</h1>
   ${p(`Made ${made} by the VeilCore site, from the holder’s own copy of the record. Bundle format ${ev.format}; record format ${ev.spec.version}.`, 'muted')}
   ${banner ? `<div class="note warn" data-practice="yes">${p(banner)}</div>` : ''}
+  ${twoTx.length ? `<div class="note warn" data-two-transactions="yes">${twoTxHtml}</div>` : ''}
   <div class="note">${p('This page is a printout of what the VeilCore site found when it made this bundle. It runs no code and checks nothing when opened. To check the files yourself, open verify.html in the same folder (it works offline); README.txt explains every file.')}${p('You don’t need to open any link to read this: everything it says is on the page. The addresses and commands below are only for checking it.', 'muted')}</div>
 
   <h2>1. The record as it was sealed</h2>

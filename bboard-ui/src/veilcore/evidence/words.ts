@@ -241,7 +241,16 @@ export const UNCONFIRMED_WORDS =
  * registry.fileRoots): README.txt, EXAMINER-SUMMARY.html and verify.html.
  */
 export const DISAGREE_WORDS =
-  'The holder’s backup file gives more than one batch root for this record (VeilCore’s registry gave a second one later, which should never happen). Each is in this bundle in its own folder (proof/backup-file-*), none ranked first. At most one can be the root Midnight holds. Look each one up on Midnight; rely only on the one the transaction wrote.';
+  'The holder’s backup file gives more than one batch root for this record (VeilCore’s registry gave a second one later, which should never happen). Each is in this bundle in its own folder (proof/backup-file-*), none ranked first. Check each one yourself (on Midnight, or with its Bitcoin stamp or timestamp token); rely only on a root that a check you make yourself dates.';
+
+/**
+ * Said wherever a backup file names more than one Midnight transaction for the same batch root
+ * (evidence.json registry.fileRoots, otherTransaction; review 10 of PR #233, blocker 3), before
+ * the list of each folder's transaction: README.txt, EXAMINER-SUMMARY.html,
+ * DECLARATION-TEMPLATE.txt and verify.html.
+ */
+export const TWO_TX_WORDS =
+  'VeilCore’s registry gave two different date records for the same batch root, which should never happen: the holder’s backup file names more than one Midnight transaction for it. Each is in this bundle in its own folder (proof/backup-file-*), none ranked first, and this bundle does not say which is genuine. Look up each one, with the steps for its folder; rely only on one that you check yourself wrote this batch root.';
 
 /** Who said where the batch root was recorded: VeilCore's registry, or only the holder's backup file. */
 export const reporterWords = (source: string): string =>

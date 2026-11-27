@@ -59,6 +59,7 @@ import {
   wrap,
   UNCONFIRMED_WORDS,
   DISAGREE_WORDS,
+  TWO_TX_WORDS,
   reporterWords,
 } from './words';
 import { enT, forKind } from '../../i18n/translate';
@@ -144,6 +145,11 @@ export type Gathered = {
   readonly fileRoots?: readonly import('../stamps').FileEvidence[];
   /** Roots the registry gave this browser for the same batch that the file doesn't give. */
   readonly registryRoots?: readonly string[];
+  /**
+   * The main-network anchor this browser kept for the record when the registry now names another
+   * transaction for the same root (stamps.ts keptAnchorBeside; review 10, polish 5).
+   */
+  readonly keptAnchor?: Record<string, unknown>;
 };
 
 const base64ToBytes = (b64: string): Uint8Array | null => {
@@ -357,6 +363,10 @@ export const gatherEvidence = async (
   const got = await fromRegistry(record, fetcher);
   if ('error' in got && got.error === unreachable && isHex64(record.recordFingerprint))
     return (await fromThisDevice(record.recordFingerprint)) ?? got;
+  if (!('error' in got) && got.proof && got.batch && isHex64(record.recordFingerprint)) {
+    const kept = (await import('../stamps')).keptAnchorBeside(record.recordFingerprint, got.proof, got.batch.anchor);
+    if (kept) return { ...got, keptAnchor: kept };
+  }
   return got;
 };
 
@@ -557,6 +567,11 @@ export type Evidence = {
     readonly fileRoots?: readonly FileRootFacts[];
     /** Roots VeilCore's registry gave this browser for the same batch that the file doesn't give. */
     readonly registryRoots?: readonly string[];
+    /**
+     * Another main-network transaction for this batch root: the one this browser kept from the
+     * registry's earlier answer, when the registry now names `batch.anchor` instead.
+     */
+    readonly keptAnchor?: Record<string, unknown>;
   };
   readonly proof: InclusionProof | null;
   readonly batch: BatchFacts | null;
@@ -752,6 +767,11 @@ export type FileRootFacts = {
   readonly root: string;
   /** A root VeilCore's registry gave later for a batch it had already given (should never happen). */
   readonly later: boolean;
+  /**
+   * The same batch root as an earlier folder, with another Midnight transaction the registry gave
+   * later: a second date record for one root (should never happen).
+   */
+  readonly otherTransaction?: boolean;
   readonly proof: InclusionProof;
   readonly anchor: unknown;
   readonly opentimestamps: {
@@ -777,6 +797,7 @@ const fileRootFacts = (c: import('../stamps').FileEvidence, i: number): FileRoot
     batchId: c.batchId,
     root: c.root,
     later: c.later,
+    ...(c.otherTransaction ? { otherTransaction: true } : {}),
     proof: c.proof,
     anchor: c.proof.anchor ?? null,
     opentimestamps: c.ots
@@ -866,10 +887,59 @@ export const fileRootFileWords = (c: FileRootFacts): string => {
   return `from the holder's backup file, not confirmed with VeilCore's registry: ${parts.join('; ')}.`;
 };
 
+/** How many roots and folders a backup file gives, for the line that opens their list. */
+export const fileFolderWords = (roots: readonly FileRootFacts[]): string => {
+  const distinct = new Set(roots.map((c) => `${c.batchId} ${c.root}`)).size;
+  if (distinct === roots.length)
+    return `${roots.length === 1 ? 'the batch root' : `${roots.length} batch roots`} the holder's backup file gives for this record, ${roots.length === 1 ? 'in its own folder' : 'each in its own folder'} with all its files.`;
+  return `${distinct === 1 ? 'the batch root' : `${distinct} batch roots`} the holder's backup file gives for this record, in ${roots.length} folders with all their files: one for each Midnight transaction the file names for a root.`;
+};
+
 /** Whether the backup file (and any root the registry gave this browser for the batch) names more than one root. */
 export const fileRootsDisagree = (ev: Evidence): boolean =>
   new Set([...(ev.registry.fileRoots ?? []).map((c) => `${c.batchId} ${c.root}`), ...(ev.registry.registryRoots ?? [])])
     .size > 1;
+
+/** How a folder from the backup file was given, for the line that names it: '' for the file's first answer. */
+export const fileRootGiven = (c: FileRootFacts): string =>
+  c.otherTransaction
+    ? " (the same batch root as another folder, with another Midnight transaction: VeilCore's registry gave this second date record for the root later)"
+    : c.later
+      ? " (VeilCore's registry gave this root later, after giving another for the same batch)"
+      : '';
+
+/** Each batch root the backup file names more than one Midnight transaction for, with each folder's. */
+export const fileTxConflicts = (ev: Evidence): FileRootFacts[][] => {
+  const by = new Map<string, FileRootFacts[]>();
+  for (const c of ev.registry.source === 'backup-file' ? (ev.registry.fileRoots ?? []) : []) {
+    if (!fileRootAnchor(c)) continue;
+    const k = `${c.batchId} ${c.root}`;
+    by.set(k, [...(by.get(k) ?? []), c]);
+  }
+  return [...by.values()].filter((l) => new Set(l.map((c) => String(fileRootAnchor(c)!.txHash))).size > 1);
+};
+
+/**
+ * The lines every page of a bundle from a backup file gives when the file names more than one
+ * transaction for one root (review 10 of PR #233, blocker 3): what happened, then each folder's
+ * transaction by name. Plain text; each page escapes or wraps it as it needs.
+ */
+export const fileTxConflictLines = (ev: Evidence): string[] =>
+  fileTxConflicts(ev).flatMap((l) => [
+    `${TWO_TX_WORDS} Batch root ${l[0].root}:`,
+    ...l.map((c) => {
+      const a = fileRootAnchor(c)!;
+      return `- ${c.folder}: transaction ${String(a.txHash)} on ${networkWords(a.network)}${c.otherTransaction ? ', given later' : ', given first'}.`;
+    }),
+  ]);
+
+/** A line naming the anchor this browser kept, for a bundle whose registry now names another (polish 5). */
+export const keptAnchorLine = (ev: Evidence): string | null => {
+  const k = ev.registry.keptAnchor;
+  const now = ev.batch?.anchor;
+  if (!k || !isString(k.txHash) || !now || !isString(now.txHash)) return null;
+  return `VeilCore's registry gave two different date records for this batch root, which should never happen: when the holder's browser first kept this record's proof it named Midnight transaction ${k.txHash} on ${networkWords(k.network)}, and now it names transaction ${now.txHash} on ${networkWords(now.network)}. This bundle does not say which is genuine: look up each one (the same steps, with that transaction; a check-on-midnight.mjs in this bundle reads only the one named now), and rely only on one that you check yourself wrote this batch root.`;
+};
 
 export const buildEvidence = async (
   record: StrainRecord,
@@ -1023,6 +1093,7 @@ export const buildEvidence = async (
             : 'firstSeen is VeilCore’s registry’s own clock, its word only. The anchor is the transaction the registry operator reported; nobody has looked it up on the chain for you.',
       ...(gathered.fileRoots?.length ? { fileRoots: gathered.fileRoots.map(fileRootFacts) } : {}),
       ...(gathered.registryRoots?.length ? { registryRoots: gathered.registryRoots } : {}),
+      ...(gathered.keptAnchor ? { keptAnchor: gathered.keptAnchor } : {}),
     },
     proof: gathered.proof,
     batch: gathered.batch,
@@ -1446,13 +1517,15 @@ export const readmeText = (
   if (fileRoots.length) {
     L.push('');
     L.push(
-      `FROM THIS BACKUP FILE: ${fileRoots.length === 1 ? 'the batch root' : `${fileRoots.length} batch roots`} the holder's backup file gives for this record, ${fileRoots.length === 1 ? 'in its own folder' : 'each in its own folder'} with all its files. Not confirmed with VeilCore's registry${fileRoots.length === 1 ? '' : ', and none is ranked first'}.`,
+      `FROM THIS BACKUP FILE: ${fileFolderWords(fileRoots)} Not confirmed with VeilCore's registry${fileRoots.length === 1 ? '' : ', and none is ranked first'}.`,
     );
     for (const c of fileRoots)
       L.push(
-        `- ${c.folder}: batch ${oneLine(c.batchId)}, batch root ${c.root}${c.later ? " (VeilCore's registry gave this root later, after giving another for the same batch)" : ''}${c.opentimestamps.available ? `, a Bitcoin stamp file (${c.opentimestamps.status === 'bitcoin' ? `names block ${c.opentimestamps.bitcoinBlockHeight ?? '?'}` : 'pending'})` : ''}${c.tokens ? `, ${c.tokens} RFC 3161 token${c.tokens === 1 ? '' : 's'}` : ''}.`,
+        `- ${c.folder}: batch ${oneLine(c.batchId)}, batch root ${c.root}${fileRootGiven(c)}${c.opentimestamps.available ? `, a Bitcoin stamp file (${c.opentimestamps.status === 'bitcoin' ? `names block ${c.opentimestamps.bitcoinBlockHeight ?? '?'}` : 'pending'})` : ''}${c.tokens ? `, ${c.tokens} RFC 3161 token${c.tokens === 1 ? '' : 's'}` : ''}.`,
       );
     if (fileRootsDisagree(ev)) L.push(`MORE THAN ONE ROOT: ${DISAGREE_WORDS}`);
+    const twoTx = fileTxConflictLines(ev);
+    if (twoTx.length) L.push(`MORE THAN ONE TRANSACTION: ${twoTx[0]}`, ...twoTx.slice(1));
     for (const r of ev.registry.registryRoots ?? [])
       L.push(`- VeilCore's registry gave the holder's browser another root for this batch: ${r}.`);
     L.push(
@@ -1474,6 +1547,11 @@ export const readmeText = (
     L.push(
       `${lockedParents} of this record's linked parents ${lockedParents === 1 ? 'is' : 'are'} the holder's own record${lockedParents === 1 ? '' : 's'}, locked in the browser this bundle was made in (sealed with a key it doesn't have), so ${lockedParents === 1 ? 'it is' : 'they are'} left out. The parents' names as sealed in this record are in it.`,
     );
+  }
+  const kept = keptAnchorLine(ev);
+  if (kept) {
+    L.push('');
+    L.push(`TWO TRANSACTIONS: ${kept}`);
   }
   const fromFile = ev.registry.source === 'backup-file' && fileRoots.length > 0;
   const fileNote = fromFile ? fileDatingNote(ev) : null;
@@ -1521,7 +1599,9 @@ export const readmeText = (
       else L.push('     The backup file names no Midnight transaction for this batch.');
       if (c.opentimestamps.available)
         L.push(
-          `     Bitcoin: in that folder, ots verify root.bin.ots (it stamps root.bin)${c.opentimestamps.status === 'bitcoin' ? '' : '; run ots upgrade root.bin.ots first, which needs the internet once'}.`,
+          c.opentimestamps.status === 'bitcoin'
+            ? '     Bitcoin: in that folder, ots verify root.bin.ots (it stamps root.bin).'
+            : '     Bitcoin: in that folder, first run ots upgrade root.bin.ots (it needs the internet once), then ots verify root.bin.ots (it stamps root.bin).',
         );
       if (c.tokens)
         L.push(
