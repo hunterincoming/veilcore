@@ -167,7 +167,7 @@ export const es: Strings = {
   'm.hiw.you1p': 'Nunca salen de su dispositivo: su computadora lee cada uno para calcular su código.',
   'm.hiw.you2t': 'Los datos del registro',
   'm.hiw.you2p':
-    'Se guardan cifrados en el servidor de VeilCore, el nombre incluido, salvo que usted elija mostrarlo. No tenemos la clave.',
+    'Se guardan cifrados en nuestro servidor, nombre incluido, salvo que lo muestre. Con nuestro código web publicado, no podemos leerlos.',
   'm.hiw.you3t': 'Su archivo de copia de seguridad',
   'm.hiw.you3p': 'Contiene sus claves. Guárdelo en un lugar seguro.',
   'm.hiw.chainLbl': 'En Midnight',
@@ -606,7 +606,7 @@ export const es: Strings = {
     'Su dispositivo calcula un código a partir del registro. Solo ese código se fecha, en Midnight, y nadie puede deducir de él lo que escribió.',
   'm.home2.s2t': '2. Séllelo.',
   'm.home2.s1p':
-    'Qué es y de dónde viene. Su dispositivo cierra los datos antes de enviarlos: nos llegan cerrados y no podemos leerlos.',
+    'Qué es y de dónde viene. Su dispositivo lo cierra antes de enviarlo: con nuestro código web publicado, no podemos leerlo.',
   'm.home2.s1t': '1. Anótelo.',
   'm.home2.stepsTitle': 'Cómo funciona, en tres pasos',
   'm.home2.lede':

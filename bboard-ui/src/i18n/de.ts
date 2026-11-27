@@ -168,7 +168,7 @@ export const de: Strings = {
   'm.hiw.you1p': 'Sie verlassen Ihr Gerät nie: Ihr Computer liest jede einzelne, um ihren Code zu berechnen.',
   'm.hiw.you2t': 'Die Angaben des Datensatzes',
   'm.hiw.you2p':
-    'Verschlossen auf dem Server von VeilCore gespeichert, auch der Name, außer Sie entscheiden sich, ihn zu zeigen. Wir haben den Schlüssel nicht.',
+    'Verschlossen auf unserem Server gespeichert, auch der Name, außer Sie zeigen ihn. Mit unserem veröffentlichten Website-Code können wir sie nicht lesen.',
   'm.hiw.you3t': 'Ihre Sicherungsdatei',
   'm.hiw.you3p': 'Sie enthält Ihre Schlüssel. Bewahren Sie sie sicher auf.',
   'm.hiw.chainLbl': 'Auf Midnight',
@@ -609,7 +609,7 @@ export const de: Strings = {
     'Ihr Gerät berechnet einen Code aus dem Datensatz. Nur dieser Code wird datiert, auf Midnight, und niemand kann daraus auf das Geschriebene zurückschließen.',
   'm.home2.s2t': '2. Versiegeln.',
   'm.home2.s1p':
-    'Was es ist und woher es kommt. Ihr Gerät verschlüsselt die Angaben vor dem Senden: Sie kommen verschlüsselt bei uns an, und wir können sie nicht lesen.',
+    'Was es ist und woher es kommt. Ihr Gerät verschlüsselt die Angaben vor dem Senden: Mit dem Website-Code, den wir veröffentlichen, können wir sie nicht lesen.',
   'm.home2.s1t': '1. Aufschreiben.',
   'm.home2.stepsTitle': 'So funktioniert es, in drei Schritten',
   'm.home2.lede':

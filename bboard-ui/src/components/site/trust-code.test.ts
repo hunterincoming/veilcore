@@ -7,6 +7,11 @@
 //   - the test site's privacy note, beside "Stored locked, we can't read it";
 //   - veilcore.org's privacy policy, after "we don't have the key" in the short version.
 //
+// Two lines say it on screens at their word budget (the landing page's step 1, m.home2.s1p, and
+// How it works' "The record's details", m.hiw.you2p). There the claim itself says it: "with the
+// website code we publish, we can't read them", in no more words than before, and the way to check
+// is the fold above on How it works.
+//
 // In all five languages, one sentence each, and never more than the check page can show (it
 // can't prove a host sent everyone the same files).
 // SPDX-License-Identifier: Apache-2.0
@@ -88,6 +93,24 @@ describe('what "we can\'t read it" rests on', () => {
     expect(short).toContain("k('m.pp.short.code')");
     expect(short.slice(0, 400)).toContain('to="/check-this-site"');
   });
+
+  /** The words for "the website code we publish" in each language, inside the claim itself. */
+  const PUBLISHED_CODE: Record<string, RegExp> = {
+    en: /with the website code we publish, we can’t read (it|them)/i,
+    de: /veröffentlich.*Website-Code|Website-Code, den wir veröffentlichen/,
+    es: /con nuestro código web publicado, no podemos leer/i,
+    fr: /avec notre code web publié/i,
+    ja: /公開版のサイト/,
+  };
+  for (const lang of Object.keys(SITE))
+    it(`the claims on budgeted screens say it themselves (${lang})`, () => {
+      for (const key of ['m.home2.s1p', 'm.hiw.you2p']) {
+        const s = SITE[lang][key];
+        expect(s, `${lang} ${key}`).toMatch(PUBLISHED_CODE[lang]);
+        // Still the plain claim, and no promise past what the check page shows.
+        expect(s).not.toMatch(/guarant|garant|prove|beweis|prouve|証明|everyone/i);
+      }
+    });
 
   it('the claims it sits next to are still there', () => {
     expect(en['m.faq.4q']).toMatch(/what do you see of my data/i);
