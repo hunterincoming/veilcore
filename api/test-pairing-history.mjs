@@ -77,7 +77,7 @@ globalThis.WebSocket = class {
   close() {}
 };
 const seen = [];
-for await (const a of indexerHistory('http://indexer', 'ws://indexer', { idleMs: 10 })('cc'.repeat(32))) seen.push(a);
+for await (const a of indexerHistory('https://indexer', 'wss://indexer', { idleMs: 10 })('cc'.repeat(32))) seen.push(a);
 assert.match(asked, /transaction \{\s*hash/);
 assert.equal(seen.length, 1);
 assert.equal(seen[0].hash, HASH);
