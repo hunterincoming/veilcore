@@ -146,7 +146,7 @@ export const LicenseProofWatch: React.FC<{ ask: MyAsk; asker?: string }> = ({ as
       {state !== 'expired' && (
         <>
           <Typography variant="body2">{tr.t('app.lic.proof.sendLink')}</Typography>
-          <SendLink link={proveLink(ask.id, ask.token, 'license')} asker={asker} />
+          <SendLink link={proveLink(ask.id, ask.token, 'license')} asker={asker} sentence="license" />
         </>
       )}
       {state === 'expired' ? (

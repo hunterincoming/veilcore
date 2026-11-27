@@ -424,6 +424,10 @@ export const licensing = {
   'app.lic.proof.okText':
     'あなたのリンクに答えた人は、答えが届いた{when}の時点で、鍵 {key} の記録から発行された有効なライセンスを保有していました。どのライセンスか、その条件、その人が誰かは示しません。ライセンスはあとで取り消されることがあります。改めて確認するには、新しい依頼を作ってください。',
   'app.lic.proof.sendLink': 'このリンクを相手に送ってください。答えはここに、チェーン上で確認されて表示されます。',
+  'app.lic.proof.share':
+    'VeilCoreでこの記録からの有効なライセンスを保有していることを証明するため、このリンクを開いてください：{link}',
+  'app.lic.proof.shareAsker':
+    '{asker}が、VeilCoreでこの記録からの有効なライセンスを保有していることの証明を求めています。このリンクを開いてください：{link}',
   'app.lic.proof.ended': 'この依頼は終了しました。新しく作ってください。',
   'app.lic.proof.unreachable': 'いまVeilCoreのレジストリに接続できません。このページは試し続けます。',
   'app.lic.proof.pending': '答えが届きました。ネットワークに表示されるのを待っています…',

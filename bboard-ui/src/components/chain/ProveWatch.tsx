@@ -22,7 +22,7 @@ import {
   type MyAsk,
 } from '../../veilcore/prove-relay';
 import { useT } from '../../i18n/app';
-import { forKind, type RecordKind } from '../../i18n/translate';
+import { forKind, type RecordKind, type Translator } from '../../i18n/translate';
 import { CODE_FONT } from '../../config/theme';
 import { color, mix } from '../../config/tokens';
 
@@ -35,10 +35,37 @@ const when = (t: number, locale?: string) => localStamp(t, locale);
  */
 type Kinded = { kind?: RecordKind };
 
-export const SendLink: React.FC<{ link: string; asker?: string } & Kinded> = ({ link, asker, kind = 'plant' }) => {
+/**
+ * Which sentence goes with the link: 'record' asks the person to prove they hold the record (in
+ * its kind's words); 'license' asks them to prove they hold a live license from it, which names
+ * no kind, so it fits every record.
+ */
+export type SendLinkFor = 'record' | 'license';
+const SHARE_KEYS = {
+  record: { share: 'app.prove.watch.share', shareAsker: 'app.prove.watch.shareAsker' },
+  license: { share: 'app.lic.proof.share', shareAsker: 'app.lic.proof.shareAsker' },
+} as const;
+
+/** The text "Send it" shares, with the asker's name when there is one. */
+export const shareText = (
+  t: Translator['t'],
+  link: string,
+  asker?: string,
+  sentence: SendLinkFor = 'record',
+): string => {
+  const keys = SHARE_KEYS[sentence];
+  return asker ? t(keys.shareAsker, { asker, link }) : t(keys.share, { link });
+};
+
+export const SendLink: React.FC<{ link: string; asker?: string; sentence?: SendLinkFor } & Kinded> = ({
+  link,
+  asker,
+  kind = 'plant',
+  sentence = 'record',
+}) => {
   const [copied, setCopied] = useState(false);
   const { t } = forKind(useT(), kind);
-  const text = asker ? t('app.prove.watch.shareAsker', { asker, link }) : t('app.prove.watch.share', { link });
+  const text = shareText(t, link, asker, sentence);
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
   return (
     <Box>

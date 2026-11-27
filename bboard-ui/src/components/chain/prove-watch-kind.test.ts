@@ -15,6 +15,7 @@ import { appFr } from '../../i18n/app/fr';
 import { appJa } from '../../i18n/app/ja';
 import { forKind, makeTranslator } from '../../i18n/translate';
 import { keyStampWords } from '../../veilcore/prove-relay';
+import { shareText } from './ProveWatch';
 
 const DICTS = { en: appEn, de: appDe, es: appEs, fr: appFr, ja: appJa } as const;
 type Lang = keyof typeof DICTS;
@@ -110,5 +111,49 @@ describe("prove by link, in an animal's and a strain's words", () => {
     const prove = read('components/flow/ProvePage.tsx');
     expect(prove).toMatch(/<ProveWatch ask=\{mine\} kind=\{askedKind\} \/>/);
     expect(prove).toMatch(/askSubject\(mine\)/);
+  });
+
+  // The license link asks for a live license from the record, not for the record itself, so its
+  // share text names no kind: before this, an animal's or a strain's license check sent "prove
+  // you hold this plant" (PR #239 review, round 3).
+  for (const lang of Object.keys(DICTS) as Lang[]) {
+    it(`${lang}: the license link's share text names no plant, animal or strain, for any kind`, () => {
+      const link = 'https://veilcore.org/prove-license/PR-1#t=x';
+      const seen = new Set<string>();
+      for (const kind of ['plant', 'animal', 'strain'] as const) {
+        const tr = forKind(makeTranslator(lang, DICTS[lang]), kind);
+        for (const asker of [undefined, 'A lab']) {
+          const a = shareText(tr.t, link, asker, 'license');
+          expect(a, `${lang} ${kind} ${asker}`).toContain(link);
+          if (asker) expect(a, `${lang} ${kind} ${asker}`).toContain(asker);
+          expect(a, `${lang} ${kind} ${asker}`).not.toMatch(PLANT[lang]);
+          expect(a, `${lang} ${kind} ${asker}`).not.toMatch(ANIMAL[lang]);
+          expect(a, `${lang} ${kind} ${asker}`).not.toMatch(STRAIN[lang]);
+          expect(a, `${lang} ${kind} ${asker}`).not.toBe(shareText(tr.t, link, asker, 'record'));
+          seen.add(`${asker ?? ''}|${a}`);
+        }
+      }
+      // The same two sentences for every kind.
+      expect(seen.size, lang).toBe(2);
+      const dict = DICTS[lang] as Record<string, string>;
+      for (const k of ['app.lic.proof.share', 'app.lic.proof.shareAsker']) {
+        expect(dict[k], `${lang} ${k}`).toBeTruthy();
+        expect(`app.animal.v.${k}` in dict, `${lang} ${k} has no animal version`).toBe(false);
+        expect(`app.strain.v.${k}` in dict, `${lang} ${k} has no strain version`).toBe(false);
+      }
+    });
+  }
+
+  it('the license check sends the license sentence; the record link keeps its own', () => {
+    const lic = read('components/licensing/LicenseProof.tsx');
+    expect(lic).toMatch(
+      /<SendLink link=\{proveLink\(ask\.id, ask\.token, 'license'\)\} asker=\{asker\} sentence="license" \/>/,
+    );
+    expect(lic.match(/<SendLink\b/g)?.length).toBe(1);
+    const watch = read('components/chain/ProveWatch.tsx');
+    expect(watch).toMatch(/const text = shareText\(t, link, asker, sentence\);/);
+    expect(watch).toMatch(/sentence = 'record',/);
+    // The record-prove link passes no sentence, so it stays 'record'.
+    expect(watch).not.toMatch(/<SendLink[^>]*sentence=/);
   });
 });

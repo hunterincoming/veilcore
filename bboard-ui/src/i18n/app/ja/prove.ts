@@ -97,7 +97,7 @@ export const prove = {
   'app.prove.key.notThis': 'このリンクの鍵は、この記録が指定する鍵ではありません',
   'app.prove.watch.shareAsker':
     '{asker}が、VeilCoreでこの植物を保有していることの証明を求めています。このリンクを開いてください：{link}',
-  'app.prove.watch.share': 'VeilCoreでこの植物を保有していることを証明してください。このリンクを開いてください：{link}',
+  'app.prove.watch.share': 'VeilCoreでこの植物を保有していることを証明するため、このリンクを開いてください：{link}',
   'app.prove.watch.sendIt': '送る',
   'app.prove.watch.copyLink': 'リンクをコピー',
   'app.prove.watch.key': '鍵：',

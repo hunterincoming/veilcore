@@ -24,6 +24,9 @@ section.
   languages: before this, its share text said "this plant" and its license check panel said
   "licensed to grow", and now they say "this strain" and "licensed to use or supply this
   strain". A test fails if a sentence has an animal version but no strain version.
+- The license check link's share text now asks the person to prove they hold a live license
+  from this record, for every kind of record, in all five languages. Before, it said "prove you
+  hold this plant", even for an animal or a strain.
 
 ### Contract version 2 pinned on mainnet, for team testing (25 Nov 2026, not deployed yet)
 
