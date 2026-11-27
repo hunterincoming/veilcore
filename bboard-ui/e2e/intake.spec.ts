@@ -78,6 +78,23 @@ test('a lab’s link: the breeder records the sample, then chooses to send only 
   expectNoErrors(errors);
 });
 
+// First mainnet run (26 Nov): with "An animal" the last kind used, "Record a new one" opened an
+// empty animal form saying it kept what was typed, while the link's name went into a plant draft.
+test('with an animal last chosen, the link’s suggested name goes into the animal form it opens', async ({ page }) => {
+  const errors = watch(page);
+  await page.addInitScript(() => {
+    localStorage.setItem('veilcore.role.v1', 'breeder');
+    localStorage.setItem('veilcore.log-kind.v1', 'animal');
+  });
+  await registry(page);
+  const q = new URLSearchParams({ return: LAB, state: 'lab-state-0002', ref: 'S-43', name: 'Lab heifer 43' });
+  await page.goto(`/intake?${q.toString()}`);
+  await page.getByRole('button', { name: 'Record a new one' }).click();
+  await expect(page.locator('[data-log-kind]')).toHaveAttribute('data-log-kind', 'animal');
+  await expect(page.getByLabel(/Animal’s name/).first()).toHaveValue('Lab heifer 43');
+  expectNoErrors(errors);
+});
+
 test('a link that would send the answer somewhere unsafe is refused, and nothing is recorded', async ({ page }) => {
   const errors = watch(page);
   await registry(page);

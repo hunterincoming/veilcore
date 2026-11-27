@@ -35,6 +35,8 @@ export const errors = {
   'app.err.chain.filesMissing': 'Die Beweisdateien für {circuit} sind noch nicht auf dieser Website.',
   'app.err.chain.paramsMissing': 'Die öffentlichen Parameter (k={k}) sind noch nicht auf dieser Website.',
   'app.err.chain.callFailed': 'Das Netzwerk hat den Aufruf aufgenommen, aber er war nicht erfolgreich ({status}).',
+  'app.err.chain.hashUnreadable':
+    'Das Netzwerk hat sie aufgenommen, aber ihr Transaktions-Hash konnte nicht gelesen werden',
   'app.err.chain.claimFailed': 'Das Netzwerk hat den Beleg aufgenommen, aber er war nicht erfolgreich ({status}).',
   'app.err.chain.noSlot': 'Es wurde kein freier Lizenzplatz gefunden. Es wurde nichts gesendet.',
   'app.err.chain.notSendersRecord':

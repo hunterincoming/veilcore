@@ -298,7 +298,7 @@ export const plant = {
     '{head} The registry reports that root was recorded on {network}; this page has not looked the transaction up, so it is not shown as anchored. Look it up on the network before relying on the date.{test}',
   'app.plant.date.title': 'Date on Midnight',
   'app.plant.date.notInBatch':
-    "Sealed on your device and kept on {server}. It isn't in a batch yet, so it isn't anchored. We anchor records together, in batches (by hand for now, so it can take a while), so one transaction covers many and you never need a wallet. Until then its date rests on this registry's records.",
+    "Sealed on your device and kept on {server}. It isn't in a batch yet, so it isn't anchored. We anchor records together, in batches (a new record waits for the next one), so one transaction covers many and you never need a wallet. Until then its date rests on this registry's records.",
   'app.plant.date.inBatchNotAnchored':
     "Checked in this browser: your record's proof code is in batch {batch}, which has not been anchored yet. When it is, the proof gains a reference to the transaction. Nothing about your record changes.",
   'app.plant.date.batchLine': 'batch {batch}',

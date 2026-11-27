@@ -34,6 +34,7 @@ export const errors = {
   'app.err.chain.filesMissing': '{circuit}用の証明用ファイルは、まだこのサイトにありません。',
   'app.err.chain.paramsMissing': '公開パラメーター（k={k}）は、まだこのサイトにありません。',
   'app.err.chain.callFailed': 'ネットワークは呼び出しを取り込みましたが、成功しませんでした（{status}）。',
+  'app.err.chain.hashUnreadable': 'ネットワークは取り込みましたが、そのトランザクションハッシュを読み取れませんでした',
   'app.err.chain.claimFailed': 'ネットワークはクレームを取り込みましたが、成功しませんでした（{status}）。',
   'app.err.chain.noSlot': 'ライセンスの空き枠が見つかりませんでした。何も送信していません。',
   'app.err.chain.notSendersRecord':

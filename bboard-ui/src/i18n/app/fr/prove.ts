@@ -43,6 +43,14 @@ export const prove = {
   'app.prove.copy': 'Copier',
   'app.prove.title': 'Prouvez que vous détenez {name}',
   'app.prove.thisPlant': 'cette plante',
+  'app.prove.thisRecord': 'cet enregistrement',
+  'app.prove.theRecord': 'l’enregistrement',
+  'app.prove.any.whatSends':
+    '<b>Ce qui est envoyé :</b> seulement la preuve que vous détenez cet enregistrement, placée sur le réseau de test. Pas de nom, pas de génétique, rien sur vos autres enregistrements.',
+  'app.prove.any.answering':
+    'Répondre indique à la personne qui vous a envoyé ce lien que vous détenez cet enregistrement.',
+  'app.prove.any.doneText':
+    'La réponse s’affichera sur sa page. Rien n’a été envoyé sur l’enregistrement : seulement la preuve que vous le détenez.',
   'app.prove.askedBy':
     'Demandé par quelqu’un qui dit être <b>« {asker} »</b>. <muted>VeilCore ne l’a pas vérifié.</muted>',
   'app.prove.askedAnon': 'Quelqu’un vous a demandé de le prouver, sans donner de nom.',

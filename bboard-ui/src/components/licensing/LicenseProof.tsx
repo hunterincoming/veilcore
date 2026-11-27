@@ -76,7 +76,7 @@ export const LicenseProofWatch: React.FC<{ ask: MyAsk; asker?: string }> = ({ as
         if ('error' in r) return setState('unreachable');
         setState('waiting');
         expiresAt.current = r.expiresAt;
-        const { checkLicense } = await import('../../veilcore/chain/license-check');
+        const { checkLicense, markUsed } = await import('../../veilcore/chain/license-check');
         let now = ask;
         for (const a of r.answers) {
           const txId = a.txId.trim().toLowerCase();
@@ -99,6 +99,9 @@ export const LicenseProofWatch: React.FC<{ ask: MyAsk; asker?: string }> = ({ as
           updateMyAsk(ask.id, () => result);
           setAsk(result);
         }
+        // Marked used only once the confirmation is saved: a reload before this checks the same
+        // answer again instead of refusing it (challenge-book.ts).
+        if (now.confirmed) markUsed(ask.challenge, now.confirmed.txId);
       } finally {
         running.current = false;
       }
@@ -244,7 +247,7 @@ export const LicenseProofPanel: React.FC<{ identity: string; recordId?: string }
 
 const Frame: React.FC<React.PropsWithChildren> = ({ children }) => (
   <Box sx={{ bgcolor: 'background.default' }}>
-    <Container maxWidth="sm" sx={{ py: { xs: 4, md: 7 } }}>
+    <Container component="main" id="main" maxWidth="sm" sx={{ py: { xs: 4, md: 7 } }}>
       <Paper sx={{ p: { xs: 2.5, md: 4 } }}>{children}</Paper>
     </Container>
   </Box>

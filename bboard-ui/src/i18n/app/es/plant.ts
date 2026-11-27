@@ -297,7 +297,7 @@ export const plant = {
     '{head} El servidor de registros informa que esa raíz se registró en {network}; esta página no consultó la transacción, así que no se muestra como anclada. Consúltela en la red antes de confiar en la fecha.{test}',
   'app.plant.date.title': 'Fecha en Midnight',
   'app.plant.date.notInBatch':
-    'Sellado en su dispositivo y guardado en {server}. Todavía no está en un lote, así que no está anclado. Anclamos los registros juntos, en lotes (por ahora a mano, así que puede tardar), para que una transacción cubra muchos y usted nunca necesite una billetera. Hasta entonces, su fecha se basa en los registros de este servidor.',
+    'Sellado en su dispositivo y guardado en {server}. Todavía no está en un lote, así que no está anclado. Anclamos los registros juntos, en lotes (un registro nuevo espera al siguiente), para que una transacción cubra muchos y usted nunca necesite una billetera. Hasta entonces, su fecha se basa en los registros de este servidor.',
   'app.plant.date.inBatchNotAnchored':
     'Comprobado en este navegador: el código de prueba de su registro está en el lote {batch}, que todavía no se ha anclado. Cuando se ancle, la prueba sumará una referencia a la transacción. Nada de su registro cambia.',
   'app.plant.date.batchLine': 'lote {batch}',

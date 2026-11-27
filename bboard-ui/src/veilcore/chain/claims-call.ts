@@ -35,14 +35,18 @@ import { signatureParts, type LabSignature } from '../lab-attest';
 import { verifyRecordSignature } from '../../../../contract/src/attest';
 import { fromSerialized } from '../../../../contract/src/contract-state';
 import { assertNotPaused } from './paused';
+import { landedHash } from './tx-hash';
 
 const hexOf = (b: Uint8Array): string => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
 
 export type ClaimReceipt = {
   readonly circuit: ClaimsCircuit;
   readonly contract: string;
+  /** The transaction's hash (64 hex), the name to pass on (tx-hash.ts); the same as `txHash`. */
   readonly txId: string;
   readonly txHash: string;
+  /** What the sponsor answered when it sent it (Midnight's identifier): support only. */
+  readonly identifier?: string;
   readonly blockHeight: number;
   /** Block time (ms), the chain's own clock. */
   readonly blockTime?: number;
@@ -149,11 +153,13 @@ const claimCall = async (
     );
     if (fin.status !== SucceedEntirely)
       throw new Error(`The network included the claim but it did not succeed (${String(fin.status)}).`);
+    const hash = landedHash(fin.txHash);
     return {
       circuit,
       contract: contractAddress,
-      txId,
-      txHash: fin.txHash,
+      txId: hash,
+      txHash: hash,
+      identifier: txId,
       blockHeight: fin.blockHeight,
       blockTime: fin.blockTimestamp,
     };

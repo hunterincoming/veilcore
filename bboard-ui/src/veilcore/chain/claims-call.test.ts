@@ -72,6 +72,19 @@ describe('a claim from the browser (stand-in network)', () => {
     expect(r.sealed).toHaveLength(1);
   });
 
+  it('a claim’s receipt passes on the transaction hash (64 hex), never the identifier the sponsor answered with', async () => {
+    // First mainnet run (26 Nov): receipts passed on the sponsor's 66-hex identifier, which the
+    // registry refuses (tx-hash.ts). Claim links carry this txId, so it must be the hash.
+    const r = standIns(await claimsContractState(), { claims: true });
+    const m = await claimMaterial(record);
+    const receipt = await proveValueOnChain(m, 3, { deps: r.deps, contract: ADDRESS });
+    expect(receipt.identifier).toMatch(/^[0-9a-f]+$/);
+    expect(receipt.identifier?.length).toBeGreaterThan(64);
+    expect(receipt.txId).toBe('ab'.repeat(32));
+    expect(receipt.txHash).toBe(receipt.txId);
+    expect(receipt.txId).not.toBe(receipt.identifier);
+  });
+
   it('stops before proving when the site’s proving files are not the claims contract’s', async () => {
     const r = standIns(await claimsContractState(), { claims: true, servedKeys: 'wrong' });
     const m = await claimMaterial(record);

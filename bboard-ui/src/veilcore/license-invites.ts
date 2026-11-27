@@ -29,7 +29,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { isObject, isString, isNumber, readJson } from './json';
-import { answerTokenHash, newAnswerToken } from './prove-relay';
+import { answerTokenHash, hashToPost, newAnswerToken } from './prove-relay';
 import { e2eChain } from './chain/e2e-chain';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
@@ -247,11 +247,26 @@ export const licenseCode = async (
   return `${six.slice(0, 3)} ${six.slice(3)}`;
 };
 
-export const postIssued = (inviteId: string, txId: string, token: string) =>
-  post(`/license-invites/${encodeURIComponent(inviteId)}/issued`, { txId, token });
+/** The registry takes a transaction's 64-hex hash only: an identifier is turned into it first. */
+const asPosted = async (txId: string, hashOf?: (id: string) => Promise<string>): Promise<string> => {
+  const named = await hashToPost(txId, hashOf);
+  if ('error' in named) throw new Error(named.error);
+  return named.hash;
+};
 
-export const postActivated = (inviteId: string, txId: string, token: string) =>
-  post(`/license-invites/${encodeURIComponent(inviteId)}/activated`, { txId, token });
+export const postIssued = async (
+  inviteId: string,
+  txId: string,
+  token: string,
+  hashOf?: (id: string) => Promise<string>,
+) => post(`/license-invites/${encodeURIComponent(inviteId)}/issued`, { txId: await asPosted(txId, hashOf), token });
+
+export const postActivated = async (
+  inviteId: string,
+  txId: string,
+  token: string,
+  hashOf?: (id: string) => Promise<string>,
+) => post(`/license-invites/${encodeURIComponent(inviteId)}/activated`, { txId: await asPosted(txId, hashOf), token });
 
 // --- checks on chain -------------------------------------------------------------------
 

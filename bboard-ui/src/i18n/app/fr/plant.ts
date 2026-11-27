@@ -300,7 +300,7 @@ export const plant = {
     '{head} Le registre indique que cette racine a été inscrite sur {network} ; cette page n’a pas consulté la transaction, elle n’est donc pas affichée comme ancrée. Consultez-la sur le réseau avant de vous fier à la date.{test}',
   'app.plant.date.title': 'Date sur Midnight',
   'app.plant.date.notInBatch':
-    'Scellé sur votre appareil et conservé sur {server}. Il n’est pas encore dans un lot, il n’est donc pas ancré. Nous ancrons les enregistrements ensemble, par lots (à la main pour l’instant, cela peut donc prendre du temps), pour qu’une seule transaction en couvre beaucoup et que vous n’ayez jamais besoin de portefeuille. D’ici là, sa date repose sur les données de ce registre.',
+    'Scellé sur votre appareil et conservé sur {server}. Il n’est pas encore dans un lot, il n’est donc pas ancré. Nous ancrons les enregistrements ensemble, par lots (un nouvel enregistrement attend le suivant), pour qu’une seule transaction en couvre beaucoup et que vous n’ayez jamais besoin de portefeuille. D’ici là, sa date repose sur les données de ce registre.',
   'app.plant.date.inBatchNotAnchored':
     'Vérifié dans ce navigateur : le code de preuve de votre enregistrement est dans le lot {batch}, qui n’a pas encore été ancré. Quand il le sera, la preuve gagnera une référence à la transaction. Rien ne change dans votre enregistrement.',
   'app.plant.date.batchLine': 'lot {batch}',
