@@ -27,6 +27,16 @@ cd ../bboard-ui && npm test
 npm run test:bitcoin-stamp                   # from the root
 ```
 
+**Install scripts are off.** The root `.npmrc` sets `ignore-scripts=true`, so no package's own
+install script runs on `npm ci` or `npm install`. Nothing here needs one. Two things follow:
+
+- `npm pack` and `npm publish` skip a package's `prepack` too. To publish a package (for example
+  the partner kit), run `npm run build` in it first, then `npm pack --dry-run` to see what goes.
+- A new dependency with an install script fails `bboard-ui/src/install-scripts.test.ts` until
+  someone checks the build, the tests and the deploy work without that script, and adds it there.
+  If one ever really needs its script, run it for that package alone (`npm rebuild <name>
+  --ignore-scripts=false`) in the one script that needs it, and say why there.
+
 CI runs the same suites, plus lint and type checks, on every pull request to `main`
 (`.github/workflows/ci.yaml`). The record format and its conformance vectors live in
 [veilcore-sdk](https://github.com/hunterincoming/veilcore-sdk).

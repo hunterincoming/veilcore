@@ -58,7 +58,7 @@ const SECTIONS = [
 const SUMMARY = ['local', 'locked', 'read'] as const;
 
 export const Privacy: React.FC = () => {
-  const { t } = useI18n();
+  const { t, sp } = useI18n();
   // A copy someone else runs: its own privacy page, never VeilCore's (config/operator.ts).
   if (OperatorNotice)
     return (
@@ -86,7 +86,18 @@ export const Privacy: React.FC = () => {
             {SUMMARY.map((k) => (
               <div key={k}>
                 <dt>{t(`m.privacy.sum.${k}.t`)}</dt>
-                <dd>{t(`m.privacy.sum.${k}.p`)}</dd>
+                <dd>
+                  {t(`m.privacy.sum.${k}.p`)}
+                  {/* "We can't read it" holds for the code we publish, and anyone can check that. */}
+                  {k === 'locked' && (
+                    <>
+                      {sp}
+                      <span data-trust-code="">{t('m.trust.code')}</span>
+                      {sp}
+                      <RouterLink to="/check-this-site">{t('m.checksite.title')}</RouterLink>
+                    </>
+                  )}
+                </dd>
               </div>
             ))}
           </dl>

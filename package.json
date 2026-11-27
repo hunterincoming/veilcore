@@ -107,15 +107,5 @@
     "test:bitcoin-stamp": "node --test scripts/check-bitcoin-stamp.test.mjs",
     "btc:checkpoints": "node scripts/btc-checkpoints.mjs",
     "test:btc-checkpoints": "node --test scripts/btc-checkpoints.test.mjs"
-  },
-  "allowScripts": {
-    "@swc/core": false,
-    "classic-level": false,
-    "cpu-features": false,
-    "esbuild": false,
-    "fsevents": false,
-    "msgpackr-extract": false,
-    "protobufjs": false,
-    "ssh2": false
   }
 }

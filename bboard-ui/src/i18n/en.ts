@@ -174,7 +174,7 @@ export const en = {
   'm.hiw.you1p': 'They never leave your device: your computer reads each one to make its code.',
   'm.hiw.you2t': "The record's details",
   'm.hiw.you2p':
-    "Stored on VeilCore's server locked, the name included, unless you choose to show it. We don't have the key.",
+    'Locked on our server, name included unless shown. With the website code we publish, we can’t read them.',
   'm.hiw.you3t': 'Your backup file',
   'm.hiw.you3p': 'It holds your keys. Keep it safe.',
   'm.hiw.chainLbl': 'On Midnight',
@@ -320,7 +320,7 @@ export const en = {
     'Your device makes a code from the record. Only that code is dated, on Midnight, and nobody can work back from it to what you wrote.',
   'm.home2.s2t': '2. Seal it.',
   'm.home2.s1p':
-    'What it is and where it came from. Your device locks the details before they are sent: they reach us locked, and we can’t read them.',
+    'What it is and where it came from. Your device locks it before sending: with the website code we publish, we can’t read it.',
   'm.home2.s1t': '1. Write it down.',
   'm.home2.stepsTitle': 'How it works, in three steps',
   'm.home2.lede': 'Show you held a plant, an animal or a strain by a date, without your genetics leaving your device.',
@@ -870,6 +870,9 @@ export const en = {
   'm.privacy.code.text':
     "VeilCore serves the app's code. Each release publishes the list of its files. You can check that the files your browser received match that list, and anyone can rebuild the release from the published code and compare. This shows what we released. It can't prove a host sent everyone the same files.",
   'm.checksite.title': 'Check this site',
+  // Next to each "we can't read it": what that rests on (the code served is the code published).
+  'm.trust.code':
+    'That holds for the website code we publish: every release is public, so you can check that your browser got that code.',
   'm.checksite.lede':
     "VeilCore serves the app's code. Each release publishes the list of its files. You can check that the files your browser received match that list, and anyone can rebuild the release from the published code and compare. This shows what we released. It can't prove a host sent everyone the same files.",
   'm.checksite.reading': 'Reading which release this is…',

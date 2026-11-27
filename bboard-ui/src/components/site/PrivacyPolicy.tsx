@@ -6,11 +6,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import React from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import { useI18n, type Lang } from '../../i18n';
 import type { StringKey } from '../../i18n/en';
 
 /** The day the policy last changed, as YYYY-MM-DD: change it with the words. */
-export const POLICY_UPDATED = '2026-11-25';
+export const POLICY_UPDATED = '2026-11-26';
 
 /** The rows of each table, in order: m.pp.<section>.<row>.<cell>. */
 export const DEVICE_ROWS = [
@@ -79,6 +80,7 @@ export const POLICY_KEYS: readonly string[] = [
   'm.pp.lede',
   'm.pp.short.t',
   ...SHORT.map((n) => `m.pp.short.${n}`),
+  'm.pp.short.code',
   'm.pp.who.t',
   'm.pp.who.p',
   'm.pp.device.t',
@@ -169,7 +171,7 @@ const PolicyTable: React.FC<{ cols: readonly string[]; rows: readonly (readonly 
 );
 
 export const PrivacyPolicy: React.FC = () => {
-  const { t, lang } = useI18n();
+  const { t, lang, sp } = useI18n();
   const k = (s: string) => t(s as StringKey);
   const h2 = (id: string, key: string) => (
     <h2 className="privacy-full" id={id}>
@@ -189,7 +191,18 @@ export const PrivacyPolicy: React.FC = () => {
             <h2 id="short">{k('m.pp.short.t')}</h2>
             <ul>
               {SHORT.map((n) => (
-                <li key={n}>{k(`m.pp.short.${n}`)}</li>
+                <li key={n}>
+                  {k(`m.pp.short.${n}`)}
+                  {/* "We don't have the key" holds for the code we publish, and anyone can check that. */}
+                  {n === 2 && (
+                    <>
+                      {sp}
+                      <span data-trust-code="">{k('m.pp.short.code')}</span>
+                      {sp}
+                      <RouterLink to="/check-this-site">{t('m.checksite.title')}</RouterLink>
+                    </>
+                  )}
+                </li>
               ))}
             </ul>
           </div>

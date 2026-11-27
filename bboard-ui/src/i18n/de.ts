@@ -168,7 +168,7 @@ export const de: Strings = {
   'm.hiw.you1p': 'Sie verlassen Ihr Gerät nie: Ihr Computer liest jede einzelne, um ihren Code zu berechnen.',
   'm.hiw.you2t': 'Die Angaben des Datensatzes',
   'm.hiw.you2p':
-    'Verschlossen auf dem Server von VeilCore gespeichert, auch der Name, außer Sie entscheiden sich, ihn zu zeigen. Wir haben den Schlüssel nicht.',
+    'Verschlossen auf unserem Server gespeichert, auch der Name, außer Sie zeigen ihn. Mit unserem veröffentlichten Website-Code können wir sie nicht lesen.',
   'm.hiw.you3t': 'Ihre Sicherungsdatei',
   'm.hiw.you3p': 'Sie enthält Ihre Schlüssel. Bewahren Sie sie sicher auf.',
   'm.hiw.chainLbl': 'Auf Midnight',
@@ -609,7 +609,7 @@ export const de: Strings = {
     'Ihr Gerät berechnet einen Code aus dem Datensatz. Nur dieser Code wird datiert, auf Midnight, und niemand kann daraus auf das Geschriebene zurückschließen.',
   'm.home2.s2t': '2. Versiegeln.',
   'm.home2.s1p':
-    'Was es ist und woher es kommt. Ihr Gerät verschlüsselt die Angaben vor dem Senden: Sie kommen verschlüsselt bei uns an, und wir können sie nicht lesen.',
+    'Was es ist und woher es kommt. Ihr Gerät verschlüsselt die Angaben vor dem Senden: Mit dem Website-Code, den wir veröffentlichen, können wir sie nicht lesen.',
   'm.home2.s1t': '1. Aufschreiben.',
   'm.home2.stepsTitle': 'So funktioniert es, in drei Schritten',
   'm.home2.lede':
@@ -838,6 +838,9 @@ export const de: Strings = {
   'm.privacy.code.text':
     'VeilCore stellt den Code der App bereit. Jede Version veröffentlicht die Liste ihrer Dateien. Sie können prüfen, ob die Dateien, die Ihr Browser erhalten hat, mit dieser Liste übereinstimmen, und jeder kann die Version aus dem veröffentlichten Code neu bauen und vergleichen. Das zeigt, was wir veröffentlicht haben. Es kann nicht beweisen, dass ein Host allen dieselben Dateien geschickt hat.',
   'm.checksite.title': 'Diese Website prüfen',
+  // Next to each "we can't read it": what that rests on (the code served is the code published).
+  'm.trust.code':
+    'Das gilt für den Website-Code, den wir veröffentlichen: Jede Version ist öffentlich, Sie können also prüfen, ob Ihr Browser genau diesen Code erhalten hat.',
   'm.checksite.lede':
     'VeilCore stellt den Code der App bereit. Jede Version veröffentlicht die Liste ihrer Dateien. Sie können prüfen, ob die Dateien, die Ihr Browser erhalten hat, mit dieser Liste übereinstimmen, und jeder kann die Version aus dem veröffentlichten Code neu bauen und vergleichen. Das zeigt, was wir veröffentlicht haben. Es kann nicht beweisen, dass ein Host allen dieselben Dateien geschickt hat.',
   'm.checksite.reading': 'Es wird gelesen, welche Version dies ist…',

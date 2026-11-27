@@ -8,8 +8,10 @@
 > code is right and both texts change. Nothing here has been checked against the law of any
 > country: the questions for the lawyer are at the end.
 >
-> Last updated 25 November 2026, to describe veilcore.org once the open pull requests are
-> deployed: site #142, #143, #145, #146, #147, #148, #149, #208, #211, #215 and registry #10, #11, #12
+> Last updated 26 November 2026 (the short version says the locking promise holds for the
+> published website code, with a link to the check page). Before that, 25 November 2026, to
+> describe veilcore.org once the open pull requests are deployed: site #142, #143, #145, #146,
+> #147, #148, #149, #208, #211, #215 and registry #10, #11, #12
 > (live sync and the recovery sheet; offline sealing and a timestamp per record; two Bitcoin
 > explorers and alerts; scanning and QR labels; parentage results; the Bitcoin header check and
 > the passkey check page; what a spreadsheet import keeps in the browser; every key
@@ -41,7 +43,12 @@
   SHA-256 of each. (`veilcore/` file pickers hash locally; the CSP's `connect-src` allows no
   upload host.)
 - What you type is locked in the browser before it is sent; the server stores it locked and we
-  don't have the key. (Sealed records, registry README "Sealed records".)
+  don't have the key. (Sealed records, registry README "Sealed records".) That holds for the
+  website code we publish: every release is public, so a holder can check that their browser got
+  that code (link to `/check-this-site`). (The locking runs in the code veilcore.org serves, so
+  the promise is only as good as that code: `docs/SECURITY-REVIEW.md`, "The website build is
+  trusted". The check page compares the files a browser received with the release list; it can't
+  prove every visitor got the same files, and the page says so.)
 - The server can read what it needs: a record's ID, proof code, dates and what you choose to
   show.
 - Only codes, and what the holder chooses to prove, go on public networks (Midnight; Bitcoin
