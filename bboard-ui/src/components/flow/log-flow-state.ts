@@ -394,6 +394,13 @@ const txWords = (tx: string | undefined, tr: Translator): string => (tx ? tr.t('
  * hidden. Otherwise the first sentence of what went wrong, cut short if it is long.
  * The raw error is for the element's data-error attribute, not the screen.
  */
+/**
+ * "The contract …" reads as "That didn't go through: the contract …", and "A proving file …" as
+ * "…: a proving file …"; acronyms (VeilCore, DNA) and "I" are kept.
+ */
+const lowerLead = (s: string): string =>
+  /^(?:[A-Z][a-z]|A\s)/.test(s) ? `${s.charAt(0).toLowerCase()}${s.slice(1)}` : s;
+
 export const chainProblem = (error: string, tr: Translator = enT): { text: string; retry: boolean } => {
   const e = error.trim().replace(/^(Error|SponsorRefusal):\s*/, '');
   if (/WAS sent/.test(e)) {
@@ -414,6 +421,12 @@ export const chainProblem = (error: string, tr: Translator = enT): { text: strin
     const lead = tr.lang === 'de' || tr.lang === 'ja' ? said : said.charAt(0).toLowerCase() + said.slice(1);
     return { text: tr.t('app.chain.didntGoThroughBecause', { reason: lead, nothingSent: '' }), retry: true };
   }
+  // One of the app's own sentences that ends "Try again in a few minutes." (the proving files,
+  // proof-files.ts) is said whole, as the other languages say it, so the advice isn't cut off.
+  if (isKnownError(whole) && /\.\s+Try again in a few minutes\.$/.test(whole)) {
+    const said = whole.replace(/[.!?]+$/, '');
+    return { text: tr.t('app.chain.didntGoThroughBecause', { reason: lowerLead(said), nothingSent: '' }), retry: true };
+  }
   let reason = (/^(.+?[.!?])(\s|$)/.exec(e)?.[1] ?? e).replace(/\s*\(try again in about \d+ min\)/i, '');
   reason = reason.replace(/[.!?]+$/, '');
   if (reason.length > 160) reason = `${reason.slice(0, 157).trimEnd()}…`;
@@ -425,9 +438,7 @@ export const chainProblem = (error: string, tr: Translator = enT): { text: strin
       retry: true,
     };
   }
-  // "The contract …" reads as "That didn't go through: the contract …"; keep acronyms.
-  const lead = /^[A-Z][a-z]/.test(reason) ? `${reason.charAt(0).toLowerCase()}${reason.slice(1)}` : reason;
-  return { text: tr.t('app.chain.didntGoThroughBecause', { reason: lead, nothingSent }), retry: true };
+  return { text: tr.t('app.chain.didntGoThroughBecause', { reason: lowerLead(reason), nothingSent }), retry: true };
 };
 
 // The first sentence of an error, for "Details": i18n/error-words.ts, where errors are worded.

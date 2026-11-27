@@ -101,7 +101,8 @@ export const collect = async ({ host, files, held, local, fetchImpl = fetch }) =
 };
 
 /**
- * The stage folder's Vercel link must be the proof files project, never the site's.
+ * The stage folder's Vercel link must be the proof files project, in the site's own team, and
+ * never the site's project.
  * @returns {string | undefined} the problem
  */
 export const linkProblem = (stageLink, siteLink) => {
@@ -110,7 +111,141 @@ export const linkProblem = (stageLink, siteLink) => {
     return `The stage folder is linked to "${stageLink.projectName}", not ${PROOF_FILES_PROJECT}.`;
   if (siteLink?.projectId && siteLink.projectId === stageLink.projectId)
     return "The stage folder is linked to the site's own Vercel project. Nothing was deployed.";
+  if (siteLink?.orgId && stageLink.orgId && stageLink.orgId !== siteLink.orgId)
+    return "The stage folder is linked to a project in another Vercel team than the site's. Nothing was deployed.";
   return undefined;
+};
+
+/**
+ * The Vercel team every call here names (`--scope`): the one the site's own project is in, from
+ * its link (.vercel/project.json, `orgId`). Without it the CLI would use whichever team it was
+ * last switched to, and could make the project in the wrong one.
+ * @returns {string | undefined}
+ */
+export const scopeOf = (siteLink) => {
+  const id = siteLink?.orgId;
+  return typeof id === 'string' && /^[A-Za-z0-9_-]{1,100}$/.test(id) ? id : undefined;
+};
+
+/**
+ * The environment for every Vercel call. VERCEL_ORG_ID and VERCEL_PROJECT_ID are removed: the
+ * CLI prefers them to the folder's link, so if they named the site's project, a `--prod` deploy
+ * of the stage folder would replace veilcore.org.
+ */
+export const cliEnv = (env) => {
+  const e = { ...env };
+  delete e.VERCEL_ORG_ID;
+  delete e.VERCEL_PROJECT_ID;
+  return e;
+};
+
+/** Vercel's own words from a failed call, on one short line (never anything from the environment). */
+const said = (e) =>
+  String(e?.stderr || e?.stdout || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 200);
+
+/**
+ * Does the proof files project exist? Only Vercel saying there is no such project means "no":
+ * any other failure (an expired login, no network) is a problem, never a reason to create it.
+ * @param {() => unknown} inspect runs `vercel project inspect`, throwing when it fails
+ * @returns {{ state: 'exists' | 'missing' } | { state: 'unknown', problem: string }}
+ */
+export const projectState = (inspect) => {
+  try {
+    inspect();
+    return { state: 'exists' };
+  } catch (e) {
+    const words = `${e?.stderr ?? ''} ${e?.stdout ?? ''}`;
+    if (/There is no project for|PROJECT_NOT_FOUND/.test(words)) return { state: 'missing' };
+    const v = said(e);
+    return {
+      state: 'unknown',
+      problem:
+        `Vercel could not say whether the project ${PROOF_FILES_PROJECT} exists${v ? ` ("${v}")` : ''}. ` +
+        'An expired login is the usual reason: run `./tools/vercel/node_modules/.bin/vercel login`, then this again.',
+    };
+  }
+};
+
+/**
+ * The Vercel part of a publish, in order: the project and its domain the first time, the stage
+ * folder's link (checked), one production deployment, and keys.veilcore.org pointed at it. Every
+ * call names the site's team (`--scope`) and gets `env` without VERCEL_ORG_ID or
+ * VERCEL_PROJECT_ID. Stops at the first failure with what to do, never with a stack trace.
+ * `exec` runs the pinned CLI and returns what it printed; `capture` means its output is read here
+ * (the inspect, for Vercel's words, and the deploy, for its address), else it goes to the terminal.
+ * @param {{ exec: (args: string[], opts: { env: Record<string, string | undefined>, capture: boolean }) => string | undefined,
+ *   env: Record<string, string | undefined>, siteLink: unknown, stageDir: string, readStageLink: () => unknown,
+ *   log?: (line: string) => void }} o
+ * @returns {{ ok: true, url: string, created: boolean } | { ok: false, problem: string }}
+ */
+export const vercelSteps = ({ exec, env, siteLink, stageDir, readStageLink, log = console.log }) => {
+  const scope = scopeOf(siteLink);
+  if (!scope)
+    return {
+      ok: false,
+      problem:
+        "This folder's .vercel/project.json doesn't name the site's Vercel team (orgId), so the proof files project " +
+        "can't be put beside it. Run this from the Mac's veilcore folder, which deploys the site.",
+    };
+  const e = cliEnv(env);
+  const domain = new URL(PROOF_FILES_HOST).host;
+  const call = (args, capture = false) => exec([...args, '--scope', scope], { env: e, capture });
+  const step = (what, args, after = '') => {
+    try {
+      call(args);
+      return undefined;
+    } catch (err) {
+      const v = said(err);
+      return `${what} failed${v ? ` ("${v}")` : ' (Vercel says why just above)'}.${after}`;
+    }
+  };
+
+  const st = projectState(() => call(['project', 'inspect', PROOF_FILES_PROJECT], true));
+  if (st.state === 'unknown') return { ok: false, problem: st.problem };
+  const created = st.state === 'missing';
+  if (created) {
+    log(`Creating the Vercel project ${PROOF_FILES_PROJECT}…`);
+    const p1 = step(`Creating the Vercel project ${PROOF_FILES_PROJECT}`, ['project', 'create', PROOF_FILES_PROJECT]);
+    if (p1) return { ok: false, problem: p1 };
+    const p2 = step(
+      `Adding ${domain} to ${PROOF_FILES_PROJECT}`,
+      ['domains', 'add', domain, PROOF_FILES_PROJECT],
+      ` The project exists now. In Vercel, open ${PROOF_FILES_PROJECT} → Settings → Domains, add ${domain}, then run this again.`,
+    );
+    if (p2) return { ok: false, problem: p2 };
+  }
+  const p3 = step(`Linking the stage folder to ${PROOF_FILES_PROJECT}`, [
+    'link',
+    '--yes',
+    '--project',
+    PROOF_FILES_PROJECT,
+    '--cwd',
+    stageDir,
+  ]);
+  if (p3) return { ok: false, problem: p3 };
+  const problem = linkProblem(readStageLink(), siteLink);
+  if (problem) return { ok: false, problem };
+
+  log('Uploading the proof files to Vercel (a few minutes the first time)…');
+  let url;
+  try {
+    url = String(call(['deploy', '--prebuilt', '--prod', '--cwd', stageDir], true) ?? '').trim();
+  } catch (err) {
+    const v = said(err);
+    return { ok: false, problem: `The deployment of the proof files failed${v ? ` ("${v}")` : ''}.` };
+  }
+  if (!/^https:\/\/\S+$/.test(url)) return { ok: false, problem: 'The deployment did not print its address.' };
+  log(`Deployed ${url}`);
+  const p4 = step(
+    `Pointing ${domain} at ${url}`,
+    ['alias', 'set', url, domain],
+    ` Run \`./tools/vercel/node_modules/.bin/vercel alias set ${url} ${domain} --scope ${scope}\`, then \`npm run check:proof-files\`.`,
+  );
+  if (p4) return { ok: false, problem: p4 };
+  return { ok: true, url, created };
 };
 
 const readJson = (f) => {
@@ -157,9 +292,8 @@ const main = async () => {
       '.',
   );
 
-  const env = { ...process.env };
+  const env = cliEnv(process.env);
   delete env.VERCEL_TOKEN;
-  const run = (args, opts = {}) => execFileSync(VERCEL, args, { stdio: 'inherit', env: vercelEnv(env), ...opts });
   execFileSync('npm', ['ci', '--prefix', 'tools/vercel', '--include=dev', '--ignore-scripts', '--no-audit', '--no-fund'], {
     stdio: 'inherit',
     env,
@@ -168,27 +302,21 @@ const main = async () => {
   // The project, the first time: created, with keys.veilcore.org on it (veilcore.org's DNS is on
   // Vercel, so nothing else is needed). A project domain follows this project's production
   // deploys only, never the site's.
-  let exists = true;
-  try {
-    execFileSync(VERCEL, ['project', 'inspect', PROOF_FILES_PROJECT], { stdio: 'ignore', env: vercelEnv(env) });
-  } catch {
-    exists = false;
-  }
-  if (!exists) {
-    console.log(`Creating the Vercel project ${PROOF_FILES_PROJECT}…`);
-    run(['project', 'create', PROOF_FILES_PROJECT]);
-    run(['domains', 'add', new URL(PROOF_FILES_HOST).host, PROOF_FILES_PROJECT]);
-  }
-  run(['link', '--yes', '--project', PROOF_FILES_PROJECT, '--cwd', STAGE_DIR]);
-  const problem = linkProblem(readJson(join(STAGE_DIR, '.vercel', 'project.json')), readJson('.vercel/project.json'));
-  if (problem) fail(problem);
-
-  const url = execFileSync(VERCEL, ['deploy', '--prebuilt', '--prod', '--cwd', STAGE_DIR], {
-    env: vercelEnv(env),
-    encoding: 'utf8',
-  }).trim();
-  console.log(`Deployed ${url}`);
-  run(['alias', 'set', url, new URL(PROOF_FILES_HOST).host]);
+  const done = vercelSteps({
+    exec: (args, { env: e, capture }) =>
+      execFileSync(VERCEL, args, {
+        env: cliEnv(vercelEnv(e)),
+        encoding: 'utf8',
+        // The inspect is read here whole (is the project missing, or did something else fail?);
+        // the deploy's address is read from its output, and its progress shown; the rest is shown.
+        stdio: capture ? ['ignore', 'pipe', args[0] === 'project' ? 'pipe' : 'inherit'] : ['ignore', 'inherit', 'inherit'],
+      }),
+    env,
+    siteLink: readJson('.vercel/project.json'),
+    stageDir: STAGE_DIR,
+    readStageLink: () => readJson(join(STAGE_DIR, '.vercel', 'project.json')),
+  });
+  if (!done.ok) fail(done.problem);
 
   console.log(`Checking every pinned file on ${PROOF_FILES_HOST}…`);
   const after = await checkPublished({ files: table.files });

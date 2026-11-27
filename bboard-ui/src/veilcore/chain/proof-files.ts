@@ -80,6 +80,10 @@ export const pinnedPathOf = (
   } catch {
     return undefined;
   }
+  // A query string ('/keys/anchor.prover?v=1') makes this not a pinned path, so that request
+  // goes to this site as it is, unchecked. Harmless today: midnight-js and the prover worker
+  // never add one, and a deployed build of this site has no /keys or /params to answer it. If
+  // anything ever starts adding one, strip it here first, so the request is still checked.
   if (u.origin !== site || u.search) return undefined;
   let p: string;
   try {
@@ -118,22 +122,33 @@ const usable = (r: Response | undefined): r is Response =>
   !!r && r.ok && !(r.headers.get('content-type') ?? '').includes('text/html');
 
 /**
- * A pinned file's bytes, checked against its SHA-256. Each place is tried in turn (the
- * browser's cache first, then the network); a copy that doesn't match is dropped from the
- * cache and never returned.
+ * A pinned file's bytes, checked against its SHA-256. The browser's cache is looked at first,
+ * under every place the file may have come from (the host's address, and this site's own, where
+ * a visitor from before the host keeps a copy), so a good copy kept from either is used without
+ * downloading it again. Only then is each place tried on the network, in turn. A copy that
+ * doesn't match, cached or downloaded, is dropped from the cache and never returned.
  * @throws ProofFileError 'wrong' when a copy was had but none matched, 'unreachable' when none was had
  */
 export const loadProofFile = async (path: string, src: ProofFileSource): Promise<Uint8Array> => {
   const want = (src.files ?? PROOF_FILES)[path];
   if (!want) throw new ProofFileError(path, 'wrong');
-  let wrong = false;
-  for (const url of proofFileUrls(path, src)) {
-    const hit = src.cache ? await src.cache.match(url).catch(() => undefined) : undefined;
-    if (usable(hit)) {
-      const bytes = new Uint8Array(await hit.arrayBuffer());
-      if ((await sha256Hex(bytes)) === want) return bytes;
-      await src.cache?.delete(url).catch(() => undefined);
+  const urls = proofFileUrls(path, src);
+  if (src.cache) {
+    for (const url of urls) {
+      const hit = await src.cache.match(url).catch(() => undefined);
+      if (!usable(hit)) continue;
+      let bytes: Uint8Array | undefined;
+      try {
+        bytes = new Uint8Array(await hit.arrayBuffer());
+      } catch {
+        bytes = undefined;
+      }
+      if (bytes && (await sha256Hex(bytes)) === want) return bytes;
+      await src.cache.delete(url).catch(() => undefined);
     }
+  }
+  let wrong = false;
+  for (const url of urls) {
     let res: Response | undefined;
     try {
       res = await src.fetch(url);

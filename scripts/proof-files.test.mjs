@@ -25,7 +25,7 @@ import {
   readProofFiles,
   stageHost,
 } from './proof-files.mjs';
-import { collect, hostHolds, linkProblem } from './publish-proof-files.mjs';
+import { cliEnv, collect, hostHolds, linkProblem, projectState, scopeOf, vercelSteps } from './publish-proof-files.mjs';
 
 const sha = (b) => createHash('sha256').update(b).digest('hex');
 const A = Buffer.from('anchor prover');
@@ -173,6 +173,128 @@ test('the publish refuses to deploy through anything but the proof files project
   assert.match(linkProblem({ projectId: 'p1', projectName: 'veilcore' }, undefined), /not veilcore-proof-files/);
   assert.match(linkProblem({ projectId: 'site' }, { projectId: 'site' }), /site's own Vercel project/);
   assert.equal(linkProblem({ projectId: 'p2', projectName: 'veilcore-proof-files' }, { projectId: 'site' }), undefined);
+  assert.match(
+    linkProblem({ projectId: 'p2', projectName: 'veilcore-proof-files', orgId: 'team_b' }, { projectId: 'site', orgId: 'team_a' }),
+    /another Vercel team/,
+  );
+});
+
+// The Vercel part of a publish, against a stand-in CLI: `answers` maps "verb sub" (or "verb") to
+// what it does: a string it prints, or an Error (or a function making one) it throws.
+const SITE_LINK = { projectId: 'prj_site', orgId: 'team_veil' };
+const STAGE_LINK = { projectId: 'prj_keys', projectName: 'veilcore-proof-files', orgId: 'team_veil' };
+const notFound = () => Object.assign(new Error('Command failed'), { stderr: 'Error: There is no project for "veilcore-proof-files"\n' });
+const fakeCli = (answers = {}) => {
+  const calls = [];
+  const exec = (args, opts) => {
+    calls.push({ args, env: opts.env, capture: opts.capture });
+    const given = answers[`${args[0]} ${args[1]}`] ?? answers[args[0]];
+    const a = typeof given === 'function' ? given() : given;
+    if (a instanceof Error) throw a;
+    return a ?? (args[0] === 'deploy' ? 'https://veilcore-proof-files-abc.vercel.app\n' : '');
+  };
+  return { exec, calls };
+};
+const steps = (cli, over = {}) =>
+  vercelSteps({
+    exec: cli.exec,
+    env: { PATH: '/bin', VERCEL_ORG_ID: 'team_other', VERCEL_PROJECT_ID: 'prj_site' },
+    siteLink: SITE_LINK,
+    stageDir: '/stage',
+    readStageLink: () => STAGE_LINK,
+    log: () => {},
+    ...over,
+  });
+
+test('publish: every Vercel call names the site’s team, and none sees VERCEL_ORG_ID or VERCEL_PROJECT_ID', () => {
+  const cli = fakeCli({ 'project inspect': notFound });
+  const r = steps(cli);
+  assert.deepEqual(r, { ok: true, url: 'https://veilcore-proof-files-abc.vercel.app', created: true });
+  assert.deepEqual(
+    cli.calls.map((c) => c.args.slice(0, 2).join(' ')),
+    ['project inspect', 'project create', 'domains add', 'link --yes', 'deploy --prebuilt', 'alias set'],
+  );
+  for (const c of cli.calls) {
+    assert.deepEqual(c.args.slice(-2), ['--scope', 'team_veil'], c.args.join(' '));
+    assert.equal(c.env.VERCEL_ORG_ID, undefined, c.args.join(' '));
+    assert.equal(c.env.VERCEL_PROJECT_ID, undefined, c.args.join(' '));
+    assert.equal(c.env.PATH, '/bin');
+  }
+  assert.deepEqual(cliEnv({ A: '1', VERCEL_ORG_ID: 'x', VERCEL_PROJECT_ID: 'y' }), { A: '1' });
+});
+
+test('publish: no team in the site’s link, and nothing is called', () => {
+  for (const siteLink of [undefined, {}, { projectId: 'prj_site' }, { projectId: 'p', orgId: '' }, { orgId: 'team x; rm' }]) {
+    const cli = fakeCli();
+    const r = steps(cli, { siteLink });
+    assert.equal(r.ok, false);
+    assert.match(r.problem, /orgId/);
+    assert.equal(cli.calls.length, 0);
+  }
+  assert.equal(scopeOf(SITE_LINK), 'team_veil');
+});
+
+test('publish: an inspect that fails for any reason but "no such project" stops, and creates nothing', () => {
+  for (const err of [
+    Object.assign(new Error('Command failed'), { stderr: 'Error: Not authorized\n' }),
+    Object.assign(new Error('Command failed'), { stderr: '' }),
+    new Error('spawn ENOENT'),
+  ]) {
+    const cli = fakeCli({ 'project inspect': err });
+    const r = steps(cli);
+    assert.equal(r.ok, false);
+    assert.match(r.problem, /could not say whether the project veilcore-proof-files exists/);
+    assert.match(r.problem, /vercel login/);
+    assert.deepEqual(
+      cli.calls.map((c) => c.args[0]),
+      ['project'],
+    );
+  }
+  assert.deepEqual(projectState(() => 'ok'), { state: 'exists' });
+  assert.deepEqual(projectState(() => {
+    throw notFound();
+  }), { state: 'missing' });
+});
+
+test('publish: an existing project is not created again', () => {
+  const cli = fakeCli({ 'project inspect': 'veilcore-proof-files' });
+  assert.equal(steps(cli).created, false);
+  assert.deepEqual(
+    cli.calls.map((c) => c.args[0]),
+    ['project', 'link', 'deploy', 'alias'],
+  );
+});
+
+test('publish: a failed Vercel step is a plain problem, never a thrown error, and stops there', () => {
+  for (const [at, want, calls] of [
+    ['project create', /Creating the Vercel project veilcore-proof-files failed/, 2],
+    ['domains add', /Adding keys\.veilcore\.org to veilcore-proof-files failed.*Settings → Domains/, 3],
+    ['link', /Linking the stage folder/, 4],
+    ['deploy', /deployment of the proof files failed/, 5],
+    ['alias set', /Pointing keys\.veilcore\.org at .*alias set .*--scope team_veil/, 6],
+  ]) {
+    const cli = fakeCli({ 'project inspect': notFound, [at]: Object.assign(new Error('Command failed'), { stderr: 'Error: nope' }) });
+    const r = steps(cli);
+    assert.equal(r.ok, false, at);
+    assert.match(r.problem, want, at);
+    assert.equal(cli.calls.length, calls, at);
+  }
+  // A stage folder linked to the site's project is refused before any deploy.
+  const cli = fakeCli({ 'project inspect': 'ok' });
+  const r = steps(cli, { readStageLink: () => ({ projectId: 'prj_site', orgId: 'team_veil' }) });
+  assert.equal(r.ok, false);
+  assert.ok(!cli.calls.some((c) => c.args[0] === 'deploy'));
+  // A deploy that prints no address is not aliased.
+  const quiet = fakeCli({ 'project inspect': 'ok', deploy: '' });
+  assert.match(steps(quiet).problem, /did not print its address/);
+  assert.ok(!quiet.calls.some((c) => c.args[0] === 'alias'));
+});
+
+test('publish script: every Vercel call goes through vercelSteps, so none can miss the scope or the cleaned env', () => {
+  const src = readFileSync(new URL('./publish-proof-files.mjs', import.meta.url), 'utf8');
+  const main = src.slice(src.indexOf('const main = async'));
+  assert.equal((main.match(/execFileSync\(VERCEL/g) ?? []).length, 1);
+  assert.match(main, /env: cliEnv\(vercelEnv\(e\)\)/);
 });
 
 test('the host is VeilCore’s own domain', () => {

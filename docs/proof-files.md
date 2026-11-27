@@ -20,8 +20,11 @@ and the site reads them from there. A site deploy no longer stores them.
 - The page fetches each file by its fingerprint, `https://keys.veilcore.org/sha256/<SHA-256>`,
   and checks it before using it, and again when it reads it back from the browser's cache. A file
   that doesn't match is never used. So the host doesn't have to be trusted, only reached.
+- The browser's cache is looked at first, under both addresses a copy may be kept at (the
+  host's, and this site's own `/keys/` and `/params/`, where a visitor from before 27 November
+  2026 has one); a good copy is used without downloading it again.
 - If the host has no good copy, the site's own `/keys/` and `/params/` are tried too, with the
-  same check (a self-hosted copy may serve them there).
+  same check (a self-hosted copy may serve them there; `docs/SELF-HOSTING.md`, step 6).
 - If no good copy can be had, the visitor sees, in their language: "The proving files could not
   be downloaded right now. Nothing was sent. Try again in a few minutes." A wrong file: "A proving
   file was not the exact file this site was built to use, so it was not used. Nothing was sent."
@@ -48,32 +51,49 @@ parameters on this computer.
 
 ## Hunter's one-time setup (on the Mac)
 
-After this change is merged, and before the next site deploy:
+After this change is merged, and before the next site deploy. In this order:
 
-From the veilcore folder on the Mac:
+1. **Free space on Vercel first** (the storage may be full now, and the first publish uploads
+   about 135 MB plus the parameters). On vercel.com: team **veil-core** → the veilcore.org project
+   → **Deployments** → set the environment filter to **Preview** → tick every preview deployment
+   except the newest one (test.veilcore.org runs on it) → **Delete**. Leave the Production
+   deployments alone: rollbacks use them.
+2. **Wait for CI on `main` to go green after the merge**:
+   https://github.com/hunterincoming/veilcore/actions?query=branch%3Amain. The newest **CI** and
+   **Scan** runs (for the merge commit) must both show a green tick. The publish refuses
+   otherwise.
+3. **In Terminal**:
 
-```bash
-git checkout main && git pull
-npm ci
-npm exec --package=@veilcore/contracts@0.3.0 -- veilcore-keys fetch --to contract/src/managed
-cd bboard-ui && node scripts/fetch-params.mjs && cd ..
-npm run publish:proof-files
-npm run check:proof-files
-```
+   ```bash
+   cd ~/Desktop/veilcore
+   git checkout main && git pull
+   npm ci
+   npm exec --package=@veilcore/contracts@0.3.0 -- veilcore-keys fetch --to contract/src/managed
+   cd bboard-ui && node scripts/fetch-params.mjs && cd ..
+   npm run publish:proof-files
+   npm run check:proof-files
+   ```
+
+4. If the last step says keys.veilcore.org answered 401: in Vercel, `veilcore-proof-files` →
+   Settings → Deployment Protection, turn Vercel Authentication off, then run
+   `npm run check:proof-files` again.
+5. Then deploy the site as usual (`CLAUDE.md`, "Deploying veilcore.org").
+
+What the commands do:
 
 - The `veilcore-keys fetch` and `fetch-params.mjs` lines make sure every key and parameter is on
   the Mac, each checked against its fingerprint (they are the same commands the deploys used to
   need).
 - `npm run publish:proof-files` runs only on the Mac, from `origin/main`, with CI green (the same
-  gate as the site deploys). The first time, it creates the Vercel project `veilcore-proof-files`
-  and puts `keys.veilcore.org` on it (veilcore.org's DNS is on Vercel, so nothing else is needed).
-  It stages the files in `~/.veilcore/proof-files-stage` (outside the repository), refuses if that
-  folder is linked to the site's project, makes one production deployment, points
-  keys.veilcore.org at it, then downloads every file back and checks it.
-- If the last step says keys.veilcore.org answered 401: in Vercel, `veilcore-proof-files` →
-  Settings → Deployment Protection, turn Vercel Authentication off, then run
-  `npm run check:proof-files`.
-- Then deploy the site as usual (`CLAUDE.md`, "Deploying veilcore.org").
+  gate as the site deploys). Every Vercel command it runs names the site's own Vercel team (the
+  `orgId` in `~/Desktop/veilcore/.vercel/project.json`; it refuses if that is missing), and none
+  sees `VERCEL_ORG_ID` or `VERCEL_PROJECT_ID`. The first time, it creates the Vercel project
+  `veilcore-proof-files` and puts `keys.veilcore.org` on it (veilcore.org's DNS is on Vercel, so
+  nothing else is needed). If Vercel can't say whether that project exists (an expired login,
+  say), it stops instead of creating it. It stages the files in `~/.veilcore/proof-files-stage`
+  (outside the repository), refuses if that folder is linked to the site's project, makes one
+  production deployment, points keys.veilcore.org at it, then downloads every file back and checks
+  it. Any failure ends with one `NOT PUBLISHED` line that says what to do.
 
 ## Later
 
@@ -92,5 +112,4 @@ One copy of the proof files now sits in `veilcore-proof-files`, once: the 54 key
 drops from about 206 MB plus the parameters to about 70 MB (measured 27 November 2026 on a build
 of this commit: the site's own files are about 70 MB, of which the videos in `/media` are 22 MB).
 Older site deployments still holding
-the keys age out under Vercel's retention; to free space sooner, delete old preview deployments in
-the Vercel dashboard (the current production deployment and the aliased ones are kept by Vercel).
+the keys age out under Vercel's retention; step 1 of the one-time setup frees the space sooner.

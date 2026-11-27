@@ -89,10 +89,9 @@ That also brings the claims contract's keys ("prove a fact"). Never run a bare `
 VeilCore doesn't own that npm name. Keys that don't match the chain make every proof fail; the
 sponsor then leaves its anchoring job off and its log says so.
 
-The site's build no longer carries the keys or the proving parameters: the page reads them from
-`VITE_PROOF_FILES_URL` (`https://keys.veilcore.org`, or your own host) and checks each one against
-the fingerprint pinned in the build (`docs/proof-files.md`). Only to serve them yourself: the
-parameters come from `cd bboard-ui && node scripts/fetch-params.mjs && cd ..`.
+The site's build doesn't carry the proving keys or the proving parameters (since 27 November
+2026): visitors' browsers download them from a separate file host. Where that is, and how to
+serve them yourself, is in step 6, "Where the proving files come from".
 
 ## 1. The registry (veilcore-api)
 
@@ -296,12 +295,39 @@ folder. Other servers need the same rules:
 - `/tools/passkey-check` serves `/tools/passkey-check.html`;
 - any other path that is not a file serves `/index.html`.
 
-Two things to know: the headers include `Strict-Transport-Security` with `includeSubDomains` for
-two years, which covers every name under your domain; and the build no longer carries the proving
-keys and parameters (`docs/proof-files.md`): the page reads them from `VITE_PROOF_FILES_URL` and
-checks each against the SHA-256 pinned in the build, so `https://keys.veilcore.org` works for any
-copy. To serve them yourself, put each file at `/sha256/<its SHA-256>` on a host that sends
-`Access-Control-Allow-Origin: *`, or at `/keys/` and `/params/` on your own site (tried second).
+One thing to know: the headers include `Strict-Transport-Security` with `includeSubDomains` for
+two years, which covers every name under your domain.
+
+### Where the proving files come from
+
+The proving keys and parameters (over 135 MB) are **not** in the build: `npm run build` deletes
+`dist/keys` and `dist/params`. A visitor's browser downloads each one from the address in
+`VITE_PROOF_FILES_URL`, as `<that address>/sha256/<the file's SHA-256>`, and uses it only if its
+SHA-256 is the one pinned in the build (`bboard-ui/src/veilcore/chain/proof-files.json`). The
+host only has to be reachable, not trusted. Pick one:
+
+- **Use VeilCore's**: set `VITE_PROOF_FILES_URL=https://keys.veilcore.org` for the build. Nothing
+  else to run. Your visitors' browsers then also connect to keys.veilcore.org, which sees what any
+  file host sees (their IP address and which public file they asked for). Say so in your privacy
+  policy.
+- **Serve them yourself**: after step 0 (keys) and
+  `cd bboard-ui && node scripts/fetch-params.mjs && cd ..` (parameters), from the repository root:
+
+  ```
+  node --input-type=module -e "import { readProofFiles, gatherLocal, mergedList, stageHost } from './scripts/proof-files.mjs'; const t = readProofFiles(); const l = gatherLocal(t.files); if (!l.ok) { console.error(l.problems.join('\n')); process.exit(1); } console.log(stageHost('proof-files-host', mergedList({}, t.files), l.bytes).out);"
+  ```
+
+  It checks every file against its pin and writes `proof-files-host/.vercel/output/static/`:
+  `sha256/<SHA-256>` for each file, and `proof-files.json`. Serve that folder over https on a host
+  name of its own (for example `keys.example.org`), with `Access-Control-Allow-Origin: *` on every
+  file (the browser reads them from your site's pages, so without it every proof fails). Then
+  build with `VITE_PROOF_FILES_URL=https://keys.example.org`, and keep it set for the header step
+  (`scripts/vercel-config.mjs` adds it to the `connect-src` of your security policy).
+
+With neither (no `VITE_PROOF_FILES_URL`), a test-network build reads the files from your own site's
+`/keys/` and `/params/` without the check, and you would have to copy them into `dist/` after
+`npm run build` by hand. A mainnet build that proves (`VITE_REAL_CHAIN=1`) refuses to build
+without it. Use one of the two above.
 
 Check, after the upload: `npm run check:site -- https://<site>` compares every file and header
 with the release list. Then open your site, seal a record, and copy its check link: it must start

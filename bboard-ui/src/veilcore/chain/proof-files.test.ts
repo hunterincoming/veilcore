@@ -21,7 +21,14 @@ import {
   proofFilesHost,
 } from './proof-files';
 import { makeKeyMaterialProvider } from './zk-material';
+import { BROWSER_CIRCUITS, CLAIMS_BROWSER_CIRCUITS } from './config';
 import { appEn } from '../../i18n/app/en';
+import { appDe } from '../../i18n/app/de';
+import { appEs } from '../../i18n/app/es';
+import { appFr } from '../../i18n/app/fr';
+import { appJa } from '../../i18n/app/ja';
+import { makeTranslator } from '../../i18n/translate';
+import { chainProblem } from '../../components/flow/log-flow-state';
 import { FINGERPRINTS } from '../../../../partner-kit/src/fingerprints';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -149,6 +156,37 @@ describe('a pinned file, by its fingerprint', () => {
       await loadProofFile('keys/anchor.prover', { host: HOST, siteOrigin: SITE, fetch: h.fetch, cache, files: FILES }),
     ).toEqual(GOOD);
     expect(h.asked).toEqual([]);
+  });
+
+  it('a good copy kept under this site’s own address (from before the host) is used without downloading', async () => {
+    const h = host({ [byHash]: GOOD });
+    const { cache, m } = memoryCache({ [onSite]: GOOD });
+    expect(
+      await loadProofFile('keys/anchor.prover', { host: HOST, siteOrigin: SITE, fetch: h.fetch, cache, files: FILES }),
+    ).toEqual(GOOD);
+    expect(h.asked).toEqual([]);
+    expect(m.has(onSite)).toBe(true);
+  });
+
+  it('a bad copy kept under this site’s address is dropped, never used, and the host’s is downloaded', async () => {
+    const h = host({ [byHash]: GOOD });
+    const { cache, m } = memoryCache({ [onSite]: SWAPPED });
+    expect(
+      await loadProofFile('keys/anchor.prover', { host: HOST, siteOrigin: SITE, fetch: h.fetch, cache, files: FILES }),
+    ).toEqual(GOOD);
+    expect(h.asked).toEqual([byHash]);
+    expect(m.has(onSite)).toBe(false);
+    expect(m.get(byHash)).toEqual(GOOD);
+  });
+
+  it('a bad copy under the host’s address and a good one under the site’s: the good one, no download', async () => {
+    const h = host({ [byHash]: GOOD });
+    const { cache, m } = memoryCache({ [byHash]: SWAPPED, [onSite]: GOOD });
+    expect(
+      await loadProofFile('keys/anchor.prover', { host: HOST, siteOrigin: SITE, fetch: h.fetch, cache, files: FILES }),
+    ).toEqual(GOOD);
+    expect(h.asked).toEqual([]);
+    expect(m.has(byHash)).toBe(false);
   });
 
   it('a file this build does not pin is never fetched', async () => {
@@ -287,9 +325,53 @@ describe('the pins this site is built with', () => {
     ).toEqual([13, 14, 15, 16].map((k) => `params/bls_midnight_2p${k}`));
   });
 
+  it('every circuit the browser proves has its prover and verifier keys pinned (the k=17 two, not yet)', () => {
+    // proveDistinct and proveUnchanged are k=17 (config.ts): no k=17 parameters are pinned, and
+    // the sponsor doesn't pay for them yet, so their keys aren't pinned either. When they are,
+    // this list goes and the test covers them like the rest.
+    const NOT_YET = ['proveDistinct', 'proveUnchanged'];
+    const proved = [...BROWSER_CIRCUITS, ...CLAIMS_BROWSER_CIRCUITS].filter((c) => !NOT_YET.includes(c));
+    expect(proved.length).toBeGreaterThan(18);
+    for (const c of proved)
+      for (const f of [`keys/${c}.prover`, `keys/${c}.verifier`]) expect(Object.hasOwn(PROOF_FILES, f), f).toBe(true);
+    for (const c of NOT_YET) expect(Object.hasOwn(PROOF_FILES, `keys/${c}.prover`), c).toBe(false);
+    // The circuits themselves (/zkir) come from this site, not the host, so none is pinned.
+    expect(Object.keys(PROOF_FILES).filter((p) => !/^(keys|params)\//.test(p))).toEqual([]);
+  });
+
   it('the two errors are sentences a person sees, in every language', () => {
     const en = appEn as Record<string, string>;
     expect(en['app.err.chain.proofFileWrong']).toBe(WRONG_PROOF_FILE);
     expect(en['app.err.chain.proofFilesUnreachable']).toBe(PROOF_FILES_UNREACHABLE);
+  });
+
+  it('on screen (chainProblem), each says the whole thing in every language, "try again" included', () => {
+    expect(chainProblem(new ProofFileError('keys/anchor.prover', 'unreachable').message).text).toBe(
+      "That didn't go through: the proving files could not be downloaded right now. Nothing was sent. Try again in a few minutes.",
+    );
+    expect(chainProblem(new ProofFileError('keys/anchor.prover', 'wrong').message).text).toBe(
+      "That didn't go through: a proving file was not the exact file this site was built to use, so it was not used. Nothing was sent.",
+    );
+    for (const [lang, table] of [
+      ['de', appDe],
+      ['es', appEs],
+      ['fr', appFr],
+      ['ja', appJa],
+    ] as const) {
+      const tr = makeTranslator(lang, table);
+      for (const [kind, key] of [
+        ['unreachable', 'app.err.chain.proofFilesUnreachable'],
+        ['wrong', 'app.err.chain.proofFileWrong'],
+      ] as const) {
+        const text = chainProblem(new ProofFileError('keys/anchor.prover', kind).message, tr).text;
+        const own = (table as Record<string, string>)[key].replace(/[.。]+$/, '');
+        // All of it, the lead letter aside (lower-cased after the colon in es and fr).
+        expect(text, `${lang} ${kind}`).toContain(own.slice(1));
+        expect(text, `${lang} ${kind}`).not.toMatch(/proving file|Nothing was sent|Try again/);
+      }
+      expect(chainProblem(PROOF_FILES_UNREACHABLE, tr).text, lang).toContain(
+        (table as Record<string, string>)['app.chain.inAFewMinutes'].slice(1),
+      );
+    }
   });
 });
