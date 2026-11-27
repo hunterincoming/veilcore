@@ -168,7 +168,7 @@ export const fr: Strings = {
   'm.hiw.you1p': 'Ils ne quittent jamais votre appareil : votre ordinateur lit chacun pour calculer son code.',
   'm.hiw.you2t': 'Les informations de l’enregistrement',
   'm.hiw.you2p':
-    'Conservées verrouillées sur le serveur de VeilCore, le nom compris, sauf si vous choisissez de le montrer. Nous n’avons pas la clé.',
+    'Conservées verrouillées sur notre serveur, nom compris, sauf si vous le montrez. Avec notre code web publié, elles nous restent illisibles.',
   'm.hiw.you3t': 'Votre fichier de sauvegarde',
   'm.hiw.you3p': 'Il contient vos clés. Gardez-le en lieu sûr.',
   'm.hiw.chainLbl': 'Sur Midnight',
@@ -611,7 +611,7 @@ export const fr: Strings = {
     'Votre appareil calcule un code à partir de l’enregistrement. Seul ce code est daté, sur Midnight, et personne ne peut en remonter à ce que vous avez écrit.',
   'm.home2.s2t': '2. Scellez-le.',
   'm.home2.s1p':
-    'Ce que c’est et d’où ça vient. Votre appareil verrouille les détails avant de les envoyer ; nous ne pouvons pas les lire.',
+    'Ce que c’est et d’où ça vient. Votre appareil verrouille tout avant l’envoi ; avec notre code web publié, c’est illisible pour nous.',
   'm.home2.s1t': '1. Notez-le.',
   'm.home2.stepsTitle': 'Comment ça marche, en trois étapes',
   'm.home2.lede':
@@ -839,6 +839,9 @@ export const fr: Strings = {
   'm.privacy.code.text':
     'VeilCore sert le code de l’application. Chaque version publie la liste de ses fichiers. Vous pouvez vérifier que les fichiers reçus par votre navigateur correspondent à cette liste, et chacun peut reconstruire la version à partir du code publié et comparer. Cela montre ce que nous avons publié. Cela ne peut pas prouver qu’un hébergeur a envoyé à tous les mêmes fichiers.',
   'm.checksite.title': 'Vérifier ce site',
+  // Next to each "we can't read it": what that rests on (the code served is the code published).
+  'm.trust.code':
+    'Cela vaut pour le code du site que nous publions : chaque version est publique, vous pouvez donc vérifier que votre navigateur a bien reçu ce code.',
   'm.checksite.lede':
     'VeilCore sert le code de l’application. Chaque version publie la liste de ses fichiers. Vous pouvez vérifier que les fichiers reçus par votre navigateur correspondent à cette liste, et chacun peut reconstruire la version à partir du code publié et comparer. Cela montre ce que nous avons publié. Cela ne peut pas prouver qu’un hébergeur a envoyé à tous les mêmes fichiers.',
   'm.checksite.reading': 'Lecture de la version…',

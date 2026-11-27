@@ -31,7 +31,8 @@ import {
   Typography,
 } from '@mui/material';
 import { allRecords, renameTransactions, type StrainRecord } from '../../veilcore/records';
-import { readyClaimLink } from '../../veilcore/link-hashes';
+import { claimLinkNow, readyClaimLink } from '../../veilcore/link-hashes';
+import { copyLink } from '../../veilcore/copy-link';
 import { SCHEMAS, shownNumber, storedNumber } from '../../veilcore/field-set';
 import { withMore, type MadeClaim } from '../../veilcore/claim-link';
 import { callWordKey, labWordsFor } from '../../veilcore/claim-call';
@@ -236,6 +237,8 @@ export const ProveNumber: React.FC<{
   const [error, setError] = useState<string>();
   const [made, setMade] = useState<MadeClaim>();
   const [copied, setCopied] = useState(false);
+  // A link made but not copied (the browser refused the clipboard after a look-up): one more tap.
+  const [readyLink, setReadyLink] = useState<string>();
   if (!held || !schema || filled.length === 0) return null;
   if (offers && offers.length === 0) {
     if (!parentage) return null;
@@ -334,19 +337,29 @@ export const ProveNumber: React.FC<{
             },
           }
         : one;
+    // Every transaction in the link by its hash, an older build's saved identifier looked up,
+    // checked and saved back first (link-hashes.ts); no link at all when that can't be done right
+    // now. The clipboard is asked inside the tap, before anything waits (copy-link.ts).
+    const done = copyLink(claimLinkNow(withLab, CANONICAL_ORIGIN), () =>
+      readyClaimLink(withLab, CANONICAL_ORIGIN, { save: renameTransactions }),
+    );
     setCopied(false);
+    setReadyLink(undefined);
     setError(undefined);
-    // Every transaction in the link by its hash, an older build's saved identifier looked up and
-    // saved back first (link-hashes.ts); no link at all when that can't be done right now.
-    let link: string;
     try {
-      link = await readyClaimLink(withLab, CANONICAL_ORIGIN, { save: renameTransactions });
+      const r = await done;
+      if (r.copied) setCopied(true);
+      else setReadyLink(r.link);
     } catch {
       setError(t('app.claim.linkLater'));
-      return;
     }
-    await navigator.clipboard.writeText(link);
-    setCopied(true);
+  };
+  const copyReady = (link: string) => {
+    setReadyLink(undefined);
+    navigator.clipboard.writeText(link).then(
+      () => setCopied(true),
+      () => setReadyLink(link),
+    );
   };
 
   return (
@@ -644,6 +657,17 @@ export const ProveNumber: React.FC<{
                 </Button>
               ) : null;
             })()}
+          {readyLink && (
+            <Button
+              size="small"
+              variant="contained"
+              sx={{ mt: 1 }}
+              onClick={() => copyReady(readyLink)}
+              data-claim-copy-ready=""
+            >
+              {t('app.claim.linkReady')}
+            </Button>
+          )}
           {copied && (
             <Typography variant="body2" role="status">
               {t('app.claim.copied')}

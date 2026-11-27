@@ -166,7 +166,8 @@ export const document = {
   'app.claim.done': 'Proved on Midnight:',
   'app.claim.copy': 'Copy the link that proves this',
   'app.claim.linkLater':
-    'This link can’t be made right now: a transaction in it couldn’t be looked up on Midnight. Try again in a few minutes.',
+    'This link can’t be made right now: part of it couldn’t be checked on Midnight. Try again in a few minutes.',
+  'app.claim.linkReady': 'The link is ready. Tap here to copy it.',
   'app.claim.copied': 'Copied.',
   'app.claim.made': 'What you’ve proved',
   'app.claim.line.atMost': '{label} is at most {bound} {unit}',

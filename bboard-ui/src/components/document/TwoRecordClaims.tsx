@@ -31,7 +31,8 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { isKeptOnDeviceOnly, renameTransactions, type StrainRecord } from '../../veilcore/records';
-import { readyTwoClaimLink } from '../../veilcore/link-hashes';
+import { readyTwoClaimLink, twoClaimLinkNow } from '../../veilcore/link-hashes';
+import { copyLink } from '../../veilcore/copy-link';
 import {
   carriedClaims,
   changedSlots,
@@ -139,6 +140,8 @@ export const TwoRecordPanel: React.FC<{
   const [error, setError] = useState<string>();
   const [made, setMade] = useState<HeldTwoClaim>();
   const [copied, setCopied] = useState(false);
+  // A link made but not copied (the browser refused the clipboard after a look-up): one more tap.
+  const [readyLink, setReadyLink] = useState<string>();
 
   if (!twoRecordFormOffered(schema) || isKeptOnDeviceOnly(record) || record.copy === true)
     return (
@@ -184,19 +187,29 @@ export const TwoRecordPanel: React.FC<{
     b: nameOf(all.find((r) => r.id === c.ids[1]) ?? (c.ids[1] === record.id ? record : undefined)),
   });
   const copy = async (c: TwoClaim) => {
+    // Its transaction by its hash, an older build's identifier looked up, checked and saved back
+    // first (link-hashes.ts); no link at all when that can't be done right now. The clipboard is
+    // asked inside the tap, before anything waits (copy-link.ts).
+    const done = copyLink(twoClaimLinkNow(c, CANONICAL_ORIGIN), () =>
+      readyTwoClaimLink(c, CANONICAL_ORIGIN, { save: renameTransactions }),
+    );
     setCopied(false);
+    setReadyLink(undefined);
     setError(undefined);
-    // Its transaction by its hash, an older build's identifier looked up and saved back first
-    // (link-hashes.ts); no link at all when that can't be done right now.
-    let link: string;
     try {
-      link = await readyTwoClaimLink(c, CANONICAL_ORIGIN, { save: renameTransactions });
+      const r = await done;
+      if (r.copied) setCopied(true);
+      else setReadyLink(r.link);
     } catch {
       setError(t('app.claim.linkLater'));
-      return;
     }
-    await navigator.clipboard.writeText(link);
-    setCopied(true);
+  };
+  const copyReady = (link: string) => {
+    setReadyLink(undefined);
+    navigator.clipboard.writeText(link).then(
+      () => setCopied(true),
+      () => setReadyLink(link),
+    );
   };
 
   return (
@@ -357,6 +370,17 @@ export const TwoRecordPanel: React.FC<{
               </Stack>
             ))}
           </Stack>
+          {readyLink && (
+            <Button
+              size="small"
+              variant="contained"
+              sx={{ mt: 1 }}
+              onClick={() => copyReady(readyLink)}
+              data-claim-copy-ready=""
+            >
+              {t('app.claim.linkReady')}
+            </Button>
+          )}
           {copied && (
             <Typography variant="body2" role="status">
               {t('app.claim.copied')}

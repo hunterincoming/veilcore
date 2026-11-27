@@ -331,6 +331,17 @@ const stableJson = (v: unknown): string =>
 const asTxList = (v: unknown): Tx[] =>
   Array.isArray(v) ? v.filter((t): t is Tx => typeof t === 'object' && t !== null) : [];
 
+/** Whether an answer's `byHash` or `byId` names this transaction, by its hash or one of its identifiers. */
+const carriesTx = (data: unknown, txId: string): boolean => {
+  if (typeof data !== 'object' || data === null) return false;
+  const d = data as { byHash?: unknown; byId?: unknown };
+  return [...asTxList(d.byHash), ...asTxList(d.byId)].some(
+    (t) =>
+      (typeof t.hash === 'string' && norm(t.hash) === txId) ||
+      (Array.isArray(t.identifiers) && t.identifiers.some((i) => typeof i === 'string' && norm(i) === txId)),
+  );
+};
+
 const askOne = async (
   indexer: string,
   input: {
@@ -366,10 +377,14 @@ const askOne = async (
   }
   // An indexer that answered with errors but still gave its latest block is up: what it couldn't
   // find is judged by that block and the clock, as for a claim (read-failure.ts), never left amber
-  // on the registry's word alone. Without a latest block it is "couldn't reach".
+  // on the registry's word alone. Without a latest block it is "couldn't reach". An answer with
+  // errors that still carries the transaction is never read as "no such transaction" (PR #231,
+  // fourth review): it is "couldn't reach", as the rest of it can't be trusted to judge.
   if (Array.isArray(body.errors) && body.errors.length > 0) {
     const tip = tipOf(body.data);
-    return tip !== undefined && missingFromChain(tip, reportedOf(input), (deps.now ?? Date.now)())
+    return tip !== undefined &&
+      !carriesTx(body.data, input.txId) &&
+      missingFromChain(tip, reportedOf(input), (deps.now ?? Date.now)())
       ? { kind: 'refused', notFound: true, reason: `Midnight’s indexer has no transaction ${short(input.txId)}` }
       : { kind: 'unreachable', why: 'no-answer', reason: 'the indexer could not answer the question' };
   }

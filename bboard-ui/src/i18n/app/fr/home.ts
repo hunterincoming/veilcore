@@ -13,8 +13,8 @@ export const home = {
     'Ce que vous avez saisi est conservé dans ce navigateur. Reprenez là où vous vous étiez arrêté.',
   'app.home.aboutThreeMinutes':
     'Environ 3 minutes. À la fin, il a un horodatage public, et vous êtes seul à détenir la clé.',
-  'app.home.aboutThreeMinutesByHand':
-    'Environ 3 minutes. À la fin, il est scellé ; sa date publique vient quand nous ancrons son lot (à la main pour l’instant). Vous êtes seul à détenir la clé.',
+  'app.home.aboutThreeMinutesBatch':
+    'Environ 3 minutes. À la fin, il est scellé ; sa date publique vient quand son lot est daté sur Midnight, automatiquement. Vous êtes seul à détenir la clé.',
   'app.home.continue': 'Reprendre',
   'app.home.start': 'Créer un enregistrement',
   'app.home.spreadsheet': 'Vous avez un tableur ? Datez toute votre collection',

@@ -12,8 +12,8 @@ export const home = {
   'app.home.draftKept': 'Lo que escribió se guarda en este navegador. Siga donde lo dejó.',
   'app.home.aboutThreeMinutes':
     'Unos 3 minutos. Al terminar, su registro tendrá un sello de fecha público y usted tendrá la única clave.',
-  'app.home.aboutThreeMinutesByHand':
-    'Unos 3 minutos. Al terminar queda sellado; su fecha pública llega cuando anclamos su lote (a mano por ahora). Usted tiene la única clave.',
+  'app.home.aboutThreeMinutesBatch':
+    'Unos 3 minutos. Al terminar queda sellado; su fecha pública llega cuando su lote se fecha en Midnight, de forma automática. Usted tiene la única clave.',
   'app.home.continue': 'Continuar',
   'app.home.start': 'Crear un registro',
   'app.home.spreadsheet': '¿Tiene una hoja de cálculo? Feche toda su colección',

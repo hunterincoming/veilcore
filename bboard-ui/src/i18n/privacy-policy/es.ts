@@ -13,6 +13,8 @@ export const policyEs: PolicyStrings = {
     'Sus archivos de ADN, sus archivos de informes de laboratorio y sus fotos nunca salen de su dispositivo. Su navegador hace un código con cada uno; el archivo en sí nunca se sube.',
   'm.pp.short.2':
     'Lo que escribe en un registro se cifra en su navegador antes de enviarse. Nuestro servidor lo guarda cifrado, y nosotros no tenemos la clave.',
+  'm.pp.short.code':
+    'Esto vale para el código del sitio que publicamos: cada versión es pública, así que puede comprobar que su navegador recibió ese código.',
   'm.pp.short.3':
     'Nuestro servidor puede leer lo que necesita para funcionar: el ID de un registro, su código de prueba, cuándo se guardó y lo que usted decida mostrar. La lista completa está abajo.',
   'm.pp.short.4':

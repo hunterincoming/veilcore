@@ -13,6 +13,8 @@ export const policyDe: PolicyStrings = {
     'Ihre DNA-Dateien, Laborberichtsdateien und Fotos verlassen Ihr Gerät nie. Ihr Browser macht aus jeder einen Code; die Datei selbst wird nie hochgeladen.',
   'm.pp.short.2':
     'Was Sie in einen Datensatz eingeben, wird in Ihrem Browser verschlossen, bevor es gesendet wird. Unser Server speichert es verschlossen, und wir haben den Schlüssel nicht.',
+  'm.pp.short.code':
+    'Das gilt für den Website-Code, den wir veröffentlichen: Jede Version ist öffentlich, Sie können also prüfen, ob Ihr Browser genau diesen Code erhalten hat.',
   'm.pp.short.3':
     'Unser Server kann lesen, was er zum Arbeiten braucht: die ID eines Datensatzes, seinen Prüfcode, wann er gespeichert wurde, und was Sie zeigen möchten. Die vollständige Liste steht unten.',
   'm.pp.short.4':

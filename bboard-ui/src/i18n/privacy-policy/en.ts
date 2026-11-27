@@ -21,6 +21,8 @@ export const policyEn = {
     'Your DNA files, lab report files and photos never leave your device. Your browser makes a code from each one; the file itself is never uploaded.',
   'm.pp.short.2':
     'What you type into a record is locked in your browser before it is sent. Our server stores it locked, and we don’t have the key.',
+  'm.pp.short.code':
+    'That holds for the website code we publish: every release is public, so you can check that your browser got that code.',
   'm.pp.short.3':
     'Our server can read what it needs to work: a record’s ID, its proof code, when it was saved, and what you choose to show. The full list is below.',
   'm.pp.short.4':

@@ -30,16 +30,16 @@ const sendsCommon: Strings = {
 export const esMainnet = buildMainnet({
   common: {
     'm.hero.status':
-      'El contrato de VeilCore está en la red principal de Midnight. Los registros sellados en este sitio son registros reales: van a lotes que, por ahora, anclamos allí a mano. Las licencias y los acuerdos con laboratorios aquí siguen siendo simulados.',
+      'El contrato de VeilCore está en la red principal de Midnight. Los registros sellados en este sitio son registros reales: van a lotes que se fechan allí. Las licencias y los acuerdos con laboratorios aquí siguen siendo simulados.',
     'm.faq.3a':
-      'Está hecho para servir como prueba, y nuestra nota para abogados dice qué prueba un registro y qué no. Los registros sellados aquí van a lotes que anclamos a mano en la red principal de Midnight. Cuando el lote de un registro está anclado, la fecha muestra que el registro existía en ese momento; lo que eso valga en una disputa lo decide el tribunal.',
+      'Está hecho para servir como prueba, y nuestra nota para abogados dice qué prueba un registro y qué no. Los registros sellados aquí van a lotes que se fechan en la red principal de Midnight. Cuando el lote de un registro está anclado, la fecha muestra que el registro existía en ese momento; lo que eso valga en una disputa lo decide el tribunal.',
     'm.stat2.b': 'Red principal',
     'm.foot.about':
       'Un formato abierto de registros para la genética vegetal, animal y microbiana. Los registros se fechan anclándolos en la red principal de Midnight.',
     'm.get.2b':
       'Se adjuntan al registro. Un licenciatario puede probar que tiene una licencia vigente sin mostrar cuál. Una regalía u otra obligación sobre un progenitor aparece en cada descendiente que ambos titulares confirmaron; VeilCore la anota y no la cobra. Incorporado al contrato en la red principal de Midnight; simulado en este sitio web.',
     'm.demo.lede':
-      'Sin registro de usuario, sin billetera. Los registros que sella aquí son registros reales: cada uno va a un lote que, por ahora, anclamos a mano en la red principal de Midnight, así que un registro nuevo puede esperar un rato; su página de comprobación muestra cuándo se ancla su lote. Comprobar es gratis. Las licencias y los acuerdos con laboratorios son simulados, y los vínculos de informes de ADN no se fechan. El nombre de un registro se cifra como lo demás; un enlace de comprobación solo lo lleva si usted lo activa.',
+      'Sin registro de usuario, sin billetera. Los registros que sella aquí son registros reales: cada uno va a un lote que se fecha en la red principal de Midnight; su página de comprobación muestra cuándo se ancla su lote. Comprobar es gratis. Las licencias y los acuerdos con laboratorios son simulados, y los vínculos de informes de ADN no se fechan. El nombre de un registro se cifra como lo demás; un enlace de comprobación solo lo lleva si usted lo activa.',
     'm.post0.text':
       'Ambos contratos pasaron las 37 comprobaciones de extremo a extremo en la red de pruebas preprod de Midnight, incluidas las nuevas afirmaciones: un valor, un rango, una diferencia, una corrección que deja el resto intacto y una firma de una clave de laboratorio de prueba. Datos de marcadores inventados.',
     'm.post2.title': 'Una ejecución completa en la red de pruebas de Midnight',
@@ -86,7 +86,7 @@ export const esMainnet = buildMainnet({
     'm.claims.status':
       'Un segundo contrato de Midnight, en la red principal de Midnight. Antes del lanzamiento pasó todas las comprobaciones de extremo a extremo, con datos de marcadores inventados. Todavía no está en este sitio web.',
     'm.stat2.s':
-      'Los dos contratos están en la red principal de Midnight. Los registros sellados en este sitio van a lotes que, por ahora, anclamos allí a mano.',
+      'Los dos contratos están en la red principal de Midnight. Los registros sellados en este sitio van a lotes que se fechan allí.',
   },
   claimsOnSite: {
     'm.claims.status':
@@ -96,7 +96,7 @@ export const esMainnet = buildMainnet({
     'm.claims.status':
       'Un segundo contrato de Midnight. En las pruebas previas al lanzamiento pasó todas las comprobaciones de extremo a extremo, con datos de marcadores inventados. Todavía no está en la red principal de Midnight ni en este sitio web.',
     'm.stat2.s':
-      'El contrato principal está en la red principal de Midnight. Los registros sellados en este sitio van a lotes que, por ahora, anclamos allí a mano. El contrato de afirmaciones vendrá después.',
+      'El contrato principal está en la red principal de Midnight. Los registros sellados en este sitio van a lotes que se fechan allí. El contrato de afirmaciones vendrá después.',
   },
   keyHolders:
     'Una clave de mantenimiento puede cambiar cómo funciona el contrato principal de VeilCore en Midnight. Quien la tenga puede agregar o reemplazar operaciones del contrato, lo que podría permitirle tomar el control de la identidad de cualquier registro, agregar licencias en nombre de cualquier emisor, agregar o quitar obligaciones y vínculos de parentesco, o desactivar operaciones. No puede antedatar los tiempos de bloque de la red, y cada cambio queda a la vista en la cadena. No puede cambiar ni quitar un lote ya anclado, ni la fecha que da a un registro: eso está en la transacción que lo ancló, que nadie puede alterar. Hoy la clave está en papel, una copia en manos de cada fundador, y cualquiera de las dos copias basta por sí sola para usarla. Pasarla a tres claves, de las que dos deban estar de acuerdo, estaba previsto antes de la actualización de Midnight a Ledger 9 del 6 de noviembre de 2026 y no se ha hecho. La red sigue aceptando la clave, así que debe considerarse activa. Cualquiera puede comprobar el contador de cambios del contrato en un explorador de Midnight, y cualquier cambio lo aumenta.',
