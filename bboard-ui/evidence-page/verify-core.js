@@ -740,15 +740,21 @@ var VeilcoreVerify = (function () {
     for (var j = 0; j < secs.length && j < 16; j++) {
       var x = secs[j];
       if (!isObject(x) || !isHex64(x.root)) continue;
+      var folder = typeof x.folder === 'string' ? x.folder : '';
+      var files = Array.isArray(x.files) ? x.files.filter(function (f) { return typeof f === 'string'; }) : [];
+      var m = anchorLookup(x.anchor, x.root, true, contracts, true);
+      // The script that reads this root from Midnight is in the root's own folder, and is
+      // written only for a network it can read (bundle.ts inFolder says the same in README.txt).
+      if (m) m.script = files.indexOf(folder + '/check-on-midnight.mjs') >= 0 ? folder + '/check-on-midnight.mjs' : false;
       fileRoots.push({
         index: j,
-        folder: typeof x.folder === 'string' ? x.folder : '',
+        folder: folder,
         batchId: typeof x.batchId === 'string' ? x.batchId : '',
         root: x.root,
-        files: Array.isArray(x.files) ? x.files.filter(function (f) { return typeof f === 'string'; }) : [],
+        files: files,
         // A root the registry gave later, after giving another for the same batch.
         later: x.later === true,
-        midnight: anchorLookup(x.anchor, x.root, true, contracts, true),
+        midnight: m,
       });
     }
     var distinct = {};
@@ -823,7 +829,12 @@ var VeilcoreVerify = (function () {
     if (v2 && a.network === 'mainnet')
       out.push((a.onList ? '' : 'If it called version 2: ') + 'VeilCore contract version 2 is deployed on mainnet for testing by VeilCore. It is not yet independently reviewed and not for your records.');
     out.push('Check that it wrote this batch root: ' + a.root + '. The batch root is one code that stands for every record in the batch; this record’s proof leads to it.');
-    out.push('We haven’t confirmed that any Midnight explorer shows the batch root: it sits inside the contract’s state after the call, not in plain text. If yours doesn’t show it, we know of no way to see it without running a command. A technical person can run proof/check-on-midnight.mjs (README.txt, “For technical readers”, says how): it asks a Midnight indexer directly, with no VeilCore server involved, though the code it runs is VeilCore’s published code. This record’s check page on VeilCore’s site does the same look-up in your browser, but that page is VeilCore’s too.');
+    // a.script: a root from a backup file names its own folder's script, or false where none is
+    // written for its network (bundle.ts inFolder); otherwise the bundle's proof/ script.
+    var script = a.script === false
+      ? 'This bundle has no script that reads it for this network.'
+      : 'A technical person can run ' + (typeof a.script === 'string' ? a.script : 'proof/check-on-midnight.mjs') + ' (README.txt, “For technical readers”, says how): it asks a Midnight indexer directly, with no VeilCore server involved, though the code it runs is VeilCore’s published code.';
+    out.push('We haven’t confirmed that any Midnight explorer shows the batch root: it sits inside the contract’s state after the call, not in plain text. If yours doesn’t show it, we know of no way to see it without running a command. ' + script + ' This record’s check page on VeilCore’s site does the same look-up in your browser, but that page is VeilCore’s too.');
     out.push('If the transaction succeeded, called that contract and wrote that root, this record existed, unchanged, by that transaction’s time: whoever had it sealed held this record by then. If any of it doesn’t match, nothing here dates the record.');
     return out;
   }

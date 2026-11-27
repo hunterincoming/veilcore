@@ -37,6 +37,19 @@ import {
   reporterWords,
 } from './words';
 
+/**
+ * The times that are one party's own clock, naming only those the bundle has (review 9 of PR
+ * #233: a bundle with no "first saw" time named it anyway).
+ */
+const ownClocks = (firstSeen: boolean, sigs: boolean): string => {
+  const parts = [
+    'The sealing time in the record',
+    firstSeen ? 'the registry’s “first saw” time' : null,
+    sigs ? 'the time on each lab signature' : null,
+  ].filter((x): x is string => !!x);
+  if (parts.length === 1) return `${parts[0]}: one party’s own clock.`;
+  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}: each is one party’s own clock.`;
+};
 export const EXAMINER_FILE = 'EXAMINER-SUMMARY.html';
 
 /**
@@ -601,7 +614,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     fileRoots.length
       ? `Any date at all until ${[fd.ots ? 'a folder’s Bitcoin stamp checks' : null, fd.tokens ? 'a folder’s RFC 3161 token checks' : null, fd.tx ? 'a folder’s batch root is found in the Midnight transaction it names' : null].filter(Boolean).join(' or ') || 'one of these batch roots is dated'}.`
       : `Any date at all until ${[ots ? 'the Bitcoin stamp checks' : null, tsa ? 'the RFC 3161 token checks' : null, 'the batch root is found in the named Midnight transaction'].filter(Boolean).join(' or ')}.`,
-    `The sealing time in the record${sigs.length ? ', the registry’s “first saw” time and the time on each lab signature' : ' and the registry’s “first saw” time'}: each is one party’s own clock.`,
+    ownClocks(!!ev.registry.firstSeen, sigs.length > 0),
   ];
   if (lab)
     doesNot.push(

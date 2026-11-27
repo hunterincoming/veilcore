@@ -417,9 +417,10 @@ return canonicalise;
         var lines = [
           'Batch ' + cc.batchId + ', batch root ' + cc.root + ' (' + cc.folder + ')' + (cc.later ? ': VeilCore’s registry gave this root later, after giving another for the same batch' : '') + '.',
           ck.proof && ck.proof.status === 'ok' ? 'Its proof leads from this record’s proof code to that root.' : 'Its proof does not check: ' + ((ck.proof && ck.proof.reason) || 'none') + '.',
-          ck.stamp && ck.stamp.status === 'bitcoin' ? 'Its Bitcoin stamp file starts from that root and names block ' + ck.stamp.bitcoin.map(function (x) { return x.height; }).join(', ') + '; check it against Bitcoin (ots verify root.bin.ots in that folder).' : ck.stamp && ck.stamp.status === 'pending' ? 'Its Bitcoin stamp file starts from that root but holds only a promise, not yet a Bitcoin block.' : 'No Bitcoin stamp file that starts from that root.',
+          ck.stamp && ck.stamp.status === 'bitcoin' ? 'Its Bitcoin stamp file starts from that root and names block ' + ck.stamp.bitcoin.map(function (x) { return x.height; }).join(', ') + '; check it against Bitcoin (ots verify root.bin.ots in that folder).' : ck.stamp && ck.stamp.status === 'pending' ? 'Its Bitcoin stamp file starts from that root but holds only a promise, not yet a Bitcoin block (in that folder, run ots upgrade root.bin.ots first, which needs the internet once, then ots verify root.bin.ots).' : 'No Bitcoin stamp file that starts from that root.',
           (ck.tokens ? ck.tokens + ' RFC 3161 token' + (ck.tokens === 1 ? '' : 's') + ' in that folder (openssl ts -verify).' : 'No RFC 3161 token.'),
         ];
+        if (cc.midnight && cc.midnight.txHash && cc.midnight.testNetwork) lines.push('Its transaction is on a test network. A test network can be reset and its dates carry no weight: treat that transaction as practice data.');
         if (cc.midnight && cc.midnight.txHash) lines = lines.concat(VeilcoreVerify.midnightSteps(cc.midnight));
         else lines.push('The backup file names no Midnight transaction for it.');
         cards.push(el('h3', null, 'From the backup file: ' + cc.folder));
@@ -440,7 +441,7 @@ return canonicalise;
       ], 'result'));
     } else if (D.notBatched && report.lookups && report.lookups.fileRoots && report.lookups.fileRoots.length) {
       summary.appendChild(result('info', 'The record checks; only the holder’s backup file dates it', [
-        para(['Its proof code matches the sealed fields. What dates it here comes from the holder’s backup file and isn’t confirmed: each root is below, with its own look-up.']),
+        para(['Its proof code matches the sealed fields. What dates it here comes from the holder’s backup file and isn’t confirmed: each root is shown above, with its own look-up.']),
       ], 'result'));
     } else if (D.notBatched) {
       summary.appendChild(result('info', 'The record checks, but nothing dates it yet', [
@@ -490,6 +491,11 @@ return canonicalise;
           ? 'The record’s proof code is in batch ' + (p.batchId || '(unnamed)') + '. It is the batch’s only record, so its proof code is the batch root itself.'
           : 'The record’s proof code is in batch ' + (p.batchId || '(unnamed)') + ': the proof’s ' + p.depth + ' step' + (p.depth === 1 ? '' : 's') + ' lead' + (p.depth === 1 ? 's' : '') + ' from it to the batch root, one code that stands for every record in the batch.']),
         facts([['Batch root', hex(p.root)]]),
+      ], 'proof'));
+    } else if (p.status === 'none' && report.lookups && report.lookups.fileRoots && report.lookups.fileRoots.length) {
+      // Made from a backup file: each folder's proof is checked above, under "From the holder’s backup file".
+      checks.appendChild(result('info', 'Proofs from the holder’s backup file', [
+        para(['Each proof the holder’s backup file gives is in its own proof/backup-file-* folder, checked above under “From the holder’s backup file”.']),
       ], 'proof'));
     } else if (p.status === 'none') {
       checks.appendChild(result('info', 'Not in a batch yet', [
@@ -548,6 +554,8 @@ return canonicalise;
       lk.appendChild(result('bad', 'Don’t use this to date the record: ' + D.failed.join('; '), [
         para(['The steps to look the date up are not shown, because the files in this bundle don’t agree with each other.']),
       ], 'lookups-withheld'));
+    } else if ((!L.root || D.notBatched) && L.fileRoots && L.fileRoots.length) {
+      lk.appendChild(para(['What to look up for each root from the holder’s backup file is above, under “From the holder’s backup file”.']));
     } else if (!L.root || D.notBatched) {
       lk.appendChild(para(['Nothing to look up yet: the record isn’t in a batch.']));
     } else {

@@ -1520,7 +1520,9 @@ export const readmeText = (
       if (a) midnightSteps(a).forEach((step, i) => L.push(`     ${String.fromCharCode(97 + i)}. ${inFolder(step, c)}`));
       else L.push('     The backup file names no Midnight transaction for this batch.');
       if (c.opentimestamps.available)
-        L.push(`     Bitcoin: in that folder, ots verify root.bin.ots (it stamps root.bin).`);
+        L.push(
+          `     Bitcoin: in that folder, ots verify root.bin.ots (it stamps root.bin)${c.opentimestamps.status === 'bitcoin' ? '' : '; run ots upgrade root.bin.ots first, which needs the internet once'}.`,
+        );
       if (c.tokens)
         L.push(
           `     Time Stamping Authority: in that folder, openssl ts -verify -data root.bin -in ${tstNames(c.tokens)[0]} -token_in -CAfile <the authority's certificate chain>.`,

@@ -37,6 +37,7 @@ import { browser, fileOf, installStorage, settle, type Browser } from './fixture
 import { stubWebLocks } from './fixtures/web-locks';
 import type { DealParty } from './deal-client';
 import { loadPageVerifier } from './evidence/test-records';
+import { pinnedContractsForPage } from './evidence/verify-page';
 import { differ, snapshotOf } from '../e2e-fixtures/restore-drill-snapshot';
 import { sealOnDevice } from './fixtures/device-only-doc';
 import { otsFile, testTsa, type TestTsa } from './fixtures/test-stamps';
@@ -996,7 +997,7 @@ const textOf = (b?: Uint8Array) =>
     .replace(/\s+/g, ' ');
 
 /** The verify.html page code's reading of a bundle's evidence.json: what it would label. */
-const pageLookups = (evidence: unknown) => {
+const pageLookups = (evidence: unknown, contracts?: unknown) => {
   const V = loadPageVerifier<{
     lookups: (
       ev: unknown,
@@ -1009,7 +1010,7 @@ const pageLookups = (evidence: unknown) => {
     };
     midnightSteps: (a: unknown) => string[];
   }>();
-  const L = V.lookups(evidence);
+  const L = V.lookups(evidence, contracts);
   const first = L.fileRoots[0]?.midnight;
   return { L, steps: first ? V.midnightSteps(first).join(' ') : '' };
 };
@@ -1576,13 +1577,100 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     expect(textOf(file('proof/anchors.json'))).not.toContain(PREVIEW_TX);
   });
 
-  /** README.txt, EXAMINER-SUMMARY.html and DECLARATION-TEMPLATE.txt of a bundle made from a backup file. */
-  const pagesFromFile = async (anchor: unknown) => {
+  /**
+   * Every proof the registry serves with this anchor, as the real registry folds it in
+   * (lineage/batches.mjs foldAnchors): `anchor`, and the same as a `ledger` entry in `anchors`.
+   */
+  const serveFolded = (anchor: Record<string, unknown>) => {
+    for (const [fp, pr] of w.proofs) {
+      const { anchor: _a, anchors, ...rest } = pr as Record<string, unknown>;
+      void _a;
+      const others = ((anchors as Record<string, unknown>[] | undefined) ?? []).filter((x) => x.kind !== 'ledger');
+      const ledger = { kind: 'ledger', ...anchor, testNetwork: anchor.network !== 'mainnet' };
+      w.proofs.set(fp, { ...rest, anchor, anchors: [ledger, ...others] });
+    }
+  };
+  const ledgersIn = (p: unknown) =>
+    ((p as { anchors?: { kind: string; network?: string; txHash?: string }[] } | undefined)?.anchors ?? []).filter(
+      (x) => x.kind === 'ledger',
+    );
+
+  it('a main-network anchor once kept stays: another main-network transaction for the same batch is set aside and the holder warned (R9-1)', async () => {
     const A = await browser('breeder');
     const B = await browser('licensee');
     const L = await browser('lab');
     const made = await makeTheSet(A, B, L);
-    w.upgrade();
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    const OTHER = { ...MAINNET, txHash: 'cd'.repeat(32), blockHeight: 12000, anchoredAt: '2027-03-01T12:00:00.000Z' };
+    serveFolded(MAINNET);
+    await backUp(A);
+    expect(await A.run(() => A.m.stamps.rootChanges())).toBe(0);
+    // An honest registry refuses this (409, batches.mjs recordAnchor); a broken one could serve it.
+    serveFolded(OTHER);
+    const online = await opened(A, await backUp(A));
+    expect(anchorIn(online, fp)?.txHash, 'online backup').toBe(MAINNET.txHash);
+    expect(ledgersIn((online.proofs as Record<string, unknown>)[fp]).map((l) => l.txHash)).toEqual([MAINNET.txHash]);
+    // The other one is kept aside, in the file, and the backup page warns.
+    const warned = await A.run(() => A.m.stamps.rootChanges());
+    expect(warned, 'every record in the batch is warned of').toBe(w.proofs.size);
+    expect(JSON.stringify(stampsOf(online)?.changed)).toContain(OTHER.txHash);
+    w.goDown();
+    const offline = await opened(A, await backUp(A));
+    expect(anchorIn(offline, fp)?.txHash, 'offline backup').toBe(MAINNET.txHash);
+    const { ev, file } = await bundleOf(A, made.plant);
+    expect(ev.registry.source).toBe('this-device');
+    expect(ev.batch?.anchor).toMatchObject({ network: 'mainnet', txHash: MAINNET.txHash });
+    for (const f of ['README.txt', 'proof/anchors.json', 'proof/inclusion-proof.json']) {
+      expect(textOf(file(f)), f).toContain(MAINNET.txHash);
+      expect(textOf(file(f)), f).not.toContain(OTHER.txHash);
+    }
+    // The same one sent again changes nothing and adds no second warning.
+    w.goUp();
+    serveFolded(OTHER);
+    await backUp(A);
+    expect(await A.run(() => A.m.stamps.rootChanges())).toBe(warned);
+    const again = stampsOf(await opened(A, await backUp(A)))?.changed ?? [];
+    expect(again.length).toBe(1);
+    expect(Object.keys(again[0].proofs).length).toBe(warned);
+  });
+
+  it('when the kept main-network anchor stays, every list of anchors says the same: no test-network transaction beside it (R9-2)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    serveFolded(MAINNET);
+    await backUp(A);
+    const TEST_TX = '5e'.repeat(32);
+    serveFolded({ ...MAINNET, network: 'preview', contractAddress: '7a'.repeat(32), txHash: TEST_TX });
+    const online = await opened(A, await backUp(A));
+    w.goDown();
+    const offline = await opened(A, await backUp(A));
+    for (const [n, inner] of Object.entries({ online, offline })) {
+      const pr = (inner.proofs as Record<string, unknown>)[fp];
+      expect(anchorIn(inner, fp)?.network, n).toBe('mainnet');
+      expect(
+        ledgersIn(pr).map((l) => `${l.network} ${l.txHash}`),
+        n,
+      ).toEqual([`mainnet ${MAINNET.txHash}`]);
+      expect(JSON.stringify(pr), n).not.toContain(TEST_TX);
+    }
+    // A test-network answer after main is no change of record: no warning.
+    expect(await A.run(() => A.m.stamps.rootChanges())).toBe(0);
+    const { file } = await bundleOf(A, made.plant);
+    expect(textOf(file('README.txt'))).not.toContain('practice data');
+    for (const f of ['proof/inclusion-proof.json', 'proof/anchors.json', 'evidence.json'])
+      expect(textOf(file(f)), f).not.toContain(TEST_TX);
+  });
+
+  /** README.txt, EXAMINER-SUMMARY.html and DECLARATION-TEMPLATE.txt of a bundle made from a backup file. */
+  const pagesFromFile = async (anchor: unknown, finished = true) => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    if (finished) w.upgrade();
     if (anchor !== undefined) anchorAll(anchor);
     const text = await backUp(A);
     w.goDown();
@@ -1590,9 +1678,10 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     const { ev, file } = (await bundleFromFile(N, made.plant, text))!;
     const dump = process.env.VEILCORE_DUMP_PAGES;
     if (dump) {
-      const dir = path.join(dump, String(anchor === undefined ? 'preview' : anchor === null ? 'none' : 'mainnet'));
+      const kind = anchor === undefined ? 'preview' : anchor === null ? 'none' : 'mainnet';
+      const dir = path.join(dump, finished ? kind : `${kind}-pending`);
       fs.mkdirSync(dir, { recursive: true });
-      for (const f of ['README.txt', 'EXAMINER-SUMMARY.html', 'DECLARATION-TEMPLATE.txt'])
+      for (const f of ['README.txt', 'EXAMINER-SUMMARY.html', 'DECLARATION-TEMPLATE.txt', 'verify.html'])
         fs.writeFileSync(path.join(dir, f), Buffer.from(file(f)!));
     }
     const html = textOf(file('EXAMINER-SUMMARY.html'))
@@ -1603,6 +1692,8 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
       readme: textOf(file('README.txt')),
       examiner: html,
       declaration: textOf(file('DECLARATION-TEMPLATE.txt')),
+      // The Midnight steps verify.html shows for the first folder.
+      verifySteps: pageLookups(JSON.parse(JSON.stringify(ev)), pinnedContractsForPage()).steps,
     };
   };
   /** What no page of a bundle from a file that gives a batch may say. */
@@ -1618,7 +1709,7 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
   ];
 
   it('a bundle made from a backup file says on every page what the file gives: its batch, transaction, Bitcoin block and token (R8-4)', async () => {
-    const { ev, readme, examiner, declaration } = await pagesFromFile(undefined);
+    const { ev, readme, examiner, declaration, verifySteps } = await pagesFromFile(undefined);
     const root = ev.registry.fileRoots![0].root;
     for (const [name, page] of Object.entries({ readme, examiner, declaration })) {
       for (const bad of UNTRUE_FOR_A_FILE) expect(page, `${name}: ${bad}`).not.toContain(bad);
@@ -1640,19 +1731,28 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     expect(declaration).toContain('from my backup file, read in my browser');
     expect(declaration).toContain('named Bitcoin block 870123');
     expect(declaration).toContain('proof/backup-file-1/root.tst');
-    // No script is written for a Preview transaction, and no page names one.
+    // No script is written for a Preview transaction, and no page names one (verify.html too: R9 polish 1).
     expect(readme).not.toContain('check-on-midnight.mjs');
     expect(ev.registry.fileRoots![0].files.some((f) => f.endsWith('check-on-midnight.mjs'))).toBe(false);
+    expect(verifySteps).not.toContain('check-on-midnight.mjs');
+    expect(verifySteps).toContain('This bundle has no script that reads it for this network.');
+    expect(readme).toContain('This bundle has no script that reads it for this network.');
+    // The token line in the declaration is plain English (R9 polish 4).
+    expect(declaration).toContain('checked in my browser that it matches this batch root');
   });
 
   it('a bundle from a backup file naming a main-network transaction gives no warning, and its script path is its folder’s (R8-4)', async () => {
-    const { readme, examiner, declaration } = await pagesFromFile(MAINNET);
+    const { readme, examiner, declaration, verifySteps } = await pagesFromFile(MAINNET);
     for (const [name, page] of Object.entries({ readme, examiner, declaration })) {
       for (const bad of UNTRUE_FOR_A_FILE) expect(page, `${name}: ${bad}`).not.toContain(bad);
       expect(page, name).toContain(MAINNET.txHash);
       expect(page, name).not.toContain('practice data');
     }
     expect(readme).not.toMatch(/(^|[^-\w])proof\/check-on-midnight\.mjs/);
+    // verify.html names the same script as README.txt: the folder's (R9 polish 1).
+    expect(verifySteps).toContain('A technical person can run proof/backup-file-1/check-on-midnight.mjs');
+    expect(verifySteps).not.toMatch(/(^|[^-\w])proof\/check-on-midnight\.mjs/);
+    expect(readme).toContain('A technical person can run proof/backup-file-1/check-on-midnight.mjs');
   });
 
   it('a bundle from a backup file naming no transaction says so, and what else dates it (R8-4)', async () => {
@@ -1662,6 +1762,54 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
       expect(page, name).toContain('names no Midnight transaction');
       expect(page, name).toContain(String(STAMP_BLOCK));
       expect(page, name).toContain('a separate date, once you check it yourself');
+      // Nothing the bundle doesn't have is named (R9 polish 3).
+      expect(page, name).not.toMatch(/first saw/);
+      expect(page, name).not.toContain('The Midnight transaction and the Bitcoin stamp');
+    }
+    expect(declaration).toContain('The Bitcoin stamp in this bundle is not a qualified time stamp.');
+  });
+
+  it('a bundle from a backup file with a pending Bitcoin stamp says to run ots upgrade first, on every page (R9 polish 5)', async () => {
+    const { readme, examiner } = await pagesFromFile(null, false);
+    expect(readme).toContain('ots verify root.bin.ots (it stamps root.bin); run ots upgrade root.bin.ots first');
+    expect(examiner).toContain('run ots upgrade root.bin.ots first');
+  });
+
+  it('a backup file whose transaction or contract is not 64 lowercase hex: the anchor is left out as junk, and no page carries it (R9-5)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    w.upgrade();
+    anchorAll(MAINNET);
+    const inner = await opened(A, await backUp(A));
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    const evil = '<img src=x onerror=alert(1)>\n\nWHAT THIS PROVES\n- forged line';
+    const p = (inner.proofs as Record<string, Record<string, unknown>>)[fp];
+    w.goDown();
+    for (const bad of [
+      { txHash: evil },
+      { contractAddress: evil },
+      { txHash: MAINNET.txHash.toUpperCase() },
+      { contractAddress: `0x${MAINNET.contractAddress}` },
+      { network: 'main\nnet' },
+      { anchoredAt: evil },
+    ]) {
+      p.anchor = { ...MAINNET, ...bad };
+      const { b: N } = await restoreInto(`new-device-${Object.keys(bad)[0]}`, JSON.stringify(inner));
+      const before = await storageOf(N);
+      const { ev, file } = (await bundleFromFile(N, made.plant, JSON.stringify(inner)))!;
+      expect(await storageOf(N)).toEqual(before);
+      const label = JSON.stringify(bad).slice(0, 40);
+      expect(ev.registry.fileRoots?.length, label).toBe(1);
+      expect(ev.registry.fileRoots![0].anchor, label).toBeNull();
+      for (const f of ['README.txt', 'EXAMINER-SUMMARY.html', 'DECLARATION-TEMPLATE.txt', 'evidence.json']) {
+        const raw = Buffer.from(file(f)!).toString();
+        expect(raw, `${label} ${f}`).not.toContain('forged line');
+        expect(raw, `${label} ${f}`).not.toContain('<img');
+        expect(raw, `${label} ${f}`).not.toContain(MAINNET.txHash.toUpperCase());
+      }
+      expect(textOf(file('README.txt')), label).toContain('names no Midnight transaction');
     }
   });
 });

@@ -14,10 +14,11 @@
 // taken when the registry has it; a finished one is never swapped back. A proof the registry
 // answers again for the same batch and root replaces the kept one, so its Midnight anchor follows
 // the registry's (given once the root lands on chain, and a main-network one in place of a test
-// network's), but an anchor kept is never lost to an answer without one (upgraded). If the registry ever
-// answers with another root for a record whose batch it already gave (an honest registry never
-// changes a sealed batch), the first answer stays, the new one is kept aside and goes in the file
-// too, and the backup page warns (rootChanges). Nothing here is deleted except when its record is
+// network's), but an anchor kept is never lost to an answer without one, and a main-network
+// anchor once kept is never replaced (anchorChoice, the registry's own rule). If the registry ever
+// answers with another root for a record whose batch it already gave, or another main-network
+// transaction for it (an honest registry does neither), the first answer stays, the new one is
+// kept aside and goes in the file too, and the backup page warns (rootChanges). Nothing here is deleted except when its record is
 // deleted on this browser (record-keys.ts wasForgotten).
 //
 // Restoring a backup file never brings stamps into this browser (review 7 of PR #233: every
@@ -264,12 +265,33 @@ const plain = (v: unknown, depth = 0): unknown => {
 };
 
 const ANCHOR_FIELDS = ['chain', 'network', 'txHash', 'contractAddress', 'blockHeight', 'anchoredAt', 'testNetwork'];
+/** A chain or network name as the registry takes one (veilcore-api server.js NAME). */
+const NAME = /^[a-z][a-z0-9-]{0,31}$/;
+
+/**
+ * An anchor's fields in the form the registry stores them (veilcore-api recordAnchor: 64 lowercase
+ * hex, a short lower-case name, an instant), or false. These reach README.txt and every page of
+ * a bundle, so one from a doctored backup file that isn't in that form is junk (review 9, R9-5).
+ */
+const anchorFormOk = (a: Record<string, unknown>): boolean =>
+  isString(a.chain) &&
+  NAME.test(a.chain) &&
+  isString(a.network) &&
+  NAME.test(a.network) &&
+  isString(a.txHash) &&
+  HEX64.test(a.txHash) &&
+  (a.contractAddress === undefined || (isString(a.contractAddress) && HEX64.test(a.contractAddress))) &&
+  (a.blockHeight === undefined || (isNumber(a.blockHeight) && Number.isSafeInteger(a.blockHeight))) &&
+  (a.anchoredAt === undefined ||
+    (isString(a.anchoredAt) && a.anchoredAt.length <= 40 && Number.isFinite(Date.parse(a.anchoredAt)))) &&
+  (a.testNetwork === undefined || typeof a.testNetwork === 'boolean');
 
 /**
  * A proof as kept here, rebuilt from its known fields only (review 5): the format version, the
  * commitment, the path, the root and batch, when it was sealed, and the registry's anchors,
  * without the batch tokens (kept once, per batch). Anything else, any null, any field of the
- * wrong type, is dropped, so what is kept is always plain JSON.
+ * wrong type, is dropped, so what is kept is always plain JSON; an anchor not in the registry's
+ * form (anchorFormOk) is dropped whole.
  */
 const keepable = (p: InclusionProof): InclusionProof => {
   const r = p as unknown as Record<string, unknown>;
@@ -295,7 +317,7 @@ const keepable = (p: InclusionProof): InclusionProof => {
     batchId: p.batchId,
     ...(isString(r.sealedAt) ? { sealedAt: r.sealedAt } : {}),
     path: p.path.map((x) => ({ sibling: x.sibling, siblingIsLeft: x.siblingIsLeft })),
-    ...(anchor && isString(anchor.network) && isString(anchor.chain) ? { anchor } : {}),
+    ...(anchor && anchorFormOk(anchor) ? { anchor } : {}),
     ...(anchors?.length ? { anchors } : {}),
   } as unknown as InclusionProof;
 };
@@ -389,31 +411,65 @@ const anchorsOf = (p: InclusionProof): unknown[] | undefined => {
   return Array.isArray(a) && a.length ? a : undefined;
 };
 
+/** The same transaction: chain, network, contract and transaction alike. */
+const sameAnchor = (a: Record<string, unknown> | undefined, b: Record<string, unknown> | undefined): boolean =>
+  !!a &&
+  !!b &&
+  a.chain === b.chain &&
+  a.network === b.network &&
+  a.contractAddress === b.contractAddress &&
+  a.txHash === b.txHash;
+
 /**
- * The registry's answer now for a batch and root it gave before: kept in place of the old one
- * (review 8 of PR #233). The registry hands out a proof when the batch is sealed and adds the
- * Midnight anchor once the root lands on chain, and a test-network anchor is later replaced by
- * the main network's; the root and path can't change (sameBatch, and checkProof ties them to the
- * record). Only an anchor is never lost: an answer with none, or one that would replace a
- * main-network anchor with a test network's, keeps the anchor kept before.
+ * Whose Midnight anchor stands when the registry answers again for a batch and root it gave
+ * before (reviews 8 and 9 of PR #233), by the registry's own rule (veilcore-api batches.mjs
+ * recordAnchor: "an anchor is never replaced by another on the same network", and a main-network
+ * one never at all). The registry hands out a proof when the batch is sealed and adds the anchor
+ * once the root lands on chain, and a test network's anchor may later give way to the main
+ * network's; the root and path can't change (sameBatch, and checkProof ties them to the record).
+ * - `fresh`: the registry's anchor now. Only when none was kept, or the kept one is on a test
+ *   network and the new one on the main network.
+ * - `kept`: the one kept before. An answer with none, the same one again, a test network's after
+ *   the main network's, or another test network's.
+ * - `aside`: the one kept before stays, and the answer is kept aside and warned of like a changed
+ *   root (rootChanges): another main-network transaction for a batch already on the main network.
  */
-const keepOldAnchor = (had: InclusionProof, fresh: InclusionProof): boolean => {
+type AnchorChoice = 'fresh' | 'kept' | 'aside';
+const anchorChoice = (had: InclusionProof, fresh: InclusionProof): AnchorChoice => {
   const before = anchorOf(keepable(had));
   const after = anchorOf(keepable(fresh));
-  return !!before && (!after || (before.network === 'mainnet' && after.network !== 'mainnet'));
+  if (!before) return 'fresh';
+  if (!after || sameAnchor(before, after)) return 'kept';
+  if (before.network !== 'mainnet') return after.network === 'mainnet' ? 'fresh' : 'kept';
+  return after.network === 'mainnet' ? 'aside' : 'kept';
 };
 
-const upgraded = (had: InclusionProof, fresh: InclusionProof): InclusionProof => {
-  const now = keepable(fresh);
-  const before = anchorOf(keepable(had));
-  const after = anchorOf(now);
-  const keepOld = keepOldAnchor(had, fresh);
-  const anchors = anchorsOf(now) ?? anchorsOf(had);
-  const { anchor: _a, anchors: _l, ...rest } = now as unknown as Record<string, unknown>;
+/**
+ * A proof's `anchors` list with its `ledger` entry (the Midnight anchor, as the registry folds it
+ * in) made the same as `anchor`, so no list names a transaction the proof's anchor doesn't.
+ */
+const withLedger = (list: unknown[] | undefined, anchor: Record<string, unknown> | undefined) => {
+  if (!list) return undefined;
+  const isLedger = (x: unknown) => isObject(x) && x.kind === 'ledger';
+  const others = list.filter((x) => !isLedger(x));
+  const out = anchor && list.some(isLedger) ? [{ kind: 'ledger', ...anchor }, ...others] : others;
+  return out.length ? out : undefined;
+};
+
+/** A proof with this anchor (or none), its `anchors` list made to agree. */
+const withAnchor = (p: Record<string, unknown>, anchor: Record<string, unknown> | undefined) => {
+  const { anchor: _a, anchors: list, ...rest } = p;
   void _a;
-  void _l;
-  const anchor = keepOld ? before : after;
-  return { ...rest, ...(anchor ? { anchor } : {}), ...(anchors ? { anchors } : {}) } as unknown as InclusionProof;
+  const anchors = withLedger(Array.isArray(list) ? list : undefined, anchor);
+  return { ...rest, ...(anchor ? { anchor } : {}), ...(anchors ? { anchors } : {}) };
+};
+
+/** What is kept for a batch and root the registry gave before: its answer now, with the anchor anchorChoice picks. */
+const upgraded = (had: InclusionProof, fresh: InclusionProof, choice: AnchorChoice): InclusionProof => {
+  const now = keepable(fresh) as unknown as Record<string, unknown>;
+  const anchor = choice === 'fresh' ? anchorOf(now as unknown as InclusionProof) : anchorOf(keepable(had));
+  const list = anchorsOf(now as unknown as InclusionProof) ?? anchorsOf(had);
+  return withAnchor({ ...now, ...(list ? { anchors: list } : {}) }, anchor) as unknown as InclusionProof;
 };
 
 /**
@@ -469,11 +525,19 @@ const refreshFromRegistry = async (own: Own, wanted: ReadonlySet<string>, proofs
           const aside = own.changed[fp] ?? [];
           if (!aside.some((p) => sameBatch(p, st.proof))) own.changed[fp] = [...aside, keepable(st.proof)];
         } else {
-          // Same batch and root: the registry's anchor now (a later or main-network one) is kept,
-          // and the file carries the same, so a backup made offline later names it too.
-          own.proofs[fp] = upgraded(first, st.proof);
+          // Same batch and root: the anchor anchorChoice picks is kept, and the file carries the
+          // same, so a backup made offline later names it too.
+          const choice = anchorChoice(first, st.proof);
+          own.proofs[fp] = upgraded(first, st.proof, choice);
+          if (choice === 'aside') {
+            // Another main-network transaction for a batch already on it: kept aside and warned of.
+            const later = keepable(st.proof);
+            const aside = own.changed[fp] ?? [];
+            if (!aside.some((p) => sameBatch(p, later) && sameAnchor(anchorOf(p), anchorOf(later))))
+              own.changed[fp] = [...aside, later];
+          }
           const fr = proofs[fp];
-          if (keepOldAnchor(first, st.proof) && isObject(fr)) proofs[fp] = { ...fr, anchor: anchorOf(own.proofs[fp]) };
+          if (choice !== 'fresh' && isObject(fr)) proofs[fp] = withAnchor(fr, anchorOf(own.proofs[fp]));
         }
         continue;
       }
@@ -532,7 +596,8 @@ const refreshFromRegistry = async (own: Own, wanted: ReadonlySet<string>, proofs
 const inFile = (own: Own, wanted: ReadonlySet<string>): StampsInFile | undefined => {
   const batches: Record<string, BatchStamps> = {};
   const records: Record<string, RecordStamps> = {};
-  // The registry's later answers: one entry per (batch, root), each with its own files.
+  // The registry's later answers: one entry per batch, root and Midnight transaction, each with
+  // its batch's files.
   const changed = new Map<string, { batchId: string; root: string; proofs: Record<string, InclusionProof> }>();
   for (const fp of wanted) {
     const p = own.proofs[fp];
@@ -541,14 +606,15 @@ const inFile = (own: Own, wanted: ReadonlySet<string>): StampsInFile | undefined
     const r = own.records[fp];
     if (r?.instant?.length) records[fp] = { instant: r.instant };
     for (const c of own.changed[fp] ?? []) {
-      const k = batchKey(c.batchId, c.root);
+      const tx = anchorOf(c)?.txHash;
+      const k = `${batchKey(c.batchId, c.root)} ${isString(tx) ? tx : ''}`;
       const e = changed.get(k) ?? { batchId: c.batchId, root: c.root, proofs: {} };
       e.proofs[fp] = c;
       changed.set(k, e);
     }
   }
-  const later: ChangedBatch[] = [...changed.entries()].map(([k, e]) => {
-    const b = own.batches[k];
+  const later: ChangedBatch[] = [...changed.values()].map((e) => {
+    const b = own.batches[batchKey(e.batchId, e.root)];
     return { ...e, ...(b?.ots ? { ots: b.ots } : {}), ...(b?.tsts?.length ? { tsts: b.tsts } : {}) };
   });
   return Object.keys(batches).length || Object.keys(records).length || later.length
@@ -556,7 +622,10 @@ const inFile = (own: Own, wanted: ReadonlySet<string>): StampsInFile | undefined
     : undefined;
 };
 
-/** How many records the registry has given a different batch or root for, after giving one (an honest registry never does). */
+/**
+ * How many records the registry has given a different batch or root for, or another main-network
+ * transaction, after giving one (an honest registry never does).
+ */
 export const rootChanges = (): number => Object.values(load().changed).filter((l) => l.length > 0).length;
 
 // ---- the evidence bundle with the registry out of reach -----------------------------------

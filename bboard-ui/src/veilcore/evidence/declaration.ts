@@ -31,6 +31,16 @@ const sha256Hex = async (bytes: Uint8Array): Promise<string> =>
   hexOf(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes as unknown as BufferSource)));
 
 /**
+ * The eIDAS note's last part: only the Midnight transaction and the Bitcoin stamp this bundle
+ * has are named (review 9 of PR #233: a bundle without one named it anyway).
+ */
+const notQualified = (tx: boolean, ots: boolean): string => {
+  const has = [tx ? 'Midnight transaction' : null, ots ? 'Bitcoin stamp' : null].filter((x): x is string => !!x);
+  if (!has.length) return '';
+  const one = has.length === 1;
+  return ` The ${has.join(' and the ')} in this bundle ${one ? 'is not a qualified time stamp' : 'are not qualified time stamps'}. A court may still accept ${one ? 'it' : 'them'}, and weighs ${one ? 'it' : 'them'} case by case with the rest of the evidence.`;
+};
+/**
  * The template. `files` are the bundle's other files, by their path inside the bundle
  * folder (not this one): Schedule A lists each with its SHA-256.
  */
@@ -231,7 +241,7 @@ export const declarationText = async (
             .map((f) => `${t(c.folder)}/${f}`)
             .join(
               ', ',
-            )}). The website checked in my browser that ${c.tokens === 1 ? 'it is' : 'each is'} matches this batch root and is signed by a timestamp authority the website pins. [Result of checking it with OpenSSL, if done: ___]`,
+            )}). The website checked in my browser that ${c.tokens === 1 ? 'it' : 'each'} matches this batch root and is signed by a timestamp authority the website pins. [Result of checking it with OpenSSL, if done: ___]`,
         );
     }
     if (fileRootsDisagree(ev)) add(`   ${t(DISAGREE_WORDS)}`);
@@ -367,7 +377,7 @@ export const declarationText = async (
     '',
     '- US federal courts: Federal Rules of Evidence 902(13) and 902(14) let a record made by an electronic process, or data copied from a device or file and identified by its hash, be authenticated by a written certification of a qualified person instead of live testimony. The certification must meet Rule 902(11) or 902(12), and the other side must get reasonable written notice before the trial or hearing. It goes only to authenticity: the other side can still object on other grounds, such as hearsay or relevance. 28 U.S.C. 1746 gives the "under penalty of perjury" wording used above.',
     '- Vermont, 12 V.S.A. 1913: a record registered in a blockchain is self-authenticating with a written declaration, made under oath, of a qualified person stating their qualification, when the record entered the blockchain, when it was received from it, and that it was kept and made as a regular practice. The presumptions it gives do not cover whether the contents of the record are true.',
-    '- European Union: under eIDAS (Regulation 910/2014, Article 41) only a qualified electronic time stamp, from a qualified trust service provider, is presumed accurate. The Midnight transaction and the Bitcoin stamp in this bundle are not qualified time stamps. A court may still accept them, and weighs them case by case with the rest of the evidence.',
+    `- European Union: under eIDAS (Regulation 910/2014, Article 41) only a qualified electronic time stamp, from a qualified trust service provider, is presumed accurate.${notQualified(!!tx || fd.tx, !!ots || fd.ots)}`,
     ...(ev.batch?.rfc3161?.available
       ? [
           ev.batch.rfc3161.qualified
