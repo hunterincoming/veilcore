@@ -134,6 +134,12 @@ export const strain = {
     'あなたの系統の鍵には{when}に日付スタンプが押されました。日付が付くのは鍵で、記録ではありません。',
   'app.strain.v.app.prove.watch.stampedThisEarlier':
     'この系統の鍵には、以前ネットワーク上で日付スタンプが押されました。日付が付くのは鍵で、記録ではありません。',
+  'app.strain.v.app.prove.watch.shareAsker':
+    '{asker}が、VeilCoreでこの系統を保有していることの証明を求めています。このリンクを開いてください：{link}',
+  'app.strain.v.app.prove.watch.share':
+    'VeilCoreでこの系統を保有していることを証明するため、このリンクを開いてください：{link}',
+  'app.strain.v.app.lic.proof.panelText':
+    '誰かがこの系統を利用・提供するライセンスを持っていると言っていますか？リンクを送ってください。相手はライセンスを保有する端末から答え、このページがMidnightで確認します。わかるのは、相手が答えた時点でこの記録からの有効なライセンスを保有していたことだけです。',
   'app.strain.v.app.prove.own.title': 'この系統の鍵を保有していることを証明する（テストネットワーク）',
   'app.strain.v.app.prove.own.stampFirst':
     '先に鍵の日付スタンプを付けてください。系統のページで「鍵の日付スタンプを付ける」を押します。証明はその手順で作られる、記録のチェーン上のIDについてのものです。',

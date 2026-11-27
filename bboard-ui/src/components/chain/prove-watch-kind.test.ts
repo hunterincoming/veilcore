@@ -1,6 +1,9 @@
 // The checker's answer to "prove it by link", and the license check panel, in the record's own
 // words: an animal record's "Confirmed" box never says "this plant's key" or "who bred the
 // plant", and its license panel never says "licensed to grow" (mainnet run, 27 Nov 2026).
+// A strain (microbe, cell line or insect line) is held to the same rule in all five languages,
+// and any sentence with an animal version must have a strain version too, or a strain falls
+// back to the plant's words (PR #239 review: a strain's share text said "this plant").
 // SPDX-License-Identifier: Apache-2.0
 import fs from 'node:fs';
 import path from 'node:path';
@@ -29,6 +32,14 @@ const ANIMAL: Record<Lang, RegExp> = {
   fr: /animal/,
   ja: /動物/,
 };
+const STRAIN: Record<Lang, RegExp> = {
+  en: /strain/,
+  de: /Linie/,
+  es: /cepa/,
+  fr: /souche/,
+  ja: /系統/,
+};
+const WORDS = { animal: ANIMAL, strain: STRAIN } as const;
 // Every sentence ProveWatch, SendLink, LicenseProofPanel and the asker's /prove page show that names the record.
 const KEYS = [
   'app.prove.youAsked',
@@ -41,34 +52,46 @@ const KEYS = [
 const SRC = path.resolve(__dirname, '../..');
 const read = (f: string) => fs.readFileSync(path.join(SRC, f), 'utf8');
 
-describe("prove by link, in an animal's words", () => {
-  for (const lang of Object.keys(DICTS) as Lang[]) {
-    it(`${lang}: the checker's answer and the license panel say "animal" for an animal`, () => {
-      const plant = makeTranslator(lang, DICTS[lang]);
-      const animal = forKind(plant, 'animal');
-      const vars = { asker: 'A lab', link: 'https://veilcore.org/prove/PR-1#t=x' };
-      for (const k of KEYS) {
-        const a = animal.t(k, vars);
-        expect(a, `${lang} ${k}`).not.toBe(plant.t(k, vars));
-        expect(a, `${lang} ${k}`).toMatch(ANIMAL[lang]);
-        expect(a, `${lang} ${k}`).not.toMatch(PLANT[lang]);
-      }
-      // The key's date stamp line (keyStampWords), with and without a date.
-      for (const at of [undefined, Date.UTC(2026, 10, 27)]) {
-        const a = keyStampWords(true, at, animal);
-        expect(a, `${lang} stamp ${at}`).toMatch(ANIMAL[lang]);
-        expect(a, `${lang} stamp ${at}`).not.toMatch(PLANT[lang]);
-      }
-      // A plant's words are unchanged.
-      expect(plant.t('app.prove.watch.notWho')).toBe((DICTS[lang] as Record<string, string>)['app.prove.watch.notWho']);
-    });
+describe("prove by link, in an animal's and a strain's words", () => {
+  for (const kind of ['animal', 'strain'] as const) {
+    for (const lang of Object.keys(DICTS) as Lang[]) {
+      it(`${lang}: the checker's answer and the license panel say "${kind}" for a ${kind}`, () => {
+        const plant = makeTranslator(lang, DICTS[lang]);
+        const kinded = forKind(plant, kind);
+        const vars = { asker: 'A lab', link: 'https://veilcore.org/prove/PR-1#t=x' };
+        for (const k of KEYS) {
+          const a = kinded.t(k, vars);
+          expect(a, `${kind} ${lang} ${k}`).not.toBe(plant.t(k, vars));
+          expect(a, `${kind} ${lang} ${k}`).toMatch(WORDS[kind][lang]);
+          expect(a, `${kind} ${lang} ${k}`).not.toMatch(PLANT[lang]);
+        }
+        // The key's date stamp line (keyStampWords), with and without a date.
+        for (const at of [undefined, Date.UTC(2026, 10, 27)]) {
+          const a = keyStampWords(true, at, kinded);
+          expect(a, `${kind} ${lang} stamp ${at}`).toMatch(WORDS[kind][lang]);
+          expect(a, `${kind} ${lang} stamp ${at}`).not.toMatch(PLANT[lang]);
+        }
+        // A plant's words are unchanged.
+        expect(plant.t('app.prove.watch.notWho')).toBe(
+          (DICTS[lang] as Record<string, string>)['app.prove.watch.notWho'],
+        );
+      });
+    }
   }
 
-  it('a strain uses its own words, and nothing says who bred a plant', () => {
-    const strain = forKind(makeTranslator('en', appEn), 'strain');
-    expect(strain.t('app.prove.watch.notWho')).not.toMatch(/plant/);
-    expect(keyStampWords(true, undefined, strain)).not.toMatch(/plant/);
-  });
+  // A sentence that needed an animal version names the plant, so a strain needs its own too.
+  // (Strain-only versions are fine: they replace breeding words that already fit an animal.)
+  for (const lang of Object.keys(DICTS) as Lang[]) {
+    it(`${lang}: every sentence with an animal version has a strain version`, () => {
+      const dict = DICTS[lang] as Record<string, string>;
+      const animalKeys = Object.keys(dict).filter((k) => k.startsWith('app.animal.v.'));
+      expect(animalKeys.length).toBeGreaterThan(0);
+      const missing = animalKeys
+        .map((k) => k.slice('app.animal.v.'.length))
+        .filter((k) => !(`app.strain.v.${k}` in dict));
+      expect(missing, `${lang}: animal version but no strain version`).toEqual([]);
+    });
+  }
 
   it("the check page and the checker's own /prove page pass the record's kind through", () => {
     const watch = read('components/chain/ProveWatch.tsx');

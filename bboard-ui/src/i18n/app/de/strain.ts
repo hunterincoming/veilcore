@@ -138,6 +138,12 @@ export const strain = {
     'Der Schlüssel Ihrer Linie erhielt am {when} einen Datumsstempel. Das datiert den Schlüssel, nicht den Datensatz.',
   'app.strain.v.app.prove.watch.stampedThisEarlier':
     'Der Schlüssel dieser Linie erhielt schon früher einen Datumsstempel im Netzwerk. Das datiert den Schlüssel, nicht den Datensatz.',
+  'app.strain.v.app.prove.watch.shareAsker':
+    '{asker} bittet Sie, auf VeilCore zu beweisen, dass Sie diese Linie halten. Öffnen Sie diesen Link: {link}',
+  'app.strain.v.app.prove.watch.share':
+    'Ich bitte Sie, auf VeilCore zu beweisen, dass Sie diese Linie halten. Öffnen Sie diesen Link: {link}',
+  'app.strain.v.app.lic.proof.panelText':
+    'Jemand sagt, er habe eine Lizenz, diese Linie zu nutzen oder weiterzugeben. Senden Sie einen Link; die Person antwortet von dem Gerät, auf dem ihre Lizenz liegt, und diese Seite prüft das auf Midnight. Sie erfahren nur, dass sie beim Antworten eine gültige Lizenz von diesem Datensatz hielt.',
   'app.strain.v.app.prove.own.title': 'Beweisen Sie, dass Sie den Schlüssel dieser Linie halten (Testnetz)',
   'app.strain.v.app.prove.own.stampFirst':
     'Setzen Sie zuerst den Datumsstempel des Schlüssels: „Datumsstempel des Schlüssels setzen“ auf der Seite der Linie. Der Nachweis bezieht sich auf die On-Chain-Identität des Datensatzes, die dieser Schritt erzeugt.',

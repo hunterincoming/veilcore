@@ -19,8 +19,11 @@ section.
   where" says "Yes" for it on veilcore.org, and the home page says it works there, in all five
   languages. Proving a live license is still "built, not yet run on mainnet".
 - An animal record's proof answer says "animal", not "plant": the checker's "Confirmed" box, the
-  link's share text, and the license check panel ("breed from or sell this animal"). A strain's
-  uses the strain wording that already existed.
+  link's share text, and the license check panel ("breed from or sell this animal"). A strain
+  record (microbe, cell line or insect line) now says "strain" in the same places, in all five
+  languages: before this, its share text said "this plant" and its license check panel said
+  "licensed to grow", and now they say "this strain" and "licensed to use or supply this
+  strain". A test fails if a sentence has an animal version but no strain version.
 
 ### Contract version 2 pinned on mainnet, for team testing (25 Nov 2026, not deployed yet)
 

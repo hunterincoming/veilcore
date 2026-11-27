@@ -138,6 +138,12 @@ export const strain = {
     'La clé de votre souche a été horodatée le {when}. Cela date la clé, pas l’enregistrement.',
   'app.strain.v.app.prove.watch.stampedThisEarlier':
     'La clé de cette souche a déjà été horodatée sur le réseau. Cela date la clé, pas l’enregistrement.',
+  'app.strain.v.app.prove.watch.shareAsker':
+    '{asker} vous demande de prouver sur VeilCore que vous détenez cette souche. Ouvrez ce lien : {link}',
+  'app.strain.v.app.prove.watch.share':
+    'Je vous demande de prouver sur VeilCore que vous détenez cette souche. Ouvrez ce lien : {link}',
+  'app.strain.v.app.lic.proof.panelText':
+    'Quelqu’un affirme avoir une licence pour utiliser ou fournir cette souche. Envoyez-lui un lien ; la personne répond depuis l’appareil qui détient sa licence, et cette page le vérifie sur Midnight. Vous apprenez seulement qu’elle détenait une licence valide issue de cet enregistrement au moment de sa réponse.',
   'app.strain.v.app.prove.own.title': 'Prouvez que vous détenez la clé de cette souche (réseau de test)',
   'app.strain.v.app.prove.own.stampFirst':
     'Ajoutez d’abord l’horodatage de la clé : appuyez sur « Ajouter l’horodatage de la clé » sur la page de la souche. La preuve porte sur l’identité sur la chaîne de l’enregistrement, que cette étape crée.',

@@ -134,6 +134,12 @@ export const strain = {
     'Your strain’s key was date stamped on {when}. That dates the key, not the record.',
   'app.strain.v.app.prove.watch.stampedThisEarlier':
     'This strain’s key was date stamped on the network earlier. That dates the key, not the record.',
+  'app.strain.v.app.prove.watch.shareAsker':
+    '{asker} is asking you to prove you hold this strain on VeilCore. Open this link: {link}',
+  'app.strain.v.app.prove.watch.share':
+    'I’m asking you to prove you hold this strain on VeilCore. Open this link: {link}',
+  'app.strain.v.app.lic.proof.panelText':
+    'Someone says they’re licensed to use or supply this strain. Send them a link; they answer from the device that holds their license, and this page checks it on Midnight. You learn only that they held a live license from this record when they answered.',
   'app.strain.v.app.prove.own.title': 'Prove you hold this strain’s key (test network)',
   'app.strain.v.app.prove.own.stampFirst':
     'Add the key date stamp first: press “Add the key date stamp” on the strain’s page. The proof is about the record’s on-chain identity, which that step creates.',
