@@ -37,6 +37,12 @@ import {
 } from './stage/self-chain';
 import { color } from '../config/tokens';
 import { InEnglishPage } from '../i18n/app';
+import { isAnimal } from '../veilcore/animal-profile';
+import { isStrain } from '../veilcore/strain-profile';
+
+/** What the record is called in this panel's English: an animal or a strain is never a "cultivar". */
+export const heritableNoun = (record: { readonly profile?: string }): string =>
+  isAnimal(record) ? 'animal' : isStrain(record) ? 'strain' : 'cultivar';
 
 export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) => {
   const [root, setRoot] = useState<string | null>(null);
@@ -44,6 +50,7 @@ export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) 
   // Declared parents the public graph doesn't link to this record: not covered by the check.
   const [unlinked, setUnlinked] = useState(0);
   const [busy, setBusy] = useState(false);
+  const noun = heritableNoun(record);
 
   useEffect(() => {
     lineageRoot().then(setRoot);
@@ -96,7 +103,7 @@ export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) 
         </Stack>
 
         <Typography variant="body2" color="text.secondary">
-          An agreement with an offspring royalty records an obligation on offspring declared from this cultivar: records
+          An agreement with an offspring royalty records an obligation on offspring declared from this {noun}: records
           sealed with it as a parent, with both holders confirming the link. While the agreement is active, an ancestry
           check on those offspring reports the obligation. {RECORDS_NOT_JUDGES} Propagation nobody declares isn&apos;t
           detected.
@@ -124,7 +131,7 @@ export const HeritableRights: React.FC<{ record: StrainRecord }> = ({ record }) 
           </Stack>
         ) : (
           <Typography variant="body2" color="text.secondary">
-            No obligation on this cultivar&apos;s offspring. An agreement with an offspring royalty creates one when it
+            No obligation on this {noun}&apos;s offspring. An agreement with an offspring royalty creates one when it
             becomes active.
           </Typography>
         )}

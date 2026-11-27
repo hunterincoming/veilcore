@@ -24,6 +24,12 @@ import { matchEntryPoint, blockTimeMs } from './presentation-lookup.js';
 export type ContractActionRecord = {
   /** The transaction's identifiers (a txId a holder gives is one of them). */
   readonly identifiers: readonly string[];
+  /**
+   * The transaction's hash (64 hex), when the indexer gave it. A pairing is named by either: the
+   * site's evidence files carry the hash since 26 Nov 2026 (bboard-ui chain/tx-hash.ts), older
+   * ones an identifier.
+   */
+  readonly hash?: string;
   readonly blockHeight?: number;
   /** Block time, ms. */
   readonly blockTime?: number;
@@ -40,6 +46,7 @@ export type ActionSource = (address: string) => AsyncIterable<ContractActionReco
 export type PairingSeen = {
   readonly txId?: string;
   readonly identifiers: readonly string[];
+  readonly hash?: string;
   readonly blockHeight?: number;
   readonly blockTime?: number;
   /** What it paired (lastPairedDna) and under which commitment (lastPairedRecord). */
@@ -58,6 +65,7 @@ export async function* pairDnaCalls(actions: AsyncIterable<ContractActionRecord>
     yield {
       txId: a.identifiers[0],
       identifiers: a.identifiers,
+      ...(a.hash === undefined ? {} : { hash: a.hash }),
       blockHeight: a.blockHeight,
       blockTime: a.blockTime,
       paired: l.lastPairedDna,
@@ -66,8 +74,9 @@ export async function* pairDnaCalls(actions: AsyncIterable<ContractActionRecord>
   }
 }
 
-const isTx = (p: { identifiers: readonly string[] }, txId: string): boolean =>
-  p.identifiers.map(norm).includes(norm(txId));
+/** Whether `txId` names this transaction: one of its identifiers, or its hash. */
+export const isTx = (p: { identifiers: readonly string[]; hash?: string }, txId: string): boolean =>
+  p.identifiers.map(norm).includes(norm(txId)) || (p.hash !== undefined && norm(p.hash) === norm(txId));
 
 /**
  * Raw pairings of `reportHash` (pairDna given the hash itself) that came before the pairing
@@ -112,6 +121,7 @@ const HISTORY_SUBSCRIPTION = `subscription VEILCORE_HISTORY($address: HexEncoded
   contractActions(address: $address, offset: $offset) {
     state
     transaction {
+      hash
       block { height timestamp }
       ... on RegularTransaction { identifiers transactionResult { status } }
     }
@@ -123,6 +133,7 @@ type RawAction = {
   state?: string;
   entryPoint?: string;
   transaction?: {
+    hash?: string;
     block?: { height?: number; timestamp?: number };
     identifiers?: string[];
     transactionResult?: { status?: string };
@@ -226,6 +237,7 @@ export const indexerHistory =
           if (status === undefined || status === 'SUCCESS')
             push({
               identifiers: a.transaction?.identifiers ?? [],
+              ...(typeof a.transaction?.hash === 'string' ? { hash: a.transaction.hash } : {}),
               blockHeight: typeof height === 'number' ? height : undefined,
               blockTime: blockTimeMs(a.transaction?.block?.timestamp),
               entryPoint: a.entryPoint,

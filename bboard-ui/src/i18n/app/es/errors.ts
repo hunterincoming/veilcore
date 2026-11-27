@@ -33,6 +33,7 @@ export const errors = {
   'app.err.chain.filesMissing': 'Los archivos de prueba para {circuit} todavía no están en este sitio.',
   'app.err.chain.paramsMissing': 'Los parámetros públicos (k={k}) todavía no están en este sitio.',
   'app.err.chain.callFailed': 'La red incluyó la llamada, pero no se completó ({status}).',
+  'app.err.chain.hashUnreadable': 'La red la incluyó, pero no se pudo leer su hash de transacción',
   'app.err.chain.claimFailed': 'La red incluyó la afirmación, pero no se completó ({status}).',
   'app.err.chain.noSlot': 'No se encontró un lugar libre para la licencia. No se envió nada.',
   'app.err.chain.notSendersRecord':

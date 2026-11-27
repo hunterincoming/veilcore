@@ -27,7 +27,7 @@ import { callState } from '../../../../api/src/presentation-lookup';
 import { CHAIN_CONTRACT, INDEXER_HTTP } from './config';
 import { KEY_NOT_THIS_RECORDS, keyMatchesRecord, type KeyedRecord } from '../key-binding';
 
-import { lookupChallenge, useChallenge } from './challenge-book';
+import { lookupChallenge, usedByAnother, useChallenge } from './challenge-book';
 export { newChallenge } from './challenge-book';
 
 const hexToBytes = (hex: string): Uint8Array => Uint8Array.from(hex.match(/../g) ?? [], (b) => parseInt(b, 16));
@@ -72,8 +72,10 @@ export const checkOwnership = async (
     return { accepted: false, reason: KEY_NOT_THIS_RECORDS };
   const issued = lookupChallenge(challenge);
   if (!issued) return { accepted: false, reason: 'This page did not make that challenge. Make a new one and send it.' };
-  if (issued.used) return { accepted: false, reason: 'That challenge was already answered once. Make a new one.' };
   if (!/^[0-9a-f]+$/.test(txId)) return { accepted: false, reason: 'That is not a transaction id.' };
+  // The answer that used it may be checked again (a reload mid-check); any other is refused.
+  if (usedByAnother(issued, txId))
+    return { accepted: false, reason: 'That challenge was already answered once. Make a new one.' };
 
   let afterTx;
   try {
@@ -93,10 +95,13 @@ export const checkOwnership = async (
   } catch {
     return { accepted: false, reason: 'could not read the contract’s current state; try again in a few minutes' };
   }
-  const v = acceptOwnership(afterTx, hexToBytes(identity), hexToBytes(challenge), now);
-  if (v.accepted) useChallenge(challenge);
-  return v;
+  // Not marked used here: the caller marks it (markUsed) once it has saved the result, so a
+  // tab closed between this answer and the save doesn't burn the challenge.
+  return acceptOwnership(afterTx, hexToBytes(identity), hexToBytes(challenge), now);
 };
+
+/** Mark a challenge used by this answer: call only after the result is saved (challenge-book.ts). */
+export const markUsed = (challenge: string, txId: string): void => useChallenge(challenge.trim().toLowerCase(), txId);
 
 /** Check that a transaction anchored this identity: the state right after it names it. */
 export const checkAnchor = async (txId: string, identity: string, deps: CheckDeps = {}): Promise<boolean> => {

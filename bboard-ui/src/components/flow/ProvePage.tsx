@@ -25,7 +25,7 @@ import { useChainCall } from '../chain/useChainCall';
 import { ChainStatusLine } from '../chain/ChainStatusLine';
 import { ProveWatch } from '../chain/ProveWatch';
 import { FlowFrame } from './FlowFrame';
-import { rich, useT } from '../../i18n/app';
+import { rich, useRecordT, useT } from '../../i18n/app';
 import { DatingPausedNotice } from '../DatingPausedNotice';
 import { DisclosureReceipt } from '../chain/DisclosureReceipt';
 import { CODE_FONT } from '../../config/theme';
@@ -52,6 +52,9 @@ export const ProvePage: React.FC = () => {
   useRecords();
   const allKeys = useRecordKeys();
   const { t } = useT();
+  // The asker's own record, when this browser has it: its page says animal or strain, not plant.
+  const asked = mine?.recordId ? getRecord(mine.recordId) : undefined;
+  const askedT = useRecordT(asked);
   const b = (c: React.ReactNode) => <b>{c}</b>;
 
   useEffect(() => {
@@ -67,17 +70,19 @@ export const ProvePage: React.FC = () => {
 
   // The person who asked: their own page, whatever the registry says.
   if (mine) {
-    const record = mine.recordId ? getRecord(mine.recordId) : undefined;
+    const record = asked;
     return (
       <ProveFrame>
         <Title>{t('app.prove.yourRequest')}</Title>
         <Typography variant="body1" sx={{ mb: 2 }}>
-          {record ? rich(t('app.prove.youAskedNamed'), { b }, { name: record.strainName }) : t('app.prove.youAsked')}
+          {record
+            ? rich(askedT.t('app.prove.youAskedNamed'), { b }, { name: record.strainName })
+            : t('app.prove.youAsked')}
         </Typography>
         <ProveWatch ask={mine} />
         {mine.recordId && (
           <Button component={RouterLink} to={`/verify/${mine.recordId}`} sx={{ mt: 2 }}>
-            {t('app.prove.openCheckPage')}
+            {askedT.t('app.prove.openCheckPage')}
           </Button>
         )}
       </ProveFrame>
@@ -117,13 +122,7 @@ export const ProvePage: React.FC = () => {
           <Typography variant="body1">{t('app.prove.missingPartText')}</Typography>
         </>
       ) : match && token ? (
-        <Answer
-          req={req}
-          token={token}
-          recordId={match.recordId}
-          name={record?.strainName}
-          secret={match.recordSecret}
-        />
+        <Answer req={req} token={token} recordId={match.recordId} record={record} secret={match.recordSecret} />
       ) : (
         <>
           <Title>{t('app.prove.someoneWants')}</Title>
@@ -139,16 +138,21 @@ export const ProvePage: React.FC = () => {
   );
 };
 
-const Answer: React.FC<{ req: ProveRequest; token: string; recordId: string; name?: string; secret: string }> = ({
-  req,
-  token,
-  recordId,
-  name,
-  secret,
-}) => {
+const Answer: React.FC<{
+  req: ProveRequest;
+  token: string;
+  recordId: string;
+  record?: ReturnType<typeof getRecord>;
+  secret: string;
+}> = ({ req, token, recordId, record, secret }) => {
   const call = useChainCall<{ txId: string; sent: true } | { txId: string; sent: false; why: string }>();
   const notReady = chainNotReady();
-  const { t } = useT();
+  // An animal's or a strain's record is called that, never "this plant" (translate.ts forKind).
+  // Opened fresh, this page doesn't load the holder's records (round 6: no request here carries
+  // the holder key), so it can't tell which kind the key's record is: then it says "record".
+  const { t } = useRecordT(record);
+  const name = record?.strainName;
+  const known = record !== undefined;
   const b = (c: React.ReactNode) => <b>{c}</b>;
 
   const prove = () =>
@@ -167,10 +171,10 @@ const Answer: React.FC<{ req: ProveRequest; token: string; recordId: string; nam
       <>
         <Title>{t('app.prove.done')}</Title>
         <Typography variant="body1" sx={{ mb: 2 }}>
-          {t('app.prove.doneText')}
+          {t(known ? 'app.prove.doneText' : 'app.prove.any.doneText')}
         </Typography>
         <Button variant="contained" size="large" component={RouterLink} to={`/record/${recordId}`} sx={{ py: 1.3 }}>
-          {t('app.plant.next.backTo', { name: name ?? t('app.prove.thePlant') })}
+          {t('app.plant.next.backTo', { name: name ?? t(known ? 'app.prove.thePlant' : 'app.prove.theRecord') })}
         </Button>
       </>
     ) : (
@@ -190,7 +194,9 @@ const Answer: React.FC<{ req: ProveRequest; token: string; recordId: string; nam
   return (
     <Stack spacing={2}>
       <Box>
-        <Title>{t('app.prove.title', { name: name ?? t('app.prove.thisPlant') })}</Title>
+        <Title>
+          {t('app.prove.title', { name: name ?? t(known ? 'app.prove.thisPlant' : 'app.prove.thisRecord') })}
+        </Title>
         {req.asker ? (
           <Typography variant="body1">
             {rich(
@@ -211,7 +217,9 @@ const Answer: React.FC<{ req: ProveRequest; token: string; recordId: string; nam
         )}
       </Box>
       <Alert severity="info" variant="outlined" icon={false}>
-        <Typography variant="body2">{rich(t('app.prove.whatSends'), { b })}</Typography>
+        <Typography variant="body2">
+          {rich(t(known ? 'app.prove.whatSends' : 'app.prove.any.whatSends'), { b })}
+        </Typography>
       </Alert>
       {notReady ? (
         <Alert severity="warning" variant="outlined">
@@ -219,7 +227,7 @@ const Answer: React.FC<{ req: ProveRequest; token: string; recordId: string; nam
         </Alert>
       ) : (
         <>
-          <Typography variant="body2">{t('app.prove.answering')}</Typography>
+          <Typography variant="body2">{t(known ? 'app.prove.answering' : 'app.prove.any.answering')}</Typography>
           <DisclosureReceipt circuits={['proveOwnership']} />
           <DatingPausedNotice on={call.paused} />
           <Button

@@ -302,7 +302,7 @@ export const plant = {
     '{head} Das Register meldet, dass diese Wurzel auf {network} festgehalten wurde; diese Seite hat die Transaktion nicht nachgeschlagen, daher wird sie nicht als verankert angezeigt. Schlagen Sie sie im Netzwerk nach, bevor Sie sich auf das Datum verlassen.{test}',
   'app.plant.date.title': 'Datum auf Midnight',
   'app.plant.date.notInBatch':
-    'Auf Ihrem Gerät versiegelt und auf {server} aufbewahrt. Er ist noch in keinem Stapel, daher ist er nicht verankert. Wir verankern Datensätze gemeinsam, in Stapeln (vorerst von Hand, daher kann es dauern), sodass eine Transaktion viele abdeckt und Sie nie eine Wallet brauchen. Bis dahin beruht sein Datum auf den Aufzeichnungen dieses Registers.',
+    'Auf Ihrem Gerät versiegelt und auf {server} aufbewahrt. Er ist noch in keinem Stapel, daher ist er nicht verankert. Wir verankern Datensätze gemeinsam, in Stapeln (ein neuer Datensatz wartet auf den nächsten), sodass eine Transaktion viele abdeckt und Sie nie eine Wallet brauchen. Bis dahin beruht sein Datum auf den Aufzeichnungen dieses Registers.',
   'app.plant.date.inBatchNotAnchored':
     'In diesem Browser geprüft: Der Prüfcode Ihres Datensatzes ist in Stapel {batch}, der noch nicht verankert wurde. Sobald er es ist, erhält der Nachweis einen Verweis auf die Transaktion. An Ihrem Datensatz ändert sich nichts.',
   'app.plant.date.batchLine': 'Stapel {batch}',

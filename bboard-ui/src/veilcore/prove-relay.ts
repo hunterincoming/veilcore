@@ -236,17 +236,39 @@ export const getProveRequest = async (id: string): Promise<ProveRequest | null |
 // --- the holder -----------------------------------------------------------------------
 
 /**
- * Send the id of the holder's proveOwnership transaction back to the checker, with the
- * token from the link's fragment (tokenFromHash).
+ * The hash to post for a transaction named by its hash or its identifier (chain/tx-hash.ts):
+ * the registry takes only the 64-hex hash. A hash is returned as it is, without loading or
+ * asking anything; an identifier (66 hex, what the sponsor answers with) is looked up.
+ */
+export const hashToPost = async (
+  txId: string,
+  hashOf?: (id: string) => Promise<string>,
+): Promise<{ hash: string } | { error: string }> => {
+  const t = txId.trim().toLowerCase().replace(/^0x/, '');
+  if (HEX64.test(t)) return { hash: t };
+  if (!/^[0-9a-f]+$/.test(t)) return { error: 'that is not a transaction id' };
+  try {
+    return { hash: await (hashOf ?? (await import('./chain/tx-hash')).txHashOf)(t) };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
+};
+
+/**
+ * Send the hash of the holder's proveOwnership (or proveLicense) transaction back to the
+ * checker, with the token from the link's fragment (tokenFromHash). An identifier is turned
+ * into its hash first (hashToPost).
  */
 export const answerProveRequest = async (
   id: string,
   txId: string,
   token: string,
+  hashOf?: (id: string) => Promise<string>,
 ): Promise<{ ok: true } | { error: string }> => {
-  const t = txId.trim().toLowerCase().replace(/^0x/, '');
-  if (!HEX64.test(t)) return { error: 'that is not a transaction id' };
   if (!TOKEN.test(token)) return { error: 'the link is missing its last part; open the whole link you were sent' };
+  const named = await hashToPost(txId, hashOf);
+  if ('error' in named) return named;
+  const t = named.hash;
   let res: Response;
   try {
     res = await fetch(`${BASE}/prove-requests/${id}/answers`, {
@@ -288,6 +310,8 @@ export type AnswerCheck = {
     record?: KeyedRecord;
   }) => Promise<{ accepted: boolean; reason: string }>;
   readonly checkAnchor: (txId: string, identity: string) => Promise<boolean>;
+  /** Mark the challenge used by the answer that passed: called only after that is saved. */
+  readonly markUsed?: (challenge: string, txId: string) => void;
 };
 
 /**
@@ -306,7 +330,10 @@ export const checkAnswers = async (
   clock: () => number = Date.now,
 ): Promise<MyAsk> => {
   let now = ask;
-  if (now.confirmed) return now;
+  if (now.confirmed) {
+    check.markUsed?.(ask.challenge, now.confirmed.txId);
+    return now;
+  }
   const seen = new Set<string>();
   for (const a of answers) {
     const txId = a.txId.trim().toLowerCase().replace(/^0x/, '');
@@ -332,6 +359,9 @@ export const checkAnswers = async (
     const result = now;
     updateMyAsk(ask.id, () => result);
   }
+  // Only now, with the confirmation saved, is the challenge marked used: a reload or a closed tab
+  // before this point leaves the same answer to be checked again, never refused as "used".
+  if (now.confirmed) check.markUsed?.(ask.challenge, now.confirmed.txId);
   return now;
 };
 
