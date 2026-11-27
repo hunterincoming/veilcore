@@ -115,8 +115,11 @@ export type BatchFacts = {
 };
 
 export type Gathered = {
-  /** Where it came from: the one-call evidence route, or the older public routes. */
-  readonly source: 'evidence-route' | 'public-routes';
+  /**
+   * Where it came from: the one-call evidence route, the older public routes, or, with the
+   * registry out of reach, what this browser kept from its backups (stamps.ts).
+   */
+  readonly source: 'evidence-route' | 'public-routes' | 'this-device';
   /** This registry's own clock: when it first saw this record's content. */
   readonly registryFirstSeen: string | null;
   /** The inclusion proof, checked here against the record. */
@@ -291,10 +294,36 @@ const fromPublicRoutes = async (fingerprint: string, fetcher: typeof fetch): Pro
   }
 };
 
-/** Everything the registry has for this record, checked against it. */
+/**
+ * With the registry out of reach: the inclusion proof, the Bitcoin stamp file and the batch's
+ * RFC 3161 token this browser kept (stamps.ts, from its backups or a restore), held to the record
+ * exactly as the registry's answer is. Lab signatures served by the registry aren't kept here.
+ */
+const fromThisDevice = async (fingerprint: string): Promise<Gathered | null> => {
+  try {
+    const kept = await (await import('../stamps')).keptEvidence(fingerprint);
+    if (!kept) return null;
+    const g = await reconcile(fingerprint, { source: 'this-device', ...kept, attestations: [] });
+    return g.proof ? g : null;
+  } catch {
+    return null;
+  }
+};
+
+/** Everything the registry has for this record, checked against it; what this browser kept when it can't be reached. */
 export const gatherEvidence = async (
   record: Pick<StrainRecord, 'id' | 'recordFingerprint'>,
   fetcher: typeof fetch = fetch,
+): Promise<Gathered | { error: string }> => {
+  const got = await fromRegistry(record, fetcher);
+  if ('error' in got && got.error === unreachable && isHex64(record.recordFingerprint))
+    return (await fromThisDevice(record.recordFingerprint)) ?? got;
+  return got;
+};
+
+const fromRegistry = async (
+  record: Pick<StrainRecord, 'id' | 'recordFingerprint'>,
+  fetcher: typeof fetch,
 ): Promise<Gathered | { error: string }> => {
   const fingerprint = record.recordFingerprint;
   if (!isHex64(fingerprint)) return { error: 'This record isn’t sealed yet, so there is nothing to check.' };
@@ -805,7 +834,10 @@ export const buildEvidence = async (
     registry: {
       firstSeen: gathered.registryFirstSeen,
       source: gathered.source,
-      note: 'firstSeen is VeilCore’s registry’s own clock, its word only. The anchor is the transaction the registry operator reported; nobody has looked it up on the chain for you.',
+      note:
+        gathered.source === 'this-device'
+          ? 'Made from the copy kept in the holder’s browser (from its backups): VeilCore’s registry could not be reached. The proof, the Bitcoin stamp file and the RFC 3161 token were each checked against the record or its batch root in that browser; the anchor is the transaction the registry operator reported when the copy was made; nobody has looked it up on the chain for you. Lab signatures the registry serves are not in this copy.'
+          : 'firstSeen is VeilCore’s registry’s own clock, its word only. The anchor is the transaction the registry operator reported; nobody has looked it up on the chain for you.',
     },
     proof: gathered.proof,
     batch: gathered.batch,

@@ -8,7 +8,8 @@ VeilCore can promise is this:
 3. Dating keeps to a clock we can publish. For example: every record is dated on at least two
    independent clocks within 2 hours, 99% of the time.
 
-The first is mostly true today. The second is being finished (offline sealing). The third
+The first is true for every record batched before the holder's last backup (since 26 Nov
+the file holds the Bitcoin stamp and timestamp-service tokens too; see design rule 1). The second is being finished (offline sealing). The third
 needs the registry's seal timer (below), the monitors, and the rules at the end of this page.
 
 ## What the code does now (pull requests `reliability-1`)
@@ -129,9 +130,12 @@ at it. The steps are in the `veilcore-api` README, "Putting a backup back into s
 These come from the audit's Tier 3. Any change to VeilCore should keep them.
 
 1. **Nothing a holder already has can be lost when VeilCore is down.** Every record, proof,
-   Bitcoin stamp and timestamp-service token the holder has seen is in their backup file. The
-   evidence bundle and the backup should refresh on their own after each batch is stamped, so
-   the holder's copy is never more than one batch behind.
+   Bitcoin stamp and timestamp-service token the holder has seen is in their backup file
+   (true since 26 Nov: `recordData`, `proofs` and `stamps`, in `bboard-ui/src/veilcore/backup.ts`
+   and `stamps.ts`). The browser keeps its own copy of the proofs and stamps, so a backup made
+   while the registry is down still carries them, and the evidence bundle uses that copy when
+   the registry can't be reached. Not done yet: the backup and the evidence bundle don't refresh
+   on their own after each batch is stamped; they are as fresh as the holder's last backup.
 2. **A new record is never refused because a service is down.** It is saved on the device,
    signed and queued (offline sealing). The screen says it is saved and will be dated when the
    dating service is back.

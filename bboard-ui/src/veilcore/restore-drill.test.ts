@@ -14,6 +14,9 @@
 // to the record, the lab signature still checks, the license deal can still be read and written.
 // Also: a wrong password, a cut-off file and a changed file are refused with nothing changed;
 // restoring twice adds nothing; the offline tool (veilcore-records, no website) opens the file.
+// And the two dates that don't depend on Midnight (stamps.ts): the batch's Bitcoin stamp file and
+// RFC 3161 token and each record's own token are in the file, come back with the registry gone,
+// and the evidence bundle made then still checks offline; doctored ones are refused.
 //
 // Every storage name the site uses is also listed below as in the backup, or not needed after a
 // restore with the reason: a new name fails here until someone decides which, so nothing new can
@@ -26,8 +29,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { buildBatch } from 'veilcore-records';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { buildBatch, verifyTimestampToken } from 'veilcore-records';
 import { fakeRegistry, type FakeRegistry } from './fixtures/fake-registry';
 import { browser, fileOf, installStorage, settle, type Browser } from './fixtures/browsers';
 import { stubWebLocks } from './fixtures/web-locks';
@@ -35,19 +38,35 @@ import type { DealParty } from './deal-client';
 import { loadPageVerifier } from './evidence/test-records';
 import { differ, snapshotOf } from '../e2e-fixtures/restore-drill-snapshot';
 import { sealOnDevice } from './fixtures/device-only-doc';
+import { otsFile, testTsa, type TestTsa } from './fixtures/test-stamps';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PASSWORD = 'practice drill password';
 const run = promisify(execFile);
 
-// ---- a registry: the fake one, plus the deal channel and the batch proofs -----------------
+// ---- a registry: the fake one, plus the deal channel, the batch proofs and the stamps ------
+//
+// The anchoring job also stamps the batch root as the registry does: a Bitcoin stamp file
+// (OpenTimestamps, pending until `upgrade`) and an RFC 3161 token from a local TSA, both named in
+// each proof's anchors; and each record's own RFC 3161 token on its proof code (/proof/:c/instant).
 
 type DealMsg = { seq: number; iv: string; ct: string; receivedAt: number };
+
+let tsa: TestTsa;
+beforeAll(() => {
+  tsa = testTsa('Drill TSA');
+});
+afterAll(() => tsa.done());
+
+const STAMP_BLOCK = 870123;
+const BATCH_ID = 'B-20261126-DRILL';
 
 const world = () => {
   const reg = fakeRegistry();
   const deals = new Map<string, { tokenHash: string; messages: DealMsg[] }>();
   const proofs = new Map<string, unknown>();
+  const ots = new Map<string, Buffer>();
+  const instant = new Map<string, string>();
   let up = true;
   const answer = (v: unknown, status = 200) =>
     Promise.resolve(new Response(JSON.stringify(v), { status, headers: { 'content-type': 'application/json' } }));
@@ -76,18 +95,58 @@ const world = () => {
     }
     const p = /^\/proof\/([0-9a-f]{64})$/.exec(url.pathname);
     if (p && method === 'GET') return proofs.has(p[1]) ? answer(proofs.get(p[1])) : answer({ error: 'none' }, 404);
+    const i = /^\/proof\/([0-9a-f]{64})\/instant$/.exec(url.pathname);
+    if (i && method === 'GET')
+      return instant.has(i[1])
+        ? answer({
+            status: 'stamped',
+            stamps: 'the proof code as 32 raw bytes',
+            tokens: [{ kind: 'rfc3161', token: instant.get(i[1]), tsa: 'https://tsa.drill.invalid/' }],
+          })
+        : answer({ status: 'none' }, 404);
+    const o = /^\/batches\/([^/]+)\/root\.bin\.ots$/.exec(url.pathname);
+    if (o && method === 'GET')
+      return ots.has(o[1])
+        ? new Response(new Uint8Array(ots.get(o[1])!), { status: 200 })
+        : answer({ error: 'no such batch' }, 404);
     return reg.fetch(String(input instanceof Request ? input.url : input), init);
   };
+  /** Each proof's anchors, as the registry folds them in (lineage/batches.mjs foldAnchors). */
+  const anchorsOf = (root: string, status: 'pending' | 'bitcoin', token: string) => [
+    {
+      kind: 'opentimestamps',
+      status,
+      root: `/batches/${BATCH_ID}/root.bin`,
+      ots: `/batches/${BATCH_ID}/root.bin.ots`,
+      calendars: ['https://calendar.test.invalid'],
+      ...(status === 'bitcoin' ? { bitcoinBlockHeight: STAMP_BLOCK } : {}),
+    },
+    {
+      kind: 'rfc3161',
+      token,
+      tsa: 'https://tsa.drill.invalid/',
+      stamps: 'the batch root as 32 raw bytes (root.bin)',
+      tst: `/batches/${BATCH_ID}/root.tst`,
+    },
+  ];
+  let batchToken = '';
   return {
     reg,
     deals,
     fetch,
-    /** The anchoring job: these proof codes go into one batch, and each gets its inclusion proof. */
+    /**
+     * The anchoring job: these proof codes go into one batch, and each gets its inclusion proof;
+     * the root gets a pending Bitcoin stamp and a TSA token, each proof code a token of its own.
+     */
     batch: async (fps: readonly string[]) => {
-      const b = await buildBatch([...fps], 'B-20261126-DRILL');
+      const b = await buildBatch([...fps], BATCH_ID);
+      batchToken = tsa.tokenFor(b.root);
+      ots.set(BATCH_ID, otsFile(b.root));
+      for (const fp of fps) instant.set(fp, tsa.tokenFor(fp));
       for (const [fp, proof] of Object.entries(b.proofs))
         proofs.set(fp, {
           ...(proof as object),
+          anchors: anchorsOf(b.root, 'pending', batchToken),
           anchor: {
             chain: 'midnight',
             network: 'preview',
@@ -99,6 +158,15 @@ const world = () => {
         });
     },
     proofs,
+    ots,
+    instant,
+    /** The calendars put the root into a Bitcoin block: the registry serves the finished file. */
+    upgrade: () => {
+      const root = (proofs.values().next().value as { root: string }).root;
+      ots.set(BATCH_ID, otsFile(root, { bitcoin: STAMP_BLOCK }));
+      for (const [fp, pr] of proofs)
+        proofs.set(fp, { ...(pr as object), anchors: anchorsOf(root, 'bitcoin', batchToken) });
+    },
     goDown: () => {
       up = false;
     },
@@ -804,6 +872,229 @@ describe('the backup restore drill', () => {
   });
 });
 
+// ---- the Bitcoin and RFC 3161 files (stamps.ts) ---------------------------------------------
+//
+// The two clocks that don't depend on Midnight: the batch's Bitcoin stamp file and its TSA token,
+// and each record's own TSA token. They are in the file, come back with the registry gone, and the
+// evidence bundle made then still carries them and checks offline. A file's stamps are never taken
+// on its word: one moved to another batch or record, or changed, is refused and nothing of it is
+// written.
+
+type StampsJson = {
+  format: string;
+  batches: Record<
+    string,
+    { root: string; ots?: string; otsStatus?: string; bitcoinBlockHeight?: number; tsts?: { token: string }[] }
+  >;
+  records: Record<string, { instant?: { token: string }[] }>;
+};
+
+const hexBytes = (h: string) => Uint8Array.from(Buffer.from(h, 'hex'));
+
+/** The evidence bundle for a record, as the record page makes it: gathered, built, the files. */
+const bundleOf = (b: Browser, id: string) =>
+  b.run(async () => {
+    const r = b.m.records.getRecord(id)!;
+    const gathered = await b.m.bundle.gatherEvidence(r);
+    if ('error' in gathered) throw new Error(gathered.error);
+    const ev = await b.m.bundle.buildEvidence(r, gathered, { includeKey: false }, b.m.keys.keysFor(id));
+    const files = await b.m.bundle.bundleFiles(ev, gathered, { includeKey: false });
+    const file = (p: string) => Object.entries(files).find(([k]) => k.endsWith(`/${p}`))?.[1];
+    return { gathered, ev, file };
+  });
+
+/** What verify.html and openssl say about a bundle's Bitcoin file and TSA token, with no network. */
+const checkOffline = async (file: (p: string) => Uint8Array | undefined) => {
+  const root = Buffer.from(file('proof/root.bin')!).toString('hex');
+  const page = loadPageVerifier<{
+    readStamp: (b: Uint8Array, root: string) => Promise<{ status: string; bitcoin?: { height: number }[] }>;
+  }>();
+  const stamp = await page.readStamp(file('proof/root.bin.ots')!, root);
+  const tst = file('proof/root.tst')!;
+  const sdk = await verifyTimestampToken(tst, hexBytes(root));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'veilcore-drill-tst-'));
+  try {
+    fs.writeFileSync(path.join(dir, 'root.bin'), file('proof/root.bin')!);
+    fs.writeFileSync(path.join(dir, 'root.tst'), tst);
+    // The README's own step: openssl ts -verify -data root.bin -in root.tst -token_in -CAfile <chain>.
+    const ssl = await run('openssl', [
+      'ts',
+      '-verify',
+      '-data',
+      path.join(dir, 'root.bin'),
+      '-in',
+      path.join(dir, 'root.tst'),
+      '-token_in',
+      '-CAfile',
+      tsa.caFile,
+    ]).then(
+      (x) => x.stdout,
+      (x: { stdout: string; stderr: string }) => `${x.stdout}${x.stderr}`,
+    );
+    return { stamp, sdk: sdk.ok, openssl: ssl.trim() };
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+};
+
+describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
+  it('are in the file, come back with the registry gone, and the evidence bundle still checks offline', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const text = await backUp(A);
+    const inner = await opened(A, text);
+    const stamps = inner.stamps as StampsJson;
+    const fps = (inner.recordData as { recordFingerprint: string }[]).map((r) => r.recordFingerprint);
+    expect(stamps.format).toBe('veilcore/stamps/v1');
+    expect(Object.keys(stamps.batches)).toEqual([BATCH_ID]);
+    const batch = stamps.batches[BATCH_ID];
+    expect(batch).toMatchObject({ otsStatus: 'pending' });
+    expect(Buffer.from(batch.ots!, 'base64')).toEqual(w.ots.get(BATCH_ID));
+    expect(batch.tsts?.length).toBe(1);
+    expect(Object.keys(stamps.records).sort()).toEqual([...fps].sort());
+    for (const fp of fps) expect(stamps.records[fp].instant?.[0]?.token, fp).toBe(w.instant.get(fp));
+
+    w.goDown();
+    const { b: A3, out } = await restoreInto('breeder-registry-gone', text);
+    // The batch's Bitcoin file and TSA token, and each of the five records' own token.
+    expect(out.stamps).toBe(2 + fps.length);
+    for (const id of [made.plant, made.animal, made.doc, made.local]) {
+      const { gathered, ev, file } = await bundleOf(A3, id);
+      expect(gathered.source, id).toBe('this-device');
+      expect(ev.batch?.opentimestamps).toMatchObject({
+        available: true,
+        status: 'pending',
+        file: 'proof/root.bin.ots',
+      });
+      expect(ev.batch?.rfc3161).toMatchObject({ available: true, file: 'proof/root.tst' });
+      const offline = await checkOffline(file);
+      expect(offline.stamp.status, id).toBe('pending');
+      expect(offline.sdk, id).toBe(true);
+      expect(offline.openssl, id).toMatch(/Verification: OK/);
+    }
+    // A backup made on the restored device, the registry still gone, carries all of it again.
+    const again = await opened(A3, await backUp(A3));
+    expect(again.stamps).toEqual(stamps);
+    const proofs = again.proofs as Record<string, unknown>;
+    expect(Object.keys(proofs).sort()).toEqual([...fps].sort());
+    const { verifyInclusion } = await import('veilcore-records');
+    for (const fp of fps) expect(await verifyInclusion(proofs[fp] as never), fp).toBe(true);
+  });
+
+  it('a pending Bitcoin stamp is kept, finished on a later backup, and never swapped back', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const firstText = await backUp(A);
+    const first = (await opened(A, firstText)).stamps as StampsJson;
+    expect(first.batches[BATCH_ID].otsStatus).toBe('pending');
+    w.upgrade();
+    const text = await backUp(A);
+    const done = (await opened(A, text)).stamps as StampsJson;
+    expect(done.batches[BATCH_ID]).toMatchObject({ otsStatus: 'bitcoin', bitcoinBlockHeight: STAMP_BLOCK });
+    expect(Buffer.from(done.batches[BATCH_ID].ots!, 'base64')).toEqual(w.ots.get(BATCH_ID));
+    // A registry that serves the pending file again doesn't take the finished one away.
+    const root = done.batches[BATCH_ID].root;
+    w.ots.set(BATCH_ID, otsFile(root));
+    const later = (await opened(A, await backUp(A))).stamps as StampsJson;
+    expect(later.batches[BATCH_ID].ots).toBe(done.batches[BATCH_ID].ots);
+    // Nor does restoring the older file, which holds the pending one.
+    await A.run(() => A.m.backup.restoreAny(fileOf(firstText), PASSWORD));
+    const after = (await opened(A, await backUp(A))).stamps as StampsJson;
+    expect(after.batches[BATCH_ID].ots).toBe(done.batches[BATCH_ID].ots);
+    // With the registry gone, the bundle from the restored device names the Bitcoin block.
+    w.goDown();
+    const { b: A3 } = await restoreInto('breeder-registry-gone', text);
+    const { ev, file } = await bundleOf(A3, made.plant);
+    expect(ev.batch?.opentimestamps).toMatchObject({ status: 'bitcoin', bitcoinBlockHeight: STAMP_BLOCK });
+    const offline = await checkOffline(file);
+    expect(offline.stamp).toMatchObject({ status: 'bitcoin', bitcoin: [{ height: STAMP_BLOCK }] });
+  });
+
+  // A doctored file, restored with the registry gone so nothing can come back from it instead.
+  const doctoredStamps = async (doctor: (s: StampsJson, m: Made, fps: Record<string, string>) => void) => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const inner = await opened(A, await backUp(A));
+    const fps = await A.run(() => Object.fromEntries(A.m.records.allRecords().map((r) => [r.id, r.recordFingerprint])));
+    doctor(inner.stamps as StampsJson, made, fps);
+    w.goDown();
+    const N = await browser('new-device');
+    const out = await N.run(() => N.m.backup.restoreAny(fileOf(JSON.stringify(inner))));
+    expect(out.fromFile).toMatchObject({ added: 5 });
+    expect(out.stamps ?? 0, 'nothing from the file was put back').toBe(0);
+    // The proof still comes back (it checks); the doctored files don't.
+    const { ev } = await bundleOf(N, made.plant);
+    expect(ev.batch?.opentimestamps.available).toBe(false);
+    expect(ev.batch?.rfc3161.available).toBe(false);
+    const kept = await opened(N, await backUp(N));
+    expect(kept.stamps, 'and a backup made there carries none of them').toBeUndefined();
+  };
+
+  /** Another batch's files: a real stamp file and token, for a root none of these records lead to. */
+  const otherBatch = () => {
+    const root = 'ee'.repeat(32);
+    return { root, ots: otsFile(root, { bitcoin: STAMP_BLOCK }).toString('base64'), token: tsa.tokenFor(root) };
+  };
+  const flipped = (b64: string, at: number) => {
+    const b = Buffer.from(b64, 'base64');
+    b[at < 0 ? b.length + at : at] ^= 0x01;
+    return b.toString('base64');
+  };
+
+  it('a stamp moved to another batch is refused', async () => {
+    await doctoredStamps((s) => {
+      const other = otherBatch();
+      // The other batch's files said to be this batch's: with its own root, and with this root.
+      s.batches[BATCH_ID] = { root: other.root, ots: other.ots, otsStatus: 'bitcoin', tsts: [{ token: other.token }] };
+      s.batches['B-20261126-MOVED'] = { ...s.batches[BATCH_ID] };
+      s.records = {};
+    });
+  });
+
+  it('another batch’s files said to start from this batch’s root are refused', async () => {
+    await doctoredStamps((s) => {
+      const other = otherBatch();
+      const root = s.batches[BATCH_ID].root;
+      s.batches = { [BATCH_ID]: { root, ots: other.ots, otsStatus: 'bitcoin', tsts: [{ token: other.token }] } };
+      s.records = {};
+    });
+  });
+
+  it('this batch’s real files under another batch’s name are refused', async () => {
+    await doctoredStamps((s) => {
+      s.batches = { 'B-20261126-OTHER': s.batches[BATCH_ID] };
+      s.records = {};
+    });
+  });
+
+  it('a changed token or stamp file is refused', async () => {
+    await doctoredStamps((s) => {
+      const b = s.batches[BATCH_ID];
+      // The token's signature changed (its last byte), the stamp file's starting digest changed.
+      s.batches[BATCH_ID] = {
+        ...b,
+        ots: flipped(b.ots!, 40),
+        tsts: b.tsts!.map((t) => ({ token: flipped(t.token, -1) })),
+      };
+      for (const r of Object.values(s.records)) r.instant = r.instant!.map((t) => ({ token: flipped(t.token, -1) }));
+    });
+  });
+
+  it('a record’s own token moved onto another record is refused', async () => {
+    await doctoredStamps((s, m, fps) => {
+      const plant = s.records[fps[m.plant]];
+      s.records = { [fps[m.animal]]: plant, [fps[m.plant]]: s.records[fps[m.animal]] };
+      s.batches = {};
+    });
+  });
+});
+
 // ---- every storage name: in the backup, or not needed after a restore ---------------------
 //
 // A new storage name fails here until it is listed: either the backup field that carries it
@@ -824,6 +1115,8 @@ const IN_THE_FILE: Readonly<Record<string, string>> = {
   'veilcore.held-licenses.v1': 'heldLicenses',
   'veilcore.issuer-deals.v1': 'issuerDeals',
   'veilcore.lender.v1': 'lender',
+  'veilcore.stamps.v1':
+    'stamps and proofs (each batch’s Bitcoin stamp file and RFC 3161 tokens, each record’s own tokens)',
   // The page's own copy of records and agreements; the registry holds them, sealed.
   'veilcore.records.v1': 'recordData and heldEvidence (the registry’s collection name; the records themselves)',
 };

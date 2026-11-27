@@ -179,6 +179,15 @@ export type BackupContents = {
    * checks against it (restore drill, 26 Nov). Optional, like `revs`.
    */
   readonly heldEvidence?: Readonly<Record<string, unknown>>;
+  /**
+   * The files that check each record's dates on Bitcoin and with a Time Stamping Authority
+   * (stamps.ts): per batch a record sits in, its root, its OpenTimestamps file (root.bin.ots) and
+   * its RFC 3161 tokens (root.tst); per record, the RFC 3161 tokens on its own proof code. Best
+   * effort, as `proofs`: what the registry gave, or what this browser kept before. A restore puts
+   * each back only once it checks against its batch root or proof code (foundation review,
+   * 26 Nov). Optional, like `revs`: an older file has none, and an older app passes over it.
+   */
+  readonly stamps?: import('./stamps').StampsInFile;
 };
 
 const WARNING =
@@ -395,6 +404,9 @@ export const withRecordsAndProofs = async (contents: BackupContents): Promise<Ba
       if (p.status !== 'none') proofs[batch[j]] = p.proof;
     });
   }
+  // The Bitcoin and RFC 3161 files for them, and any proof the registry couldn't give now that
+  // this browser kept from before (stamps.ts). Never stops the backup.
+  const stamps = await (await import('./stamps')).stampsForBackup(prints, proofs).catch(() => undefined);
   const sealedFields: Record<string, Record<string, unknown>> = {};
   for (const r of recordData) {
     if (!r.nonce) continue;
@@ -409,6 +421,7 @@ export const withRecordsAndProofs = async (contents: BackupContents): Promise<Ba
     recordData,
     ...(Object.keys(proofs).length ? { proofs } : {}),
     ...(Object.keys(sealedFields).length ? { sealedFields } : {}),
+    ...(stamps ? { stamps } : {}),
     ...heldEvidence,
     ...unreadable,
     ...extras,
@@ -683,6 +696,8 @@ export type RestoreResult = {
   readonly evidence?: number;
   /** Licenses (held here, or the keys of ones given) added from the file. */
   readonly licenses?: number;
+  /** Bitcoin stamp files and RFC 3161 tokens put back from the file, each checked first. */
+  readonly stamps?: number;
   /** The records the file carried (recordData): what was put back, or why none were. */
   readonly fromFile?: ImportResult | { readonly error: string };
 };
@@ -838,6 +853,22 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
   } catch {
     /* a record's evidence that can't be checked here stays out; the rest of the restore stands */
   }
+  // The files that check each record's dates on Bitcoin and with a TSA (stamps.ts), and its
+  // inclusion proof: kept on this browser for the records here, each checked first, so the
+  // evidence bundle has them with the registry gone.
+  let stamps = 0;
+  try {
+    if (v.stamps !== undefined || v.proofs !== undefined)
+      stamps = await (
+        await import('./stamps')
+      ).restoreStamps(
+        v.stamps,
+        v.proofs,
+        allRecords().map((r) => r.recordFingerprint),
+      );
+  } catch {
+    /* what can't be checked here stays out; the rest of the restore stands */
+  }
   // Entries the file carries raw (they couldn't be read where it was made): back as they were,
   // after the records, so what this browser and the registry hold is known (records.ts).
   restoreUnreadable(v.deviceOnlyUnreadable);
@@ -853,6 +884,7 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
     ...(receiving ? { receiving } : {}),
     ...(licenses ? { licenses } : {}),
     ...(evidence ? { evidence } : {}),
+    ...(stamps ? { stamps } : {}),
   };
 };
 

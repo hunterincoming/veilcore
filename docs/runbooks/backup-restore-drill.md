@@ -30,6 +30,20 @@ The app's own code, in several pretend browsers against a stand-in registry:
   signed.
 - With the registry gone: the file alone brings back every record, key, lab signature and
   claim. The license is the one gap (below).
+- The two dates that don't depend on Midnight (from 26 Nov): the stand-in registry stamps the
+  batch root on Bitcoin (an OpenTimestamps file, pending at first) and with a local
+  timestamp authority (RFC 3161, made with openssl), and gives each record's proof code a token
+  of its own. The file carries all of them (`stamps`). Restored with the registry gone, the
+  evidence bundle made on the new device still carries `root.bin.ots` and `root.tst`:
+  `verify.html`'s own reader reads the Bitcoin file against the batch root, and the SDK and
+  `openssl ts -verify` (the bundle README's step) both pass the token. A backup made there,
+  still without the registry, carries every stamp and proof again.
+- A pending Bitcoin stamp is kept, the next backup takes the finished one once the registry
+  has it, and a registry that serves the pending one again doesn't take the finished one away.
+- Doctored stamps are refused and nothing of them is written (no stamp comes back, the bundle
+  has none, a backup made there carries none): another batch's files under this batch (with
+  its own root, or said to start from this root), this batch's files under another batch's
+  name, a changed token or Bitcoin file, and one record's token moved onto another record.
 - A wrong password, no password, a cut-off file and a changed file are all refused, and nothing
   is written. A file with a record that was edited after sealing puts back none of the records
   (all or nothing) and says why; the keys come back.
@@ -56,7 +70,11 @@ prove with). The rest of the set is made on a test-only page that is never in a 
 signature or a real license on chain.
 
 Both were checked to fail when restore is broken on purpose (licenses held left out of the
-restore, and lab signatures left out), then put back.
+restore, and lab signatures left out), then put back. The stamp tests were checked the same way
+(26 Nov), one break at a time: stamps left out of the file, left out of the restore, the
+evidence bundle not using the device's copy, the file's own root trusted, the Bitcoin file's
+root not checked, tokens not checked, any batch name accepted, a pending stamp never finished,
+and a finished stamp swapped back. Each break made at least one of them fail.
 
 ## What the drill found (26 Nov 2026)
 
@@ -70,21 +88,33 @@ Fixed in the same change:
 2. **A licensee's backup that holds a license but no records said "Nothing new in that file."**
    The license had come back. The restore page now says "Restored."
 
+3. (Foundation review, 26 Nov.) **The Bitcoin stamp files and RFC 3161 tokens were not in the
+   file.** With the registry and its backups gone, a holder kept only the Midnight date. The
+   file now carries them (`stamps`), the browser keeps its own copy, and a restore puts each
+   back only once it checks against its batch root or proof code
+   (`src/veilcore/stamps.ts`).
+
 Known gaps, not fixed here:
 
-3. **The license itself (terms, state, royalty log) is not in the file.** It lives on VeilCore's
+4. **The license itself (terms, state, royalty log) is not in the file.** It lives on VeilCore's
    registry. The file has the license's keys and every signed message of the deal
    (`dealRecords`, checkable with `npx veilcore-records deal <file>`), so the history survives,
    but with the registry gone the app can't show the license from the file. Carrying it means
    restoring agreements the way records are restored (each checked, none overwriting one already
    there); that is a design change of its own.
-4. **`npx veilcore-records backup` (version 0.18.1) reports a document with sealed numbers as
+5. **`npx veilcore-records backup` (version 0.18.1) reports a document with sealed numbers as
    "DOES NOT MATCH".** Its fingerprint leaves out the field-set step of SPEC 4.5, which the app
    and `verify.html` both do. The record is fine (the drill checks it with `verify.html`'s code).
    The fix is in `veilcore-sdk` (`computeRecordFingerprint` in the published package), not in
    this repository. The drill expects exactly this one failure, so a fixed version makes it fail
    and the line gets updated.
-5. Small things a new device doesn't get, by design or for later: payment partner keys a checker
+6. **`npx veilcore-records backup` doesn't read `stamps` yet.** The files are in the backup as
+   the registry served them (base64 `.ots` and `.tst`), and the app checks them on restore;
+   checking them from the command line is a change for `veilcore-sdk`.
+7. **An evidence bundle made with the registry gone has no lab signatures the registry
+   serves** (no `lab/signatures.json`, and `evidence.json` says the bundle was made from the
+   browser's copy). The record's own lab signature still comes back onto the record.
+8. Small things a new device doesn't get, by design or for later: payment partner keys a checker
    named, records a checker watches, remembered spreadsheet column layouts, and which spreadsheet
    rows were already sealed. None of them is a holder's record or key.
 
