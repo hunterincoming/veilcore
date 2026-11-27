@@ -721,9 +721,20 @@ export const keptFirst = (
   readonly anchor: Record<string, unknown>;
   readonly now?: Record<string, unknown> | null;
   readonly later: readonly Record<string, unknown>[];
-  readonly otherRoot?: { readonly root: string; readonly anchor: Record<string, unknown> | null };
-  /** Other roots set aside before, each with its transaction, not the registry's answer now (review 13, polish 4). */
-  readonly asideRoots?: readonly { readonly root: string; readonly anchor: Record<string, unknown> | null }[];
+  readonly otherRoot?: {
+    readonly root: string;
+    readonly batchId: string;
+    readonly anchor: Record<string, unknown> | null;
+  };
+  /**
+   * Other roots set aside before, each with its batch id and transaction, not the registry's answer
+   * now (review 13, polish 4). The batch id says when only it differs (review 1 of PR #241, blocker 2).
+   */
+  readonly asideRoots?: readonly {
+    readonly root: string;
+    readonly batchId: string;
+    readonly anchor: Record<string, unknown> | null;
+  }[];
   /** Another contract the registry reports now for the kept transaction (review 12, polish 1). */
   readonly nowContract?: string;
 } | null => {
@@ -745,7 +756,7 @@ export const keptFirst = (
     .filter(
       (c) => !sameBatch(c, p) && !(!same && sameBatch(c, proof) && txKey(anchorOf(c)) === txKey(now ?? undefined)),
     )
-    .map((c) => ({ root: c.root, anchor: anchorOf(c) ?? null }));
+    .map((c) => ({ root: c.root, batchId: c.batchId, anchor: anchorOf(c) ?? null }));
   const nowContract =
     same &&
     raw &&
@@ -762,7 +773,7 @@ export const keptFirst = (
     proof: same ? (withAnchor(proof, kept) as unknown as InclusionProof) : p,
     anchor: kept,
     ...(!same
-      ? { otherRoot: { root: proof.root, anchor: now } }
+      ? { otherRoot: { root: proof.root, batchId: proof.batchId, anchor: now } }
       : served && !sameAnchor(kept, now ?? undefined)
         ? { now }
         : {}),

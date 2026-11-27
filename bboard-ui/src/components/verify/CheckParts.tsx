@@ -63,7 +63,7 @@ export const SeeTheChecks: React.FC<{ open: boolean; onToggle: () => void; contr
   );
 };
 
-/** At the bottom of a check page: a date like this for your own plants or animals. */
+/** At the bottom of a check page: a date like this for your own records. */
 export const MakeYourOwn: React.FC = () => {
   const { t } = useT();
   return (

@@ -216,7 +216,7 @@ export const declarationText = async (
         add(
           `   That is the first main-network transaction VeilCore's registry gave my browser for this batch root. The registry ${t(other)} for it, which an honest registry never does.`,
         );
-      const contract = otherContractLine(ev);
+      const contract = otherContractLine(ev, true);
       if (contract) add(`   ${t(contract)}`);
       const root = otherRootLine(ev, true);
       if (root) add(`   ${t(root)}`);
@@ -236,7 +236,7 @@ export const declarationText = async (
     }
     if (ots) {
       add(
-        `   The batch root was also stamped on Bitcoin with OpenTimestamps (proof/root.bin.ots). ${keptCopy(ev) ? 'When my browser kept it (at its last backup), the registry had reported' : 'When the bundle was made, the registry reported'} the stamp as ${ots.status === 'bitcoin' ? `in Bitcoin block ${isNumber(ots.bitcoinBlockHeight) ? ots.bitcoinBlockHeight : '[not given]'}` : 'pending, not yet in a Bitcoin block'}. [Result of checking it, if done: ___]`,
+        `   The batch root was also stamped on Bitcoin with OpenTimestamps (proof/root.bin.ots). ${keptCopy(ev) ? 'In the copy kept in my browser at its last backup, the registry had reported' : 'When the bundle was made, the registry reported'} the stamp as ${ots.status === 'bitcoin' ? `in Bitcoin block ${isNumber(ots.bitcoinBlockHeight) ? ots.bitcoinBlockHeight : '[not given]'}` : 'pending, not yet in a Bitcoin block'}. [Result of checking it, if done: ___]`,
       );
     }
     add('');
@@ -291,7 +291,7 @@ export const declarationText = async (
         : ev.registry.source === 'this-device'
           ? "VeilCore's registry could not be reached, so the website made the files from my browser's copy of the record and from what VeilCore's registry had returned to that browser before, kept there. It checked"
           : ev.registry.registryRoot
-            ? "VeilCore's registry now gives another batch root (section 3), so the website made the files from my browser's copy of the record and from what VeilCore's registry had returned to that browser before, kept there; any lab signatures and first-seen time in the bundle are as the registry returned them now. It checked"
+            ? `VeilCore's registry now gives ${ev.registry.registryRoot.root === ev.batch?.root ? 'another batch' : 'another batch root'} for this record (section 3), so the website made the files from my browser's copy of the record and from what VeilCore's registry had returned to that browser before, kept there; any lab signatures and first-seen time in the bundle are as the registry returned them when the bundle was made. It checked`
             : "The website made the files from my browser's copy of the record and from what VeilCore's registry returned. It checked"
     } that the record's proof code matches its contents before making them.`,
   );

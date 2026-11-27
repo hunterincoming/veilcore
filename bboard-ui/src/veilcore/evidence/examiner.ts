@@ -497,7 +497,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
           fromFile
             ? 'Status the holder’s backup file gives'
             : keptCopy(ev)
-              ? 'Status the registry reported when the holder’s browser kept it (at its last backup)'
+              ? 'Status the registry reported, in the copy kept in the holder’s browser at its last backup'
               : 'Status the registry reported',
           ots.status === 'bitcoin'
             ? `In Bitcoin block ${isNumber(ots.bitcoinBlockHeight) ? ots.bitcoinBlockHeight : '(not given)'}`
