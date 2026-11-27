@@ -46,7 +46,8 @@ import type { UnboundTx } from '@midnight-ntwrk/midnight-js-types';
 import type { SealedTx } from './policy.js';
 import { NotSentError, type PayingWallet } from './sponsor.js';
 import { log } from './log.js';
-import { errorChain, type ErrorLink } from './error-chain.js';
+import { describeError, errorChain, type ErrorLink } from './error-chain.js';
+import { preflight, type Preflight, type TxFacts } from './preflight.js';
 import { StallTracker, type SyncPart } from './sync-stall.js';
 
 type Keystore = ReturnType<typeof createKeystore>;
@@ -210,6 +211,28 @@ const openProgress = (progress: ProgressFile, chainEra: Era | undefined): Saved 
   return undefined;
 };
 
+/** One line about a sponsored call: which call, its fee, its DUST spends. Never throws. */
+const logSponsored = (
+  level: 'info' | 'warn',
+  msg: string,
+  facts: TxFacts,
+  feeWithMargin: bigint,
+  extra: Record<string, unknown>,
+): void => {
+  try {
+    log(level, msg, {
+      circuit: facts.circuits.join(',') || 'unknown',
+      feeWithMargin,
+      ...(facts.ledgerFee !== undefined ? { ledgerFee: facts.ledgerFee } : {}),
+      dustSpends: facts.dustSpends,
+      dustPaid: facts.dustPaid,
+      ...extra,
+    });
+  } catch {
+    // logging must never change what happens
+  }
+};
+
 export class FacadeWallet implements PayingWallet {
   private latest: FacadeState | undefined;
   private sub: Rx.Subscription | undefined;
@@ -235,12 +258,19 @@ export class FacadeWallet implements PayingWallet {
     /** Where this wallet's fork schedule starts Ledger 9 (resolveConfiguration's `forks.v9`). */
     readonly forksV9: bigint = 2_000_000n,
     chainEra?: Era,
+    /** The network id, for the check before sending (preflight.ts). */
+    private readonly network: string = 'undeployed',
+    /** The check before sending; tests hand in a stand-in. */
+    private readonly check: typeof preflight = preflight,
   ) {
     this.era = chainEra;
   }
 
   /** Tests only: a wallet around a stand-in facade, with no keys and no network. */
-  static forTests(facade: unknown, opts: { restored?: boolean; stateDir?: string; chainEra?: Era } = {}): FacadeWallet {
+  static forTests(
+    facade: unknown,
+    opts: { restored?: boolean; stateDir?: string; chainEra?: Era; network?: string; preflight?: typeof preflight } = {},
+  ): FacadeWallet {
     return new FacadeWallet(
       facade as WalletFacade,
       {} as ZswapSecretKeys,
@@ -252,6 +282,8 @@ export class FacadeWallet implements PayingWallet {
       { unshielded: '', dust: '' },
       2_000_000n,
       opts.chainEra,
+      opts.network ?? 'test',
+      opts.preflight ?? (() => ({ ok: 'skipped', facts: { circuits: [], dustSpends: 0, dustPaid: 0n }, why: 'test' })),
     );
   }
 
@@ -359,6 +391,7 @@ export class FacadeWallet implements PayingWallet {
       },
       BigInt(forks?.v9 ?? 2_000_000),
       ep.chainEra,
+      ep.network,
     );
   }
 
@@ -514,7 +547,47 @@ export class FacadeWallet implements PayingWallet {
       if (e instanceof NotSentError) throw e;
       throw new NotSentError('The sponsor could not work out its fee payment. Try again.', true, { cause: e });
     }
-    return { txId: await this.submit(finalized), fee };
+    // Would the network take it? The ledger's own check, at the parameters the fee was priced
+    // with (preflight.ts). A refusal here sends nothing and spends no DUST.
+    const checked = this.checkBeforeSending(finalized, recipe);
+    if (checked.ok === false) {
+      logSponsored('warn', 'sponsor: the network would refuse this; not sent', checked.facts, fee, {
+        error: checked.error,
+        ...(checked.code ? { nodeError: checked.code } : {}),
+      });
+      await this.facade.revert(finalized).catch(() => undefined);
+      // 171 (DUST dated outside its window) is "try later", as it is from the node.
+      if (checked.code === '171') {
+        throw new NotSentError('The network’s indexer is behind. Try again in a few minutes.', true);
+      }
+      throw new NotSentError(
+        `The network would refuse the transaction${checked.code ? ` (error ${checked.code})` : ''}. Nothing was sent.`,
+        false,
+      );
+    }
+    if (checked.ok === 'skipped') logSponsored('info', 'sponsor: not checked before sending', checked.facts, fee, { why: checked.why });
+    try {
+      return { txId: await this.submit(finalized), fee };
+    } catch (e) {
+      // The node's full answer, as the anchoring job logs it (error-chain.ts redacts).
+      const refused = e instanceof NotSentError;
+      logSponsored('warn', refused ? 'sponsor: the network refused this' : 'sponsor: submit failed; it may have been sent', checked.facts, fee, {
+        ...(refused ? { nodeError: nodeRefusal(e.cause) ?? 'unknown' } : {}),
+        error: describeError(refused ? (e.cause ?? e) : e),
+      });
+      throw e;
+    }
+  }
+
+  /** The check before sending, never throwing: a check that breaks is "skipped", not a refusal. */
+  private checkBeforeSending(finalized: FinalizedTx, recipe: unknown): Preflight {
+    try {
+      const params = (recipe as { blockData?: { ledgerParameters?: unknown } } | undefined)?.blockData?.ledgerParameters;
+      const bytes = new Uint8Array(finalized.serialize() as unknown as Uint8Array);
+      return this.check(bytes, params, this.network, new Date());
+    } catch (e) {
+      return { ok: 'skipped', facts: { circuits: [], dustSpends: 0, dustPaid: 0n }, why: `check failed: ${describeError(e)}` };
+    }
   }
 
   /** Submit; a node refusal (never admitted) becomes NotSentError and the coins are released. */

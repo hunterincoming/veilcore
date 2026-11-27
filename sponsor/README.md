@@ -229,6 +229,14 @@ It worked when the deploy log shows `sponsor wallet` with your sponsor addresses
 `listening`, and opening `<domain>/sponsor/status` shows `"synced": true` (the first sync
 can take a long time; it resumes from the volume after that).
 
+The first line, `sponsor build`, names the wallet SDK, ledger and midnight-js versions it is
+running and the Railway deployment id, so the log alone says which build is live. Before it
+sends a visitor's call, the sponsor runs the ledger's own check on it (`src/preflight.ts`).
+A call the network would refuse is not sent and logs
+`sponsor: the network would refuse this; not sent`, and a refusal after sending logs
+`sponsor: the network refused this`. Both lines give the call, the fee, the DUST spends and
+the ledger's or node's reason (for error 138, the exact shortfall).
+
 If the log says it cannot reach the proof server: Railway's private network may need the
 proof server to listen on IPv6. Give the proof server a public domain instead and set
 `PROOF_SERVER_URL` to it (the proof server then also takes requests from strangers; on a
