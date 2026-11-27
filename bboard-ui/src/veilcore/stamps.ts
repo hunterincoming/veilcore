@@ -67,8 +67,10 @@ const MAX_CARRIED_TOKENS = 4;
 export const MAX_SECTIONS = 8;
 /** All carried sections together, compressed as stored. */
 export const CARRIED_BUDGET = 512 * 1024;
-/** Items a section may hold before it is refused whole (a file names one batch per record). */
+/** Items a part may hold before the rest are left out (a file names one batch per record). */
 const MAX_SECTION_ITEMS = 4096;
+/** Parts one file's section may hold (its own and the ones it carried). */
+const MAX_PARTS = 16;
 const FETCHES = 6;
 
 /** An RFC 3161 token, base64 DER, and which TSA's (the registry's word, for the reader). */
@@ -109,8 +111,16 @@ export type CarriedBatch = {
 /** One record's own tokens, as a backup file carried them. */
 export type CarriedRecord = { readonly kind: 'record'; readonly fp: string; readonly instant: readonly TokenEntry[] };
 export type CarriedItem = CarriedBatch | CarriedRecord;
-/** One restored backup file's stamps, sealed: `id` is the SHA-256 of the canonical JSON of `items`. */
-export type CarriedSection = { readonly id: string; readonly items: readonly CarriedItem[] };
+/** What one source said: a file's own part, or one section an earlier backup carried. */
+export type CarriedPart = { readonly items: readonly CarriedItem[] };
+/**
+ * One restored backup file's stamps, sealed: its own part and every part it carried, in a
+ * deterministic order; `id` is the SHA-256 of their canonical JSON.
+ */
+export type CarriedSection = { readonly id: string; readonly parts: readonly CarriedPart[] };
+
+/** Every item of a section. */
+export const itemsOf = (sec: CarriedSection): CarriedItem[] => sec.parts.flatMap((p) => p.items);
 
 /** What the backup file carries (`stamps`). */
 export type StampsInFile = {
@@ -151,7 +161,7 @@ const load = (): Store => {
     const raw = localStorage.getItem(STAMPS_KEY);
     if (!raw) return empty();
     const box: unknown = JSON.parse(raw);
-    if (!isObject(box) || box.v !== 3 || !isString(box.z)) return empty();
+    if (!isObject(box) || box.v !== 4 || !isString(box.z)) return empty();
     const v: unknown = JSON.parse(strFromU8(inflateSync(base64.decode(box.z))));
     if (!isObject(v) || !isObject(v.own)) return empty();
     const o = v.own;
@@ -163,7 +173,9 @@ const load = (): Store => {
         changed: obj(o.changed),
         ids: obj(o.ids),
       },
-      sections: Array.isArray(v.sections) ? (v.sections as CarriedSection[]) : [],
+      sections: Array.isArray(v.sections)
+        ? (v.sections as CarriedSection[]).filter((x) => isObject(x) && isString(x.id) && Array.isArray(x.parts))
+        : [],
     };
   } catch {
     return empty();
@@ -177,7 +189,7 @@ const sectionBytes = (sections: readonly CarriedSection[]): number => Math.ceil(
 /** Kept best effort: a browser that refuses the write still has the backup file. */
 const save = (s: Store): void => {
   try {
-    localStorage.setItem(STAMPS_KEY, JSON.stringify({ v: 3, z: pack(s) }));
+    localStorage.setItem(STAMPS_KEY, JSON.stringify({ v: 4, z: pack(s) }));
   } catch {
     /* full or refused: the file made now still carries them */
   }
@@ -270,14 +282,62 @@ const checkedTokens = async (list: unknown, stamped: Uint8Array, pins?: readonly
   return out;
 };
 
-/** A proof as kept here: the registry's anchors without the batch tokens (kept once, per batch). */
+/** JSON as kept: only strings, finite numbers, booleans, arrays and plain objects; no null, no unknown types. */
+const plain = (v: unknown, depth = 0): unknown => {
+  if (depth > 8) return undefined;
+  if (isString(v) || typeof v === 'boolean') return v;
+  if (typeof v === 'number') return Number.isFinite(v) ? v : undefined;
+  if (Array.isArray(v))
+    return v
+      .slice(0, 64)
+      .map((x) => plain(x, depth + 1))
+      .filter((x) => x !== undefined);
+  if (!isObject(v)) return undefined;
+  const out: Record<string, unknown> = {};
+  for (const [k, x] of Object.entries(v)) {
+    const c = plain(x, depth + 1);
+    if (c !== undefined) out[k] = c;
+  }
+  return out;
+};
+
+const ANCHOR_FIELDS = ['chain', 'network', 'txHash', 'contractAddress', 'blockHeight', 'anchoredAt', 'testNetwork'];
+
+/**
+ * A proof as kept here, rebuilt from its known fields only (review 5): the commitment, the path,
+ * the root and batch, when it was sealed, and the registry's anchors, without the batch tokens
+ * (kept once, per batch). Anything else, any null, any field of the wrong type, is dropped, so
+ * what is kept and named is always plain, canonical JSON.
+ */
 const keepable = (p: InclusionProof): InclusionProof => {
-  const anchors: unknown = (p as unknown as Record<string, unknown>).anchors;
-  if (!Array.isArray(anchors)) return p;
+  const r = p as unknown as Record<string, unknown>;
+  const anchor: Record<string, unknown> | undefined = isObject(r.anchor)
+    ? Object.fromEntries(
+        ANCHOR_FIELDS.map((k): [string, unknown] => [k, plain((r.anchor as Record<string, unknown>)[k])]).filter(
+          ([, v]) => v !== undefined && !isObject(v) && !Array.isArray(v),
+        ),
+      )
+    : undefined;
+  const anchors = Array.isArray(r.anchors)
+    ? (r.anchors as unknown[])
+        .filter(isObject)
+        .slice(0, 16)
+        .map((a) => {
+          const c = plain(a) as Record<string, unknown>;
+          if (c.kind === 'rfc3161') delete c.token;
+          return c;
+        })
+    : undefined;
   return {
-    ...p,
-    anchors: (anchors as unknown[]).map((a) => (isObject(a) && a.kind === 'rfc3161' ? { ...a, token: undefined } : a)),
-  } as InclusionProof;
+    ...(isNumber(r.formatVersion) ? { formatVersion: r.formatVersion } : {}),
+    commitment: p.commitment,
+    root: p.root,
+    batchId: p.batchId,
+    ...(isString(r.sealedAt) ? { sealedAt: r.sealedAt } : {}),
+    path: p.path.map((x) => ({ sibling: x.sibling, siblingIsLeft: x.siblingIsLeft })),
+    ...(anchor && isString(anchor.network) && isString(anchor.chain) ? { anchor } : {}),
+    ...(anchors?.length ? { anchors } : {}),
+  } as unknown as InclusionProof;
 };
 
 const otsAnchor = (p: InclusionProof): boolean => {
@@ -362,7 +422,7 @@ const pruneDeleted = (s: Store): void => {
   );
   for (const k of Object.keys(o.batches)) if (!used.has(k)) delete o.batches[k];
   const covers = (sec: CarriedSection) =>
-    sec.items.flatMap((it) => (it.kind === 'batch' ? Object.keys(it.proofs) : [it.fp]));
+    itemsOf(sec).flatMap((it) => (it.kind === 'batch' ? Object.keys(it.proofs) : [it.fp]));
   s.sections = s.sections.filter((sec) => covers(sec).some((fp) => fp in o.ids));
 };
 
@@ -390,11 +450,22 @@ export const stampsForBackup = async (
     wanted.add(fp);
     own.ids[fp] = r.id;
   }
+  try {
+    await refreshFromRegistry(own, wanted, proofs);
+  } catch {
+    /* what the registry gave before stays, and goes in the file */
+  }
+  save(store);
+  return inFile(store, wanted).catch(() => undefined);
+};
+
+/** OWN refreshed from the registry's answers (stampsForBackup). */
+const refreshFromRegistry = async (own: Own, wanted: ReadonlySet<string>, proofs: Record<string, unknown>) => {
   for (const fp of wanted) {
     const fresh = proofs[fp];
     const first = own.proofs[fp];
     if (fresh !== undefined) {
-      const st = await checkProof(fp, fresh);
+      const st = await checkProof(fp, fresh).catch(() => ({ status: 'none' as const }));
       if (st.status === 'none') {
         delete proofs[fp];
       } else if (!first) {
@@ -453,15 +524,42 @@ export const stampsForBackup = async (
     const stillAsking = isNumber(got.body.stillAsking) && got.body.stillAsking > 0;
     own.records[fp] = { instant: mergeTokens(had?.instant, tokens), ...(stillAsking ? { stillAsking } : {}) };
   });
-  save(store);
-  return inFile(store, wanted);
 };
 
-/** A section's id: the SHA-256 of the canonical JSON of its items. */
-const sectionId = async (items: readonly CarriedItem[]): Promise<string> => {
-  const bytes = strToU8(canonicalise(items));
-  const d = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
+const sha256Hex = async (text: string): Promise<string> => {
+  const d = new Uint8Array(await crypto.subtle.digest('SHA-256', strToU8(text)));
   return Array.from(d, (x) => x.toString(16).padStart(2, '0')).join('');
+};
+const itemKey = (i: CarriedItem): string => (i.kind === 'batch' ? `b ${i.batchId} ${i.root}` : `r ${i.fp}`);
+const byText =
+  <T>(key: (x: T) => string) =>
+  (a: T, b: T) =>
+    key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0;
+/** Tokens in a fixed order, each once. */
+const sortedTokens = (list: readonly TokenEntry[]): TokenEntry[] =>
+  [...new Map(list.map((t) => [t.token, t])).values()].sort(byText((t) => t.token));
+
+/** A part in a fixed order (items by kind and name, tokens sorted, each once), so the same evidence is named the same. */
+const normalPart = (items: readonly CarriedItem[]): CarriedPart => ({
+  items: [...items]
+    .map(
+      (i): CarriedItem =>
+        i.kind === 'batch'
+          ? { ...i, ...(i.tsts ? { tsts: sortedTokens(i.tsts) } : {}) }
+          : { ...i, instant: sortedTokens(i.instant) },
+    )
+    .sort(byText(itemKey)),
+});
+
+/** A section from parts: each part in its fixed order, parts in a fixed order, each once; named by the SHA-256 of its canonical JSON. */
+const sealSection = async (parts: readonly CarriedPart[]): Promise<CarriedSection> => {
+  const unique = new Map<string, CarriedPart>();
+  for (const p of parts) {
+    const n = normalPart(p.items);
+    if (n.items.length) unique.set(canonicalise(n), n);
+  }
+  const sorted = [...unique.entries()].sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)).map(([, p]) => p);
+  return { id: await sha256Hex(canonicalise({ parts: sorted })), parts: sorted };
 };
 
 /** The registry's later answers kept aside, as one section for the file (never lost, never trusted). */
@@ -471,7 +569,7 @@ const changedSection = async (own: Own, wanted: ReadonlySet<string>): Promise<Ca
     for (const p of own.changed[fp] ?? []) {
       const k = batchKey(p.batchId, p.root);
       const e = by.get(k) ?? { batchId: p.batchId, root: p.root, proofs: {} };
-      e.proofs[fp] = p;
+      e.proofs[fp] = keepable(p);
       by.set(k, e);
     }
   if (by.size === 0) return undefined;
@@ -484,7 +582,7 @@ const changedSection = async (own: Own, wanted: ReadonlySet<string>): Promise<Ca
       ...(b?.tsts?.length ? { tsts: b.tsts } : {}),
     };
   });
-  return { id: await sectionId(items), items };
+  return sealSection([{ items }]);
 };
 
 /** What the file carries: the registry's part for these records, and every carried section as kept. */
@@ -499,7 +597,8 @@ const inFile = async (store: Store, wanted: ReadonlySet<string>): Promise<Stamps
     const r = own.records[fp];
     if (r?.instant?.length) records[fp] = { instant: r.instant };
   }
-  const changed = await changedSection(own, wanted);
+  // Never lets a failure here take the registry's part or the kept sections out of the file.
+  const changed = await changedSection(own, wanted).catch(() => undefined);
   const carried = [
     ...store.sections,
     ...(changed && !store.sections.some((s) => s.id === changed.id) ? [changed] : []),
@@ -534,9 +633,13 @@ const checkedBatches = async (
     const proofs: Record<string, InclusionProof> = {};
     for (const [fp, p] of Object.entries(isObject(it.proofs) ? it.proofs : {})) {
       if (!here.has(fp)) continue;
-      const st = await checkProof(fp, p);
-      if (st.status === 'none' || st.proof.batchId !== it.batchId || st.proof.root !== it.root) continue;
-      proofs[fp] = keepable(st.proof);
+      try {
+        const st = await checkProof(fp, p);
+        if (st.status === 'none' || st.proof.batchId !== it.batchId || st.proof.root !== it.root) continue;
+        proofs[fp] = keepable(st.proof);
+      } catch {
+        /* this proof is left out; the rest stand */
+      }
     }
     if (Object.keys(proofs).length)
       incoming.push({ batchId: it.batchId, root: it.root, proofs, ots: it.ots, tsts: it.tsts });
@@ -548,8 +651,8 @@ const checkedBatches = async (
   for (const e of incoming) {
     const proofs = Object.fromEntries(Object.entries(e.proofs).filter(([fp]) => seen.get(fp) === 1));
     if (Object.keys(proofs).length === 0) continue;
-    const read = await readOts(e.ots, e.root, CARRIED_FILE_CHARS);
-    const tsts = await checkedTokens(e.tsts, hexBytes(e.root), pins);
+    const read = await readOts(e.ots, e.root, CARRIED_FILE_CHARS).catch(() => null);
+    const tsts = await checkedTokens(e.tsts, hexBytes(e.root), pins).catch(() => []);
     out.push({
       kind: 'batch',
       batchId: e.batchId,
@@ -571,20 +674,37 @@ const checkedRecords = async (
   const out = new Map<string, CarriedRecord>();
   for (const [fp, list] of raw.slice(0, MAX_SECTION_ITEMS)) {
     if (!isString(fp) || !here.has(fp) || out.has(fp)) continue;
-    const instant = await checkedTokens(list, hexBytes(fp), pins);
+    const instant = await checkedTokens(list, hexBytes(fp), pins).catch(() => []);
     if (instant.length) out.set(fp, { kind: 'record', fp, instant });
   }
   return [...out.values()];
 };
 
-/** The sections a file brings: its own part (what the registry gave the browser that made it), then each section it carried. */
-const sectionsOf = async (
+/** A part's raw items split by kind, checked; never throws: what can't be read is left out. */
+const checkedPart = async (
+  rawBatches: readonly { batchId: unknown; root: unknown; proofs: unknown; ots?: unknown; tsts?: unknown }[],
+  rawRecords: readonly [unknown, unknown][],
+  here: ReadonlySet<string>,
+  pins: readonly TsaPin[],
+): Promise<CarriedPart> => ({
+  items: [
+    ...(await checkedBatches(rawBatches, here, pins).catch(() => [])),
+    ...(await checkedRecords(rawRecords, here, pins).catch(() => [])),
+  ],
+});
+
+/**
+ * The parts a file brings: its own (what the registry gave the browser that made it), then each
+ * part of each section it carried. They become ONE section: one file takes one place, however
+ * many sections it carries (review 5).
+ */
+const partsOf = async (
   file: Record<string, unknown> | undefined,
   fileProofs: unknown,
   here: ReadonlySet<string>,
   pins: readonly TsaPin[],
-): Promise<CarriedItem[][]> => {
-  const out: CarriedItem[][] = [];
+): Promise<CarriedPart[]> => {
+  const out: CarriedPart[] = [];
   // Its own part: its proofs, grouped by batch, with its batches' files where the root matches.
   const groups = new Map<string, { batchId: string; root: string; proofs: Record<string, unknown> }>();
   for (const [fp, p] of Object.entries(isObject(fileProofs) ? fileProofs : {})) {
@@ -602,10 +722,16 @@ const sectionsOf = async (
   const ownRecords = Object.entries(file && isObject(file.records) ? file.records : {}).map(
     ([fp, r]) => [fp, isObject(r) ? r.instant : undefined] as [unknown, unknown],
   );
-  out.push([...(await checkedBatches(ownBatches, here, pins)), ...(await checkedRecords(ownRecords, here, pins))]);
-  // Each section it carried, checked the same way, still one section each.
-  for (const sec of (Array.isArray(file?.carried) ? (file.carried as unknown[]) : []).slice(0, MAX_SECTIONS * 4)) {
-    const items = isObject(sec) && Array.isArray(sec.items) ? (sec.items as unknown[]) : [];
+  out.push(await checkedPart(ownBatches, ownRecords, here, pins));
+  // Each part of each section it carried (a section as an earlier version wrote it, `items`, is one part).
+  const rawParts: unknown[] = [];
+  for (const sec of (Array.isArray(file?.carried) ? (file.carried as unknown[]) : []).slice(0, MAX_PARTS)) {
+    if (!isObject(sec)) continue;
+    if (Array.isArray(sec.parts)) rawParts.push(...(sec.parts as unknown[]));
+    else if (Array.isArray(sec.items)) rawParts.push({ items: sec.items });
+  }
+  for (const part of rawParts.slice(0, MAX_PARTS - 1)) {
+    const items = isObject(part) && Array.isArray(part.items) ? (part.items as unknown[]) : [];
     const rawBatches = items.filter(
       (i): i is Record<string, unknown> & { batchId: unknown; root: unknown; proofs: unknown } =>
         isObject(i) && i.kind === 'batch',
@@ -613,9 +739,9 @@ const sectionsOf = async (
     const rawRecords = items
       .filter((i): i is Record<string, unknown> => isObject(i) && i.kind === 'record')
       .map((i) => [i.fp, i.instant] as [unknown, unknown]);
-    out.push([...(await checkedBatches(rawBatches, here, pins)), ...(await checkedRecords(rawRecords, here, pins))]);
+    out.push(await checkedPart(rawBatches, rawRecords, here, pins));
   }
-  return out.filter((items) => items.length > 0);
+  return out.filter((p) => p.items.length > 0);
 };
 
 /** Whether everything in a section is already in the registry's part here: then it adds nothing. */
@@ -637,32 +763,37 @@ const rootsFor = (s: Store, fp: string): Set<string> => {
   const p = s.own.proofs[fp];
   if (p) out.add(batchKey(p.batchId, p.root));
   for (const sec of s.sections)
-    for (const it of sec.items) if (it.kind === 'batch' && it.proofs[fp]) out.add(batchKey(it.batchId, it.root));
+    for (const it of itemsOf(sec)) if (it.kind === 'batch' && it.proofs[fp]) out.add(batchKey(it.batchId, it.root));
   return out;
 };
 
 export type StampsRestored = {
-  /** Sections this restore kept: new copies of what a file said, not confirmed by anyone. */
+  /** 1 when this file's section was kept: a copy of what it said, not confirmed by anyone. */
   readonly kept: number;
-  /** Sections already kept here (or adding nothing to what the registry gave): nothing changed. */
+  /** 1 when that section was already kept here (or adds nothing to what the registry gave). */
   readonly already: number;
-  /** Sections refused because the limit is reached: nothing kept was changed. */
+  /** 1 when it was refused because this browser keeps as many files' sections as it can. */
   readonly refused: number;
+  /** 1 when it was refused because this one file's section alone is bigger than the limit. */
+  readonly tooBig: number;
   /** Records here that kept sources give more than one batch or root for. */
   readonly disagree: number;
 };
 
 /**
- * Keep what a backup file carries as sealed sections, for the records here, each checked for form
- * first (see the top of this file). The registry's part is never touched; nothing kept is changed.
- * `fileProofs` is the file's `proofs`; `records` are the records this browser holds after the
- * restore; `pins` the timestamp authorities this site trusts (tests pass their own).
+ * Keep what a backup file carries as ONE sealed section, for the records here, each item checked
+ * for form first (see the top of this file). The registry's part is never touched; nothing kept
+ * is changed. `fileProofs` is the file's `proofs`; `records` are the records this browser holds
+ * after the restore; `pins` the timestamp authorities this site trusts (tests pass their own).
+ * Never throws: an item that can't be read is left out, and the rest stand.
  */
 export const restoreStamps = async (
   fromFile: unknown,
   fileProofs: unknown,
   records: readonly { readonly id: string; readonly recordFingerprint?: string }[],
   pins: readonly TsaPin[] = TSA_PINS,
+  /** For tests: smaller limits than the site's. */
+  limits: { readonly budget: number; readonly sections: number } = { budget: CARRIED_BUDGET, sections: MAX_SECTIONS },
 ): Promise<StampsRestored> => {
   const here = new Set<string>();
   const store = load();
@@ -672,28 +803,48 @@ export const restoreStamps = async (
     here.add(fp);
     store.own.ids[fp] ??= r.id;
   }
-  let kept = 0;
-  let already = 0;
-  let refused = 0;
-  if (here.size === 0) return { kept, already, refused, disagree: 0 };
+  const result = { kept: 0, already: 0, refused: 0, tooBig: 0, disagree: 0 };
+  if (here.size === 0) return result;
   const file = isObject(fromFile) && fromFile.format === STAMPS_FORMAT ? fromFile : undefined;
-  for (const items of await sectionsOf(file, fileProofs, here, pins)) {
-    const id = await sectionId(items);
-    if (store.sections.some((s) => s.id === id) || coveredByOwn(items, store.own)) {
-      already++;
-      continue;
+  try {
+    const parts = await partsOf(file, fileProofs, here, pins);
+    if (parts.length) {
+      const section = await sealSection(parts);
+      if (store.sections.some((x) => x.id === section.id) || coveredByOwn(itemsOf(section), store.own))
+        result.already = 1;
+      else if (sectionBytes([section]) > limits.budget) result.tooBig = 1;
+      else if (
+        store.sections.length + 1 > limits.sections ||
+        sectionBytes([...store.sections, section]) > limits.budget
+      )
+        result.refused = 1;
+      else {
+        store.sections = [...store.sections, section];
+        result.kept = 1;
+        save(store);
+      }
     }
-    const next = [...store.sections, { id, items }];
-    if (next.length > MAX_SECTIONS || sectionBytes(next) > CARRIED_BUDGET) {
-      refused++;
-      continue;
-    }
-    store.sections = next;
-    kept++;
+  } catch {
+    /* nothing of this file is kept; nothing kept is changed */
   }
-  if (kept) save(store);
-  const disagree = [...here].filter((fp) => rootsFor(store, fp).size > 1).length;
-  return { kept, already, refused, disagree };
+  result.disagree = [...here].filter((fp) => rootsFor(store, fp).size > 1).length;
+  return result;
+};
+
+/** How many sections this browser keeps from restored backup files. */
+export const carriedCount = (): number => load().sections.length;
+
+/**
+ * Clear the copies kept from restored backup files (the holder's choice, review 5): only the
+ * carried sections; the registry's part stays, and the holder's backup files are never touched.
+ */
+export const clearCarried = (): number => {
+  const store = load();
+  const n = store.sections.length;
+  if (n === 0) return 0;
+  store.sections = [];
+  save(store);
+  return n;
 };
 
 // ---- the evidence bundle with the registry out of reach -----------------------------------
@@ -767,15 +918,26 @@ export const keptEvidence = async (
   }
   const sections: CarriedEvidence[] = [];
   for (const sec of store.sections)
-    for (const it of sec.items) {
+    for (const it of itemsOf(sec)) {
       if (it.kind !== 'batch' || !it.proofs[fp]) continue;
-      const st = await checkProof(fp, it.proofs[fp]);
+      const st = await checkProof(fp, it.proofs[fp]).catch(() => ({ status: 'none' as const }));
       if (st.status === 'none' || !sameBatch(st.proof, it)) continue;
-      // The registry gave this root for this batch (for another record here): it is the registry's.
-      const ownB = store.own.batches[batchKey(it.batchId, it.root)];
-      if (Object.values(store.own.proofs).some((p) => sameBatch(p, it)))
-        return { confirmed: true, proof: st.proof, ...(await batchFacts(st.proof, ownB)) };
-      const read = it.ots ? await readOts(it.ots, it.root) : null;
+      // The registry gave this root for this batch (for another record here): only the path is
+      // the file's; the transaction, block, times and the rest are the registry's own (review 5).
+      const reg = Object.values(store.own.proofs).find((p) => sameBatch(p, it));
+      if (reg) {
+        const joined = await checkProof(fp, { ...reg, commitment: fp, path: st.proof.path }).catch(() => ({
+          status: 'none' as const,
+        }));
+        if (joined.status !== 'none')
+          return {
+            confirmed: true,
+            proof: joined.proof,
+            ...(await batchFacts(joined.proof, store.own.batches[batchKey(it.batchId, it.root)])),
+          };
+        continue;
+      }
+      const read = it.ots ? await readOts(it.ots, it.root).catch(() => null) : null;
       sections.push({
         section: sec.id,
         batchId: it.batchId,

@@ -70,7 +70,14 @@ The app's own code, in several pretend browsers against a stand-in registry:
   - a made-up root for a record whose batch the registry gave names the registry's root too,
     and the genuine file then counts as the registry's;
   - if the registry later gives another root for a sealed batch, the first root and its
-    finished Bitcoin stamp stay, the new answer is carried, and the backup page warns.
+    finished Bitcoin stamp stay, the new answer is carried, and the backup page warns;
+  - (review 5) one made-up file carrying eight sections takes one place, and the genuine file
+    still gets in; when the browser is full, clearing the copies lets the genuine file in, and
+    never touches the registry's part; the same evidence in another order, or with a token
+    twice, is already kept; a file's proof for a root the registry gave the batch brings only its
+    path, never a transaction or date; a null in a registry answer never takes the stamps out of
+    later backups; a null or junk in a file's proofs never drops the rest; a file too big alone
+    is refused with its own reason.
 - Kept stamps go only when their record is deleted on that browser, not when a record is missing
   from one backup.
 - A wrong password, no password, a cut-off file and a changed file are all refused, and nothing
@@ -105,7 +112,10 @@ a later section merged into an earlier one, the oldest section evicted when full
 sections, the same section stored twice, the bundle showing only the newest section, a record
 named under many batches in one section kept, a disagreement not reported, unpinned tokens
 taken, a registry root change overwriting the first, no pruning on delete, verify.html not
-reading the sections, and README not labelled. Each made at least one test fail.
+reading the sections, and README not labelled. After the fifth review, the same for its fixes:
+the file's proof taken whole for a registry batch, proofs not rebuilt from known fields, each
+carried section taking its own place, items not sorted, tokens not deduped, clearing doing
+nothing, and no too-big reason. Each made at least one test fail.
 
 ## What the drill found (26 Nov 2026)
 
@@ -122,8 +132,8 @@ Fixed in the same change:
 3. (Foundation review, 26 Nov.) **The Bitcoin stamp files and RFC 3161 tokens were not in the
    file.** With the registry and its backups gone, a holder kept only the Midnight date. The
    file now carries them (`stamps`). The browser keeps what the registry gave; what a restored
-   file brings is kept as one sealed section per file, checked for form, limited to 8 sections,
-   never merged or evicted, and labelled as not confirmed wherever it is used
+   file brings is kept as one sealed section per file, checked for form, limited to 8 sections
+   (the holder can clear them), never merged or evicted, and labelled as not confirmed wherever it is used
    (`src/veilcore/stamps.ts`). Your backup file on your own device is never changed by
    restoring; keep it — it's the lasting copy.
 

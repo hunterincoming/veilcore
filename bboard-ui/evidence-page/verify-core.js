@@ -741,6 +741,7 @@ var VeilcoreVerify = (function () {
       var x = secs[j];
       if (!isObject(x) || !isHex64(x.root)) continue;
       carried.push({
+        index: j,
         folder: typeof x.folder === 'string' ? x.folder : '',
         batchId: typeof x.batchId === 'string' ? x.batchId : '',
         root: x.root,
@@ -889,7 +890,7 @@ var VeilcoreVerify = (function () {
     var cs = out.lookups.carried;
     var raw = isObject(ev.registry) && Array.isArray(ev.registry.carried) ? ev.registry.carried : [];
     for (var ci = 0; ci < cs.length; ci++) {
-      var src = raw[ci] || {};
+      var src = raw[cs[ci].index] || {};
       var otsBytes = null;
       if (typeof src.ots === 'string') {
         try {

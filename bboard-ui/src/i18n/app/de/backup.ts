@@ -176,7 +176,15 @@ export const backup = {
   'app.backup.stampsDisagree':
     'Ihre Sicherungsdateien sind sich uneinig, wann einige Ihrer Datensätze datiert wurden ({n}). Prüfen Sie diese Daten auf Midnight, bevor Sie sich darauf verlassen: Die technischen Details des Datensatzes sagen, wie.',
   'app.backup.stampsRefused':
-    'Dieser Browser bewahrt bereits die Datumsnachweise so vieler Sicherungsdateien auf, wie er kann, daher wurden die dieser Datei nicht hinzugefügt. Nichts bereits Aufbewahrte wurde geändert. Bewahren Sie Ihre Sicherungsdateien sicher auf: Jede enthält weiterhin ihre eigenen.',
+    'Dieser Browser bewahrt bereits Kopien der Datumsnachweise so vieler Sicherungsdateien auf, wie er kann, daher wurden die dieser Datei nicht aufbewahrt. Bis Sie die Kopien aus anderen Dateien löschen, enthalten die hier heruntergeladenen Datumsnachweise und spätere Sicherungen von hier die dieser Datei nicht. Nichts bereits Aufbewahrte wurde geändert, und Ihre Sicherungsdateien sind unverändert.',
+  'app.backup.stampsTooBig':
+    'Die Datumsnachweise dieser Sicherungsdatei sind zu groß, als dass dieser Browser eine Kopie aufbewahren könnte. Nichts bereits Aufbewahrte wurde geändert. Die Datei selbst enthält sie alle: Bewahren Sie sie sicher auf.',
+  'app.carried.clear': 'Kopien aus Sicherungsdateien löschen',
+  'app.carried.confirmTitle': 'Kopien aus Sicherungsdateien löschen?',
+  'app.carried.confirmText':
+    'Das entfernt nur die Kopien der Datumsnachweise, die dieser Browser aus wiederhergestellten Sicherungsdateien aufbewahrt hat. Was der Server von VeilCore diesem Browser gegeben hat, bleibt. Ihre Sicherungsdateien auf Ihrem Gerät sind unverändert, und Sie können die richtige erneut wiederherstellen.',
+  'app.carried.confirm': 'Löschen',
+  'app.carried.cleared': 'Gelöscht. Ihre Sicherungsdateien auf Ihrem Gerät sind unverändert.',
   'app.backup.fileIsLasting':
     'Ihre Sicherungsdatei auf Ihrem eigenen Gerät wird durch das Wiederherstellen nie verändert; bewahren Sie sie auf – sie ist die dauerhafte Kopie.',
   'app.backup.rootChanged':

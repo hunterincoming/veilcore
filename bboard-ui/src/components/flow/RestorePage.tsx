@@ -47,6 +47,7 @@ import type { AppKey } from '../../i18n/app/en';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { CODE_FONT } from '../../config/theme';
+import { ClearCarriedCopies } from '../ClearCarriedCopies';
 
 /** "2 lab deliveries and 1 lab code": what else the file brought back, or '' for nothing. */
 export const labWork = (r: RestoreResult, tr: Translator = enT): string => {
@@ -270,7 +271,16 @@ export const RestorePage: React.FC = () => {
               {/* The limit of copies kept from backup files is reached (stamps.ts MAX_SECTIONS). */}
               {!!done.stampSections?.refused && (
                 <Alert severity="warning" variant="outlined" data-restore-stamps-refused="">
-                  {t('app.backup.stampsRefused')}
+                  <Stack spacing={1}>
+                    <span>{t('app.backup.stampsRefused')}</span>
+                    <ClearCarriedCopies always />
+                  </Stack>
+                </Alert>
+              )}
+              {/* This one file's date proofs alone are bigger than this browser keeps a copy of. */}
+              {!!done.stampSections?.tooBig && (
+                <Alert severity="warning" variant="outlined" data-restore-stamps-too-big="">
+                  {t('app.backup.stampsTooBig')}
                 </Alert>
               )}
               {!fromAccount && (

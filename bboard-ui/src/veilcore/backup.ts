@@ -702,7 +702,13 @@ export type RestoreResult = {
    * What became of the file's date proofs (stamps.ts): copies kept as they came (never counted as
    * put back: nobody has confirmed them), already kept, or refused because the limit is reached.
    */
-  readonly stampSections?: { readonly kept: number; readonly already: number; readonly refused: number };
+  readonly stampSections?: {
+    readonly kept: number;
+    readonly already: number;
+    readonly refused: number;
+    /** This one file's date proofs are bigger than this browser keeps a copy of. */
+    readonly tooBig: number;
+  };
   /** Records whose kept sources give more than one batch or root (the page says so). */
   readonly stampsDisagree?: number;
   /** The records the file carried (recordData): what was put back, or why none were. */
@@ -860,16 +866,17 @@ export const restoreAny = async (file: File, password?: string, opts: RestoreOpt
   } catch {
     /* a record's evidence that can't be checked here stays out; the rest of the restore stands */
   }
-  // The files that check each record's dates on Bitcoin and with a TSA, and its inclusion proof:
-  // carried on this browser apart from what the registry gives (stamps.ts), so nothing the holder
-  // had is lost and an evidence bundle can still be made, labelled, with the registry gone.
+  // The file's date proofs (Bitcoin files, TSA tokens, inclusion proofs): kept on this browser
+  // as one sealed copy of what this file said, apart from what the registry gives (stamps.ts),
+  // so an evidence bundle can still be made, labelled, with the registry gone. The file itself is
+  // never changed: it stays the lasting copy.
   let stampSections: RestoreResult['stampSections'];
   let stampsDisagree = 0;
   try {
     if (v.stamps !== undefined || v.proofs !== undefined) {
       const got = await (await import('./stamps')).restoreStamps(v.stamps, v.proofs, allRecords());
-      if (got.kept || got.already || got.refused)
-        stampSections = { kept: got.kept, already: got.already, refused: got.refused };
+      if (got.kept || got.already || got.refused || got.tooBig)
+        stampSections = { kept: got.kept, already: got.already, refused: got.refused, tooBig: got.tooBig };
       stampsDisagree = got.disagree;
     }
   } catch {

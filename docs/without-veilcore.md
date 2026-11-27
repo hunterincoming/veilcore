@@ -77,20 +77,29 @@ the code stands for. Now the file also carries:
   `stamps.batches`/`stamps.records`. Proof codes are public, so anyone can make a file that puts
   your records under a batch root of their own: so what a restored backup file brings never
   goes there.
-- **One sealed section per restored file.** Each restored file's date proofs are kept as one
-  section, exactly as they passed the checks below, named by the SHA-256 of their canonical
-  bytes. Sections are never merged, edited, upgraded or evicted: a later file can't change or
-  remove an earlier one. Restoring a file whose section is already kept changes nothing. Every
-  later backup file carries every section as it is (`stamps.carried`). At most 8 sections and
-  512 KB (compressed) are kept; past that, a new file's section is refused, the restore page
-  says so, and nothing already kept changes (your backup files still hold theirs).
+- **One sealed section per restored file.** Each restored file's date proofs (its own, and
+  every section it carried from earlier files) are kept together as ONE section, exactly as
+  they passed the checks below, each proof rebuilt from its known fields only, in a fixed order,
+  and named by the SHA-256 of their canonical bytes: the same evidence in another order is
+  recognised as already kept. One file takes one place, however many sections it carries.
+  Sections are never merged, edited, upgraded or evicted: a later file can't change or remove an
+  earlier one. Every later backup file carries every section as it is (`stamps.carried`). At
+  most 8 sections and 512 KB (compressed) are kept. Past that, a new file's section is refused,
+  nothing already kept changes, and the restore page says so and offers **Clear copies from
+  backup files** (also in the evidence bundle dialog under Technical details): it removes only
+  these copies, never what our registry gave, after asking, and your backup files are
+  unchanged, so you can restore the right one again. A single file whose date proofs alone are
+  bigger than the limit is refused with its own message.
 - **What is checked about a section.** Only its form, so junk stays out: each proof must lead
   from one of your records to the root it names (one batch per record per section), a Bitcoin
   file must start from SHA-256 of that root, a token must verify against what it stamps and be
   signed by a timestamp authority the site pins, within that certificate's dates, and each file
   or token is at most 16 KB, four tokens per item.
 - **When it is used.** Only for an evidence bundle when our registry can't be reached and it has
-  no answer of its own for the record. The bundle then carries *every* section that covers the
+  no answer of its own for the record. One case counts as the registry's: a section's proof that
+  leads to a root our registry gave the same batch (for another of your records). Then only the
+  path is taken from the file; the transaction, block, times and the rest come from the
+  registry's own proof for that batch. The bundle then carries *every* section that covers the
   record, each in its own folder (`proof/backup-file-*`) with all its files (the proof, the
   root, the Bitcoin file, the tokens, the Midnight check), none ranked first. Every page says
   so: README.txt, EXAMINER-SUMMARY.html, evidence.json and verify.html (which reads

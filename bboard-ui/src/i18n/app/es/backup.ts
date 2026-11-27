@@ -171,7 +171,15 @@ export const backup = {
   'app.backup.stampsDisagree':
     'Sus archivos de copia de seguridad no coinciden en cuándo se fecharon algunos de sus registros ({n}). Antes de fiarse de esas fechas, compruébelas en Midnight: los detalles técnicos del registro explican cómo.',
   'app.backup.stampsRefused':
-    'Este navegador ya guarda las pruebas de fecha de tantos archivos de copia de seguridad como puede, así que no se agregaron las de este archivo. No se cambió nada de lo ya guardado. Guarde bien sus archivos de copia de seguridad: cada uno sigue teniendo las suyas.',
+    'Este navegador ya guarda copias de las pruebas de fecha de tantos archivos de copia de seguridad como puede, así que no se guardaron las de este archivo. Hasta que borre las copias de otros archivos, las pruebas de fecha que descargue aquí y las copias de seguridad que haga aquí no tendrán las de este archivo. No se cambió nada de lo ya guardado, y sus archivos de copia de seguridad siguen igual.',
+  'app.backup.stampsTooBig':
+    'Las pruebas de fecha de este archivo de copia de seguridad son demasiado grandes para que este navegador guarde una copia. No se cambió nada de lo ya guardado. El archivo mismo las sigue teniendo todas: guárdelo bien.',
+  'app.carried.clear': 'Borrar las copias de archivos de copia de seguridad',
+  'app.carried.confirmTitle': '¿Borrar las copias de archivos de copia de seguridad?',
+  'app.carried.confirmText':
+    'Esto quita solo las copias de pruebas de fecha que este navegador guardó de archivos de copia de seguridad que restauró. Lo que el servidor de VeilCore le dio a este navegador se queda. Sus archivos de copia de seguridad en su dispositivo siguen igual, y puede volver a restaurar el correcto.',
+  'app.carried.confirm': 'Borrarlas',
+  'app.carried.cleared': 'Borradas. Sus archivos de copia de seguridad en su dispositivo siguen igual.',
   'app.backup.fileIsLasting':
     'Restaurar nunca cambia su archivo de copia de seguridad en su propio dispositivo; consérvelo: es la copia duradera.',
   'app.backup.rootChanged':

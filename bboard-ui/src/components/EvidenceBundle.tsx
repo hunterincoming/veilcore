@@ -28,6 +28,7 @@ import { InEnglishNote, useRecordT } from '../i18n/app';
 import { isDocument } from '../veilcore/document-profile';
 import { bitcoinStampFor } from '../veilcore/proofs';
 import { recordProof } from './verify/useAnchorCheck';
+import { ClearCarriedCopies } from './ClearCarriedCopies';
 
 /** The button's English (app.plant.bundle.download): the landing page names it. */
 export const DOWNLOAD_EVIDENCE_LABEL = 'Download evidence bundle';
@@ -220,6 +221,8 @@ export const EvidenceBundle: React.FC<{
                 {t('app.plant.bundle.downloaded', { name: done })}
               </Alert>
             )}
+            {/* Copies kept from restored backup files (stamps.ts): the holder can clear them here. */}
+            <ClearCarriedCopies />
           </Stack>
         </DialogContent>
         <DialogActions>

@@ -166,7 +166,15 @@ export const backup = {
   'app.backup.stampsDisagree':
     'Your backup files disagree about when some of your records were dated ({n}). Before you rely on those dates, check them on Midnight: the record’s Technical details say how.',
   'app.backup.stampsRefused':
-    'This browser already keeps the date proofs of as many backup files as it can, so this file’s weren’t added. Nothing already kept was changed. Keep your backup files safe: each one still holds its own.',
+    'This browser already keeps copies of as many backup files’ date proofs as it can, so this file’s weren’t kept. Until you clear the copies from other files, the date proofs you download here and later backups made here won’t hold this file’s. Nothing already kept was changed, and your backup files are unchanged.',
+  'app.backup.stampsTooBig':
+    'This backup file’s date proofs are too big for this browser to keep a copy of. Nothing already kept was changed. The file itself still holds them all: keep it safe.',
+  'app.carried.clear': 'Clear copies from backup files',
+  'app.carried.confirmTitle': 'Clear copies from backup files?',
+  'app.carried.confirmText':
+    'This removes only the copies of date proofs this browser kept from backup files you restored. What VeilCore’s server gave this browser stays. Your backup files on your device are unchanged, and you can restore the right one again.',
+  'app.carried.confirm': 'Clear them',
+  'app.carried.cleared': 'Cleared. Your backup files on your device are unchanged.',
   'app.backup.fileIsLasting':
     'Your backup file on your own device is never changed by restoring; keep it — it’s the lasting copy.',
   'app.backup.rootChanged':
