@@ -2,7 +2,7 @@
 // to one level, the level's words name it in every language, and "Not verified" can't read as
 // a verified level.
 // SPDX-License-Identifier: Apache-2.0
-import { beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { generateKeypair } from 'veilcore-records';
 import {
   LAB_IDENTITY_LEVELS,
@@ -233,15 +233,23 @@ describe('the words, in every language', () => {
       expect(who(att({ domainWithdrawn: gone() }))).toContain('acmelabs.example');
       expect(who(att())).not.toContain('acmelabs.example');
       expect(who(att({ nameCheck: check() }))).toBe('Acme Labs');
-      // History titles follow the level.
+      // History titles follow the level. strengthLabel judges by the real clock (a website check
+      // counts for 7 days), so the clock is set to NOW: without it this test started failing on
+      // 27 Nov 2026 at 03:00 UTC, 7 days after LOOKED, with nothing in the code changed.
       const label = (a: ResolvedAttestation) => strengthLabel(a, tr).label;
-      expect(
-        new Set(
-          [att(), att({ domainCheck: listed() }), att({ nameCheck: check() }), att({ domainWithdrawn: gone() })].map(
-            label,
-          ),
-        ).size,
-      ).toBe(4);
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(NOW);
+      try {
+        expect(
+          new Set(
+            [att(), att({ domainCheck: listed() }), att({ nameCheck: check() }), att({ domainWithdrawn: gone() })].map(
+              label,
+            ),
+          ).size,
+        ).toBe(4);
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it(`${lang}: what it means says VeilCore checks who signed, not the result`, () => {
