@@ -92,7 +92,7 @@ test('a check page answers in one line first; the checks are one tap away', asyn
   await expect(page.locator('[data-who-vouches]')).toBeVisible();
   await expect(page.getByText(/Checked in this browser: this proof code is in batch/)).toBeVisible();
   // And a record of your own, at the bottom.
-  await expect(page.locator('[data-make-your-own]')).toContainText('Want a date like this for your own plants or animals?');
+  await expect(page.locator('[data-make-your-own]')).toContainText('Want a date like this for your own records?');
   await expect(page.locator('[data-make-your-own]').getByRole('link', { name: 'Make a record, free' })).toHaveAttribute(
     'href',
     '/new',

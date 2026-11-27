@@ -19,6 +19,7 @@ import {
   fileTxConflicts,
   registryOtherWords,
   otherRootLine,
+  keptCopy,
   type Evidence,
   type SignatureLine,
 } from './bundle';
@@ -228,7 +229,7 @@ export const declarationText = async (
     }
     if (ots) {
       add(
-        `   The batch root was also stamped on Bitcoin with OpenTimestamps (proof/root.bin.ots). When the bundle was made, the registry reported the stamp as ${ots.status === 'bitcoin' ? `in Bitcoin block ${isNumber(ots.bitcoinBlockHeight) ? ots.bitcoinBlockHeight : '[not given]'}` : 'pending, not yet in a Bitcoin block'}. [Result of checking it, if done: ___]`,
+        `   The batch root was also stamped on Bitcoin with OpenTimestamps (proof/root.bin.ots). ${keptCopy(ev) ? 'When my browser kept it (at its last backup), the registry had reported' : 'When the bundle was made, the registry reported'} the stamp as ${ots.status === 'bitcoin' ? `in Bitcoin block ${isNumber(ots.bitcoinBlockHeight) ? ots.bitcoinBlockHeight : '[not given]'}` : 'pending, not yet in a Bitcoin block'}. [Result of checking it, if done: ___]`,
       );
     }
     add('');
@@ -267,7 +268,7 @@ export const declarationText = async (
       );
     for (const l of fileTxConflicts(ev))
       add(
-        `   My backup file names ${l.length} Midnight transactions for batch root ${t(l[0].root)} (${l.map((c) => `${t(c.folder)}: transaction ${t(String(fileRootAnchor(c)?.txHash))}`).join('; ')}). VeilCore's registry gave ${l.length === 2 ? 'both' : 'all of them'} for this one batch root, which an honest registry never does. Each is listed above with what I found when I looked it up.`,
+        `   My backup file names ${l.length} Midnight transactions for batch root ${t(l[0].root)} (${l.map((c) => `${t(c.folder)}: transaction ${t(String(fileRootAnchor(c)?.txHash))} on ${t(networkWords(fileRootAnchor(c)?.network))}`).join('; ')}). VeilCore's registry gave ${l.length === 2 ? 'both' : 'all of them'} for this one batch root, which an honest registry never does. Each is listed above with what I found when I looked it up.`,
       );
     add('');
   } else {
@@ -282,7 +283,9 @@ export const declarationText = async (
         ? "The website made the files from my browser's copy of the record and from my backup file, read in my browser; it did not get the batch roots, proofs or stamps from VeilCore's registry. It checked"
         : ev.registry.source === 'this-device'
           ? "VeilCore's registry could not be reached, so the website made the files from my browser's copy of the record and from what VeilCore's registry had returned to that browser before, kept there. It checked"
-          : "The website made the files from my browser's copy of the record and from what VeilCore's registry returned. It checked"
+          : ev.registry.registryRoot
+            ? "VeilCore's registry now gives another batch root (section 3), so the website made the files from my browser's copy of the record and from what VeilCore's registry had returned to that browser before, kept there, with the lab signatures and first-seen time the registry returned now. It checked"
+            : "The website made the files from my browser's copy of the record and from what VeilCore's registry returned. It checked"
     } that the record's proof code matches its contents before making them.`,
   );
   if (ev.labReport?.fileIncluded)

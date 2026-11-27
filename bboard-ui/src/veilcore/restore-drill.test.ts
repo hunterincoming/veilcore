@@ -2247,6 +2247,90 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
       [r2, THIRD.txHash, 'preview'],
     ]);
   });
+
+  // ---- review 13 of PR #233, polish ---------------------------------------------------------
+  /** Each page's words, quotes and spaces made plain. */
+  const flat = (p: string) => p.replace(/’/g, "'").replace(/\s+/g, ' ');
+
+  it('a bundle from the kept copy says the stamp status is from when the browser kept it, not when the bundle was made (review 13, polish 1 and 2)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    serveFolded(MAINNET); // R1/A, its Bitcoin stamp still pending
+    await backUp(A);
+    const online = await pagesOf((await bundleOf(A, made.plant)).file);
+    expect(flat(online.readme)).toContain('the stamp as pending, not yet in a Bitcoin block when the bundle was made.');
+    expect(flat(online.declaration)).toContain('When the bundle was made, the registry reported the stamp as pending');
+    expect(flat(online.declaration)).toContain("from what VeilCore's registry returned. It checked");
+    expect(flat(online.examiner)).not.toContain('kept it (at its last backup)');
+    await serveOtherRoot(fp, '31', OTHER_TX); // the registry gives R2/B now: built on the kept R1/A
+    const other = await bundleOf(A, made.plant);
+    expect(other.ev.registry.registryRoot).toBeDefined();
+    w.goDown();
+    const device = await bundleOf(A, made.plant);
+    expect(device.ev.registry.source).toBe('this-device');
+    for (const [name, got] of [
+      ['other root', other],
+      ['this device', device],
+    ] as const) {
+      const p = await pagesOf(got.file);
+      expect(flat(p.readme), name).toContain(
+        "the stamp as pending, not yet in a Bitcoin block when the holder's browser kept it (at its last backup).",
+      );
+      expect(flat(p.declaration), name).toContain(
+        'When my browser kept it (at its last backup), the registry had reported the stamp as pending',
+      );
+      expect(flat(p.examiner), name).toContain(
+        "Status the registry reported when the holder's browser kept it (at its last backup)",
+      );
+      for (const [f, v] of Object.entries(p)) expect(flat(v), `${name} ${f}`).not.toMatch(/stamp as [^.]* when the bundle was made/);
+      // Declaration line 4 says the files come from the kept copy (polish 2).
+      expect(flat(p.declaration), name).toContain(
+        "from what VeilCore's registry had returned to that browser before, kept there",
+      );
+      expect(flat(p.declaration), name).not.toContain("from what VeilCore's registry returned. It checked");
+    }
+    // verify.html, before the stamp file is read, says the same.
+    const { VeilcoreVerify } = await import('../../evidence-page/verify-core.js');
+    const lk = (VeilcoreVerify as unknown as { lookups: (ev: unknown, c: unknown) => { keptCopy: boolean } }).lookups;
+    expect(lk(other.ev, null).keptCopy).toBe(true);
+    expect(lk(device.ev, null).keptCopy).toBe(true);
+    expect(lk({ ...other.ev, registry: { ...other.ev.registry, registryRoot: undefined, source: 'evidence-route' } }, null).keptCopy).toBe(false);
+  });
+
+  it('the same transaction hash on the main network and on Preview for one root gets the two-transactions box on every page (review 13, polish 3)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    const THIRD = { ...MAINNET, txHash: '3c'.repeat(32), blockHeight: 13000, anchoredAt: '2027-04-01T12:00:00.000Z' };
+    w.upgrade();
+    serveFolded(MAINNET); // R1/A: kept
+    await backUp(A);
+    const r2 = await serveOtherRoot(fp, '11', THIRD); // R2/C on the main network
+    await backUp(A);
+    await serveOtherRoot(fp, '11', { ...PREV_TX, txHash: THIRD.txHash }); // R2/C on Preview
+    const text = await backUp(A);
+    w.goDown();
+    const { b: N } = await restoreInto('r13-p3', text);
+    const got = (await bundleFromFile(N, made.plant, text))!;
+    dumpTo('r13-polish-3', got.file);
+    const p = await pagesOf(got.file);
+    expect(flat(p.readme)).toContain(`MORE THAN ONE TRANSACTION: VeilCore's registry gave two different date records`);
+    expect(flat(p.readme)).toContain(`Batch root ${r2}:`);
+    expect(flat(p.readme)).toContain(`transaction ${THIRD.txHash} on Midnight's main network`);
+    expect(flat(p.readme)).toContain(`transaction ${THIRD.txHash} on Midnight Preview (a test network)`);
+    expect(textOf(got.file('EXAMINER-SUMMARY.html'))).toContain('data-two-transactions="yes"');
+    expect(flat(p.declaration)).toContain(
+      `My backup file names 2 Midnight transactions for batch root ${r2} (`,
+    );
+    expect(flat(p.declaration)).toContain(`transaction ${THIRD.txHash} on Midnight Preview (a test network))`);
+    expect(p.verify).toContain('Two different date records for one batch root');
+    expect(p.verify).toContain(`for batch root ${r2}`);
+  });
 });
 
 // ---- every storage name: in the backup, or not needed after a restore ---------------------

@@ -34,6 +34,7 @@ import { bindingForSecret, isHex64, KEY_BOUND_ALGORITHM } from '../key-binding';
 import { dnaBindingOf } from '../dna-link';
 import { LAB_SALT_PARAM, isBoundLabDocument, labLinkParams, signsReport } from '../lab-doc';
 import { checkProof } from '../proofs';
+import { txKey } from '../stamps';
 import { holderKeyIfAny } from '../holder';
 import { isDemoLabKey } from '../demo-lab';
 import { custodyView } from '../custody';
@@ -942,7 +943,9 @@ export const fileTxConflicts = (ev: Evidence): FileRootFacts[][] => {
     const k = `${c.batchId} ${c.root}`;
     by.set(k, [...(by.get(k) ?? []), c]);
   }
-  return [...by.values()].filter((l) => new Set(l.map((c) => String(fileRootAnchor(c)!.txHash))).size > 1);
+  // Two transactions are two by chain, network and hash (stamps.ts txKey, rule B's identity): the
+  // same hash on the main network and on Preview is two (review 13 of PR #233, polish 3).
+  return [...by.values()].filter((l) => new Set(l.map((c) => txKey(fileRootAnchor(c)!))).size > 1);
 };
 
 /**
@@ -958,6 +961,17 @@ export const fileTxConflictLines = (ev: Evidence): string[] =>
       return `- ${c.folder}: transaction ${String(a.txHash)} on ${networkWords(a.network)}${c.otherTransaction ? ', given later' : ', given first'}.`;
     }),
   ]);
+
+/**
+ * The bundle's batch files are the copy kept in the holder's browser (refreshed at each backup),
+ * not the registry's answer now: with the registry out of reach, or when it gives another root now
+ * (review 13 of PR #233, polish 1).
+ */
+export const keptCopy = (ev: Evidence): boolean => ev.registry.source === 'this-device' || !!ev.registry.registryRoot;
+
+/** When the stamp's status was reported: when the bundle was made, or when the browser kept its copy. */
+export const stampReportedWhen = (ev: Evidence, whose: string): string =>
+  keptCopy(ev) ? `when ${whose} browser kept it (at its last backup)` : 'when the bundle was made';
 
 /** "transaction … on Midnight's main network", or "no Midnight transaction" for none. */
 const txWords = (a: Record<string, unknown> | null): string =>
@@ -1685,7 +1699,7 @@ export const readmeText = (
       L.push(`   ${String.fromCharCode(97 + i)}. ${step}`),
     );
     L.push(
-      `   ${ev.registry.source === 'backup-file' ? "The holder's backup file says" : "VeilCore's registry reported"} the stamp as ${reported} when the bundle was made. verify.html reads the stamp file itself and says what it shows.`,
+      `   ${ev.registry.source === 'backup-file' ? "The holder's backup file says" : "VeilCore's registry reported"} the stamp as ${reported} ${stampReportedWhen(ev, "the holder's")}. verify.html reads the stamp file itself and says what it shows.`,
     );
     if (bitcoin.headersFile === BITCOIN_HEADERS_FILE)
       L.push(

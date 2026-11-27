@@ -647,7 +647,7 @@ return canonicalise;
           shows = 'The stamp file is not about this batch root: ' + st.reason + '. It dates nothing here.';
         } else {
           shows = (st ? 'This page couldn’t read the stamp file (' + st.reason + '). ' : 'This page hasn’t read the stamp file: choose proof/root.bin.ots below to read it. ') +
-            (L.fromBackupFile ? 'The holder’s backup file says the stamp is ' : 'VeilCore’s registry reported the stamp as ') + (b.status === 'bitcoin' ? 'in Bitcoin block ' + (b.bitcoinBlockHeight || '(not given)') : 'pending, not yet in a Bitcoin block') + ' when the bundle was made.';
+            (L.fromBackupFile ? 'The holder’s backup file says the stamp is ' : 'VeilCore’s registry reported the stamp as ') + (b.status === 'bitcoin' ? 'in Bitcoin block ' + (b.bitcoinBlockHeight || '(not given)') : 'pending, not yet in a Bitcoin block') + (L.keptCopy ? ' when the holder’s browser kept it (at its last backup).' : ' when the bundle was made.');
         }
         if (st && (st.status === 'bitcoin' || st.status === 'pending') && b.status === 'bitcoin' && b.bitcoinBlockHeight &&
             !(st.bitcoin || []).some(function (x) { return x.height === b.bitcoinBlockHeight; })) {

@@ -53,6 +53,28 @@ describe("a strain record's words", () => {
       }
   });
 
+  it("the check page's footer asks about the reader's own records, not plants or animals (PR #239 review 4)", () => {
+    // It shows on every kind's check page, a strain's too.
+    const KIND: Record<string, RegExp> = {
+      en: /plant|animal/i,
+      ja: /植物|動物/,
+      es: /planta|animal/i,
+      de: /pflanze|tier/i,
+      fr: /plante|animau|animal/i,
+    };
+    const RECORDS: Record<string, RegExp> = {
+      en: /records/,
+      ja: /記録/,
+      es: /registros/,
+      de: /Datensätze/,
+      fr: /enregistrements/,
+    };
+    for (const [lang, dict] of Object.entries(DICTS)) {
+      expect(dict['app.verify.cta'], lang).not.toMatch(KIND[lang]);
+      expect(dict['app.verify.cta'], lang).toMatch(RECORDS[lang]);
+    }
+  });
+
   it('forKind picks the strain sentence where there is one', () => {
     const s = forKind(enT, 'strain');
     expect(s.t('app.plant.tie.tied')).toBe('Tied to the strain');

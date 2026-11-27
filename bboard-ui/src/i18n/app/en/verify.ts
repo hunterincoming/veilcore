@@ -146,7 +146,7 @@ export const verify = {
   'app.verify.verdict.nothing': 'Nothing about this record can be checked: it has no proof code.',
   'app.verify.checks.see': 'See the checks',
   'app.verify.checks.hide': 'Hide the checks',
-  'app.verify.cta': 'Want a date like this for your own plants or animals?',
+  'app.verify.cta': 'Want a date like this for your own records?',
   'app.verify.ctaButton': 'Make a record, free',
   'app.verify.notFoundAsk': 'Ask the person who sent it to send the link again.',
   'app.verify.another.label': 'Another record ID or check link',

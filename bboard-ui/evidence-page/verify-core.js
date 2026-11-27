@@ -800,7 +800,8 @@ var VeilcoreVerify = (function () {
     for (var u = 0; u < txOrder.length; u++) {
       var group = txByRoot[txOrder[u]];
       var seen = {};
-      for (var v = 0; v < group.length; v++) seen[group[v].midnight.txHash] = true;
+      // By chain, network and hash (stamps.ts txKey): the same hash on two networks is two.
+      for (var v = 0; v < group.length; v++) seen[JSON.stringify([group[v].midnight.chain, group[v].midnight.network, group[v].midnight.txHash])] = true;
       if (Object.keys(seen).length > 1) twoTx.push({ root: group[0].root, folders: group });
     }
     var distinct = {};
@@ -813,6 +814,9 @@ var VeilcoreVerify = (function () {
       // the holder's backup file says it, not confirmed with VeilCore's registry or Midnight.
       source: source,
       fromBackupFile: fromFile,
+      // The batch files are the copy kept in the holder's browser at its last backup, not the
+      // registry's answer when the bundle was made (bundle.ts keptCopy).
+      keptCopy: source === 'this-device' || (!fromFile && registryRoot(registry) !== null),
       fileRoots: fileRoots,
       registryRoots: registryRoots,
       // More than one root from the backup file (and the registry's).

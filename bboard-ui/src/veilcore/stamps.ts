@@ -428,7 +428,7 @@ const anchorsOf = (p: InclusionProof): unknown[] | undefined => {
 };
 
 /** A Midnight transaction's identity: its chain, network and hash ('' for none). */
-const txKey = (a: Record<string, unknown> | undefined): string =>
+export const txKey = (a: Record<string, unknown> | undefined): string =>
   a ? JSON.stringify([a.chain, a.network, a.txHash]) : '';
 /**
  * The same transaction: chain, network and transaction hash alike. The contract and block the

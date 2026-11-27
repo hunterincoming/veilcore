@@ -22,6 +22,7 @@ import {
   fileTxConflictLines,
   inFolder,
   keptAnchorLine,
+  keptCopy,
   otherRootLine,
   type Evidence,
   type FileRootFacts,
@@ -490,7 +491,11 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   const bitcoinRows: [string, string | null][] = ots
     ? [
         [
-          fromFile ? 'Status the holder’s backup file gives' : 'Status the registry reported',
+          fromFile
+            ? 'Status the holder’s backup file gives'
+            : keptCopy(ev)
+              ? 'Status the registry reported when the holder’s browser kept it (at its last backup)'
+              : 'Status the registry reported',
           ots.status === 'bitcoin'
             ? `In Bitcoin block ${isNumber(ots.bitcoinBlockHeight) ? ots.bitcoinBlockHeight : '(not given)'}`
             : 'Pending: not yet in a Bitcoin block',
