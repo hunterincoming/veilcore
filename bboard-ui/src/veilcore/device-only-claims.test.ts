@@ -311,7 +311,8 @@ describe('proving from a document kept on this device only', () => {
 });
 
 describe('claim links', () => {
-  const base = { contract: 'c1'.repeat(32), txId: 'beef', record: 'ab'.repeat(32), slot: 0 } as const;
+  // A transaction named by its hash, as every link names it (tx-hash-rule.ts).
+  const base = { contract: 'c1'.repeat(32), txId: 'be'.repeat(32), record: 'ab'.repeat(32), slot: 0 } as const;
   it('a link made before, for the potency form, still reads exactly', () => {
     const potency: MadeClaim = {
       ...base,

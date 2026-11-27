@@ -201,6 +201,8 @@ export const document = {
   'app.doc.verdict.datedOtherFile': 'Daté du {date}, mais le fichier choisi n’est pas celui qui a été scellé.',
   'app.claim.check.intro':
     'Quelqu’un vous a envoyé ce lien pour montrer un fait tiré d’un document scellé, sans montrer ses chiffres ni le document. Cette page lit la preuve sur Midnight et la vérifie.',
+  'app.claim.check.oldLink':
+    'Ce lien de preuve désigne sa transaction comme le faisait une ancienne version du site : il ne peut donc pas être vérifié. Demandez un nouveau lien à l’expéditeur.',
   'app.claim.check.bad': 'Ce lien est illisible. Redemandez-le.',
   'app.claim.check.checking': 'Lecture de la preuve sur Midnight…',
   'app.claim.check.okWhen': 'Prouvé sur Midnight dans le bloc {block}{date}.',

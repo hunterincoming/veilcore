@@ -198,6 +198,8 @@ export const document = {
   'app.doc.verdict.datedOtherFile': '{date}に日付が付いていますが、選んだファイルは封印されたものではありません。',
   'app.claim.check.intro':
     '封印された文書についての事実を1つ、数値や文書を見せずに示すため、このリンクが送られてきました。このページはMidnight上のクレームを読み取り、確認します。',
+  'app.claim.check.oldLink':
+    'このクレームのリンクは、古いバージョンのサイトの方式でトランザクションを示しているため、確認できません。送信者に新しいリンクを依頼してください。',
   'app.claim.check.bad': 'このリンクは読み取れません。もう一度送ってもらってください。',
   'app.claim.check.checking': 'Midnight上のクレームを読み取っています…',
   'app.claim.check.okWhen': 'Midnight上のブロック{block}{date}で証明されました。',

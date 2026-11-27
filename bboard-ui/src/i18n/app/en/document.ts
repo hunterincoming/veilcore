@@ -200,6 +200,8 @@ export const document = {
   'app.doc.verdict.datedOtherFile': 'Dated {date}, but the file you chose isn’t the one sealed.',
   'app.claim.check.intro':
     'Someone sent you this link to show one fact from a sealed document, without showing its numbers or the document. This page reads the claim from Midnight and checks it.',
+  'app.claim.check.oldLink':
+    'This claim link names its transaction the way an older version of the site did, so it can’t be checked. Ask the sender for a new link.',
   'app.claim.check.bad': 'This link can’t be read. Ask for it again.',
   'app.claim.check.checking': 'Reading the claim from Midnight…',
   'app.claim.check.okWhen': 'Proved on Midnight in block {block}{date}.',

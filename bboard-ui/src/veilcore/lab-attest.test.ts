@@ -235,7 +235,9 @@ describe('on the claims contract', () => {
     expect(bad({ txId: 'zz', attester: 'aa'.repeat(64) })).toBeUndefined();
     expect(bad({ txId: 'ab', attester: 'aa' })).toBeUndefined();
     expect(bad(null)).toBeUndefined();
-    expect(bad({ txId: 'ab', attester: 'aa'.repeat(64) })).toBeDefined();
+    // The lab's transaction by its hash only (tx-hash-rule.ts): a short id is refused like any bad part.
+    expect(bad({ txId: 'ab', attester: 'aa'.repeat(64) })).toBeUndefined();
+    expect(bad({ txId: 'ab'.repeat(32), attester: 'aa'.repeat(64) })).toBeDefined();
     // A claim on a slot the schema doesn't name is not a claim this page can describe.
     const link: MadeClaim = {
       kind: 'range',

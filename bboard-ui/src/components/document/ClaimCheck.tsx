@@ -20,7 +20,13 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Alert, Box, CircularProgress, Container, Paper, Stack, Typography } from '@mui/material';
-import { anchoredFingerprintOf, claimsOf, readClaimLink, type ClaimVerdict } from '../../veilcore/claim-link';
+import {
+  anchoredFingerprintOf,
+  claimsOf,
+  isOldClaimLink,
+  readClaimLink,
+  type ClaimVerdict,
+} from '../../veilcore/claim-link';
 import { isMarkerSchema, joinedPlacement, markerSourceKey, offerOf } from '../../veilcore/marker-claims';
 import { DatedNotOrigin } from '../verify/DatedNotOrigin';
 import { CheckVerdict, CheckYourself, MakeYourOwn } from '../verify/CheckParts';
@@ -174,8 +180,10 @@ const OneClaimCheck: React.FC = () => {
         {/* A number in a document: no plant or animal to be older than the date. */}
         <DatedNotOrigin kind="document" />
         {!link ? (
-          <Alert severity="error" variant="outlined" data-claim-link="bad">
-            {t('app.claim.check.bad')}
+          // Refused before anything is asked: a link that names its transaction by anything but its
+          // hash (tx-hash-rule.ts) is invalid, never "couldn't read"; an older one says so.
+          <Alert severity="error" variant="outlined" data-claim-link={isOldClaimLink(hash) ? 'old' : 'bad'}>
+            {t(isOldClaimLink(hash) ? 'app.claim.check.oldLink' : 'app.claim.check.bad')}
           </Alert>
         ) : viabilityOff ? (
           <ViabilityNotRead />

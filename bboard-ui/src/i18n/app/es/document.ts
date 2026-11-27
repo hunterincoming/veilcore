@@ -199,6 +199,8 @@ export const document = {
   'app.doc.verdict.datedOtherFile': 'Fechado el {date}, pero el archivo que eligió no es el que se selló.',
   'app.claim.check.intro':
     'Alguien le envió este enlace para mostrar un hecho de un documento sellado, sin mostrar sus números ni el documento. Esta página lee la afirmación en Midnight y la comprueba.',
+  'app.claim.check.oldLink':
+    'Este enlace de afirmación nombra su transacción como lo hacía una versión anterior del sitio, así que no se puede comprobar. Pida al remitente un enlace nuevo.',
   'app.claim.check.bad': 'Este enlace no se puede leer. Pídalo de nuevo.',
   'app.claim.check.checking': 'Leyendo la afirmación en Midnight…',
   'app.claim.check.okWhen': 'Probado en Midnight en el bloque {block}{date}.',

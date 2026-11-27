@@ -202,6 +202,8 @@ export const document = {
   'app.doc.verdict.datedOtherFile': 'Datiert am {date}, aber die gewählte Datei ist nicht die versiegelte.',
   'app.claim.check.intro':
     'Jemand hat Ihnen diesen Link geschickt, um eine Tatsache aus einem versiegelten Dokument zu zeigen, ohne seine Zahlen oder das Dokument zu zeigen. Diese Seite liest den Beleg auf Midnight und prüft ihn.',
+  'app.claim.check.oldLink':
+    'Dieser Beleg-Link nennt seine Transaktion so, wie es eine ältere Version der Website tat, und lässt sich daher nicht prüfen. Bitten Sie den Absender um einen neuen Link.',
   'app.claim.check.bad': 'Dieser Link ist nicht lesbar. Bitten Sie erneut darum.',
   'app.claim.check.checking': 'Der Beleg wird auf Midnight gelesen…',
   'app.claim.check.okWhen': 'Auf Midnight belegt in Block {block}{date}.',

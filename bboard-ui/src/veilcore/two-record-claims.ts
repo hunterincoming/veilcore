@@ -23,6 +23,7 @@ import { base64urlnopad } from '@scure/base';
 import { fieldSchemaId, type FieldSchema } from '../../../contract/src/field-schema';
 import type { Claim } from '../../../contract/src/verify-claims';
 import { SCHEMAS, type HeldFieldSet } from './field-set';
+import { isTxHash } from './tx-hash-rule';
 import { DISTINCT_SCHEMAS } from './marker-claims';
 import { CLAIM_CHECK_PATH } from './claim-link';
 import { keyBoundFingerprint } from './key-binding';
@@ -190,7 +191,6 @@ export const pairCandidates = <R extends PairRecord>(record: R, all: readonly R[
 // ---- the link: /check-claim#p=<base64url of {"v":1,...}> -------------------------------------
 
 const HEX64 = /^[0-9a-f]{64}$/;
-const TXID = /^[0-9a-f]{2,256}$/;
 
 /** Only what a link carries: never this browser's record ids. */
 const linkPart = (c: TwoClaim): TwoClaim => ({
@@ -234,7 +234,8 @@ export const readTwoClaimLink = (hash: string): TwoClaim | undefined => {
   const record = str('record');
   const other = str('other');
   const schema = str('schema');
-  if (!kind || !contract || !HEX64.test(contract) || !txId || !TXID.test(txId)) return undefined;
+  // The transaction by its hash only (tx-hash-rule.ts): anything else is refused here, never asked about.
+  if (!kind || !contract || !HEX64.test(contract) || !isTxHash(txId)) return undefined;
   if (!record || !HEX64.test(record) || !other || !HEX64.test(other) || record === other) return undefined;
   // Only a form this site offers these claims on: its words are the only ones the page can say.
   if (!schema || !twoRecordFormOffered(schema)) return undefined;

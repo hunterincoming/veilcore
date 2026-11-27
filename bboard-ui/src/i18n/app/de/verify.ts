@@ -55,7 +55,7 @@ export const verify = {
     'Auf Midnight nicht bestätigt: {reason}. Verlassen Sie sich nicht auf das Datum, das das Register meldet.',
   'app.verify.anchor.dateNotChecked': 'Das Datum ist {date}; hier nicht geprüft.',
   'app.verify.anchor.oneIndexer':
-    'Nur einer der zwei Midnight-Indexer konnte es bestätigen, und beide müssen es. {date}',
+    'Nur einer der zwei Midnight-Indexer konnte es bestätigen, aber beide müssen es bestätigen. {date}',
   'app.verify.anchor.unreadable':
     'Das Datum ließ sich gerade nicht von Midnight lesen. Verlassen Sie sich nicht auf dieses Datum, bevor es bestätigt ist. {date}',
   'app.verify.anchor.notYet':

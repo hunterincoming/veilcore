@@ -121,3 +121,24 @@ for (const [state, verdict, footer] of [
     await expect(page.locator('[data-claim-check]')).toContainText(footer);
     expectNoErrors(errors);
   });
+
+// PR #231, second review: a link that names its transaction by anything but its 64-hex hash is
+// refused before anything is asked, with the cross, never the amber "couldn't read"; an older
+// link with the 66-hex identifier says to ask for a new one.
+for (const [what, txId, attr, words] of [
+  ['an id the indexer can’t parse', 'ab', 'bad', 'This link can’t be read. Ask for it again.'],
+  [
+    'an older link’s 66-hex identifier',
+    'ab'.repeat(33),
+    'old',
+    'This claim link names its transaction the way an older version of the site did, so it can’t be checked. Ask the sender for a new link.',
+  ],
+] as const)
+  test(`a claim link with ${what}: refused as invalid, never amber`, async ({ page }) => {
+    const errors = watch(page);
+    await open(page, 'checking', { txId });
+    await expect(page.locator(`[data-claim-link="${attr}"]`)).toHaveText(words);
+    await expect(page.locator('[data-claim-verdict="unreadable"]')).toHaveCount(0);
+    await expect(page.locator('[data-verdict]').first()).toHaveAttribute('data-verdict', 'fail');
+    expectNoErrors(errors);
+  });

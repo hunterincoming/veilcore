@@ -24,7 +24,19 @@ const REFUSALS: readonly RegExp[] = [
   // What the state holds, read, and refused: never accepted, so never "try again".
   /^The contract's maintenance committee holds a key that is not a Schnorr key; refused\./,
   /^Those cells hold no claim/,
+  /^An attested claim with no laboratory key/,
+  // The state checks' own refusals (api/src/state-check.ts ContractStateMismatchError).
+  /^Refused: /,
 ];
+
+/**
+ * The indexer itself says the id can't be any transaction (midnight-indexer `transactions(offset:)`:
+ * a hash that isn't 32 bytes, an identifier that isn't hex). Never "couldn't reach": it answered.
+ */
+const NOT_A_TX = /^The indexer refused the query: invalid transaction (hash|identifier)/i;
+
+/** The indexer answered but wouldn't run the look-up: up, so not "couldn't reach" once its tip is current. */
+const QUERY_REFUSED = /^The indexer refused the query/;
 
 /** The second indexer's own answer, inside the look-up's "does not confirm" (presentation-lookup.ts lookUp). */
 const SECOND = /^The second indexer does not confirm that transaction \((.*)\)\. Refused\.$/s;
@@ -38,6 +50,9 @@ const UNREACHABLE: readonly RegExp[] = [
 
 const messageOf = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 
+/** What a check says for an id the indexer can't parse (app.err.chain.notTx). */
+const NOT_A_TX_WORDS = 'That is not a transaction id.';
+
 /** What kind of failure a look-up's error is. Anything not known to be a verdict is "couldn't read". */
 export const lookupFailureOf = (e: unknown): LookupFailure => {
   const msg = messageOf(e);
@@ -46,7 +61,8 @@ export const lookupFailureOf = (e: unknown): LookupFailure => {
   // Anything else from it (no answer, behind, couldn't decode) is "couldn't confirm".
   const second = SECOND.exec(msg);
   if (second) return lookupFailureOf(new Error(second[1])) === 'refused' ? 'refused' : 'unreachable';
-  if (REFUSALS.some((r) => r.test(msg))) return 'refused';
+  if (REFUSALS.some((r) => r.test(msg)) || NOT_A_TX.test(msg) || name === 'ContractStateMismatchError')
+    return 'refused';
   if (/^No such transaction\b/.test(msg)) return 'not-yet';
   if (name === 'AbortError' || name === 'TimeoutError' || UNREACHABLE.some((r) => r.test(msg))) return 'unreachable';
   return 'unreadable';
@@ -59,6 +75,7 @@ export const lookupFailureOf = (e: unknown): LookupFailure => {
  */
 export const lookupWords = (e: unknown): string => {
   const kind = lookupFailureOf(e);
+  if (NOT_A_TX.test(messageOf(e))) return NOT_A_TX_WORDS;
   if (kind === 'refused' || kind === 'not-yet') return messageOf(e);
   return kind === 'unreachable'
     ? 'could not reach the Midnight network’s indexer; try again in a few minutes'
@@ -105,13 +122,17 @@ export const linkReadFailure = async (
   tip: () => Promise<IndexerTip>,
   now: number,
 ): Promise<{ refused: true; reason: string } | { refused: false; reason: string }> => {
-  const reason = messageOf(e);
+  const msg = messageOf(e);
+  if (NOT_A_TX.test(msg)) return { refused: true, reason: NOT_A_TX_WORDS };
   const kind = lookupFailureOf(e);
-  if (kind === 'refused') return { refused: true, reason };
+  if (kind === 'refused') return { refused: true, reason: msg };
+  // Not found, or an indexer that answered but wouldn't run the look-up: judged by its own latest
+  // block and the clock (missingFromChain), never left amber on the link's word. A link's time is
+  // read in milliseconds, as the site writes it; one small enough to be seconds is read as seconds.
   if (
-    kind === 'not-yet' &&
-    missingFromChain(await tip(), { height: claimed.blockHeight, time: claimed.blockTime }, now)
+    (kind === 'not-yet' || QUERY_REFUSED.test(msg)) &&
+    missingFromChain(await tip(), { height: claimed.blockHeight, time: blockTimeMs(claimed.blockTime) }, now)
   )
     return { refused: true, reason: 'Midnight has no such transaction.' };
-  return { refused: false, reason };
+  return { refused: false, reason: msg };
 };
