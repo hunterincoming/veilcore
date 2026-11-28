@@ -1067,7 +1067,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
       await ctx.close();
     }
     const { buildBatch } = await import('veilcore-records');
-    const { proofs } = await buildBatch([FP, 'c'.repeat(64)], 'real');
+    const { proofs } = await buildBatch([FP, 'c'.repeat(64)], 'B-20261015-4EA1');
     const { ctx, pg } = await page((u) =>
       u.startsWith('/verify/')
         ? {
@@ -1088,7 +1088,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     });
     await openChecks(pg);
     const text = await pg.evaluate(() => document.body.innerText);
-    expect(text).toMatch(/Checked in this browser: this proof code is in batch real/);
+    expect(text).toMatch(/Checked in this browser: this proof code is in batch B-20261015-4EA1/);
     expect(text).toMatch(/This page has not looked it up/);
     // The seal stays grey: the inclusion proof only reaches the registry's own batch root,
     // and this page checks no anchor on chain (VerifyPage, ANCHOR_CHECKED_ON_CHAIN).
@@ -1101,7 +1101,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
 
   it('verify page: a holder-typed name loses check marks, emoji and bidi controls, and is capped; odd ids and fp values are not echoed', async () => {
     const { buildBatch } = await import('veilcore-records');
-    const { proofs } = await buildBatch([FP, 'c'.repeat(64)], 'real');
+    const { proofs } = await buildBatch([FP, 'c'.repeat(64)], 'B-20261015-4EA1');
     const typed = `\u2705 Verified\u202e by USDA \u2714\ufe0f\u{1F389} ${'x'.repeat(200)}`;
     const { ctx, pg, errors } = await page((u) =>
       u.startsWith('/verify/')
@@ -1176,7 +1176,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
   const lyingRegistry = async () => {
     const { buildBatch, generateKeypair, signAttestation } = await import('veilcore-records');
     const X = 'd'.repeat(64);
-    const { proofs } = await buildBatch([X, 'e'.repeat(64)], 'genuine-x');
+    const { proofs } = await buildBatch([X, 'e'.repeat(64)], 'B-20261015-6E01');
     const lab = await generateKeypair();
     const att = await signAttestation(
       {
@@ -1277,7 +1277,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     await pg.waitForSelector('text=signature checked in this browser', { timeout: 15_000 });
     const text = await pg.evaluate(() => document.body.innerText);
     expect(text).toMatch(/Borrowed Name/); // the page still opens
-    expect(text).toMatch(/For the proof code the registry reports: it is in batch genuine-x/);
+    expect(text).toMatch(/For the proof code the registry reports: it is in batch B-20261015-6E01/);
     expect(text).toMatch(
       /For the proof code the registry reports: Lab report \(file SHA-256 eeeeeeee…eeeeee\), signature checked in this browser\. Signed by Real Lab\.\s+Verified against cannabis\.example\.gov — VeilCore’s operator matched the name “Real Lab” to this public listing \(license TL-1\) on \d{4}-\d{2}-\d{2}, and the lab confirmed the key from an email address at the lab’s domain\. The match counts until \d{4}-\d{2}-\d{2}\. VeilCore doesn’t vouch for the lab’s work\./,
     );
@@ -1313,7 +1313,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
     await pg.waitForSelector('text=VeilCore doesn’t vouch for the lab’s work', { timeout: 15_000 });
     const text = await pg.evaluate(() => document.body.innerText);
     expect(text).toMatch(/This link was made for proof code dddd.*and the registry\s+reports the same proof code/s);
-    expect(text).toMatch(/Checked in this browser: this proof code is in batch genuine-x/);
+    expect(text).toMatch(/Checked in this browser: this proof code is in batch B-20261015-6E01/);
     expect(text).not.toMatch(/For the proof code the registry reports/);
     expect(text).toMatch(/The registry reports the lineage intact/);
     expect(text).toMatch(

@@ -40,7 +40,7 @@ const VARIETY = 'Line 7 selection (chain test)';
 const LOT_FILE = Buffer.from(`Harvest lot sheet (test data) ${Date.now()}\n`);
 const COA_FILE = Buffer.from(`Certificate of analysis (test data) ${Date.now()}\n`);
 const sha = (b: Buffer) => createHash('sha256').update(b).digest('hex');
-const BATCH = 'B-20261116-CHAIN';
+const BATCH = 'B-20261116-C4A1';
 
 /** The source record: a plant record this holder already has, as the registry keeps it (locked). */
 const sourceRow = (): Row & { holder: string } => {
