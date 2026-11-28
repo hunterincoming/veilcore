@@ -26,6 +26,7 @@
 import type { InclusionProof } from 'veilcore-records';
 import { verifyInclusion } from 'veilcore-records';
 import { isObject, isString, isBoolean, isNumber } from './json';
+import { batchIdOrNone } from './batch-id-rule';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 
@@ -83,7 +84,10 @@ export const checkProof = async (commitment: string, body: unknown): Promise<Pro
   // A registry claiming a record is included is not evidence; the path folding to the
   // root is.
   if (!(await verifyInclusion(body))) return { status: 'none' };
-  return body.anchor?.txHash ? { status: 'anchor-reported', proof: body } : { status: 'pending', proof: body };
+  // The batch id is the registry's label, not part of what folds: one not in the registry's
+  // form (batch-id-rule.ts) is kept as "" (not given), so no page ever prints it.
+  const proof = body.batchId === batchIdOrNone(body.batchId) ? body : { ...body, batchId: '' };
+  return proof.anchor?.txHash ? { status: 'anchor-reported', proof } : { status: 'pending', proof };
 };
 
 /** Fetch a record's inclusion proof, and check it here before anything is shown. */

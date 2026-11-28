@@ -42,7 +42,7 @@ test.skip(REAL_REGISTRY, 'this uses the stand-in registry');
 test.setTimeout(600_000);
 
 const PASSWORD = 'practice drill password';
-const BATCH_ID = 'B-20261126-E2E-DRILL';
+const BATCH_ID = 'B-20261126-E2ED';
 const STAMP_BLOCK = 870321;
 const SITE = `http://127.0.0.1:${process.env.E2E_PORT ?? 4317}`;
 const run = promisify(execFile);

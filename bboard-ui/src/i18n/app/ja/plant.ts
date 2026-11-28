@@ -296,6 +296,7 @@ export const plant = {
   'app.plant.date.inBatchNotAnchored':
     'このブラウザで確認しました：あなたの記録の証明コードはバッチ {batch} に入っていますが、そのバッチはまだアンカーされていません。アンカーされると、証明にトランザクションへの参照が加わります。あなたの記録は何も変わりません。',
   'app.plant.date.batchLine': 'バッチ {batch}',
+  'app.plant.date.batchNotGiven': '（記載なし）',
   'app.plant.date.rootLine': 'ルート {root}…',
   'app.plant.date.txChecked': 'トランザクション（Midnightで確認済み）{tx}',
   'app.plant.date.txReported': 'トランザクション（レジストリの報告）{tx}',

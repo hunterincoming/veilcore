@@ -13,6 +13,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { isNumber, isObject, isString } from '../json';
+import { batchIdWords } from '../batch-id-rule';
 import {
   fileDating,
   fileDatingNote,
@@ -403,7 +404,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     ...(ev.registry.fileRoots?.length
       ? [
           `From the holder’s backup file, not confirmed with VeilCore’s registry: ${ev.registry.fileRoots
-            .map((c) => `${c.folder} (batch ${oneLine(c.batchId)}, batch root ${c.root}${fileRootGiven(c)})`)
+            .map((c) => `${c.folder} (batch ${batchIdWords(c.batchId)}, batch root ${c.root}${fileRootGiven(c)})`)
             .join('; ')}.`,
           ...(fileRootsDisagree(ev) ? [`More than one root: ${DISAGREE_WORDS}`] : []),
           ...(ev.registry.registryRoots ?? []).map(
@@ -413,7 +414,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
       : []),
     `The record’s proof code was worked out again from the sealed fields below and matched${keyBound ? ' (with the record’s key binding folded in)' : ''}. The bundle can’t be made if it doesn’t.`,
     ev.proof && ev.batch
-      ? `The proof leads from the record’s proof code to the root of batch ${ev.batch.batchId}. The batch root is one code that stands for every record in the batch.`
+      ? `The proof leads from the record’s proof code to the root of batch ${batchIdWords(ev.batch.batchId)}. The batch root is one code that stands for every record in the batch.`
       : fileRoots.length
         ? `The proof in each folder from the holder’s backup file leads from the record’s proof code to the batch root that folder names (a proof that doesn’t is left out). The batch root is one code that stands for every record in the batch.`
         : 'The record is not in a batch yet, so there is no proof and nothing to look up.',
@@ -461,9 +462,9 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     ['Content hash (SHA-256 of the sealed fields)', ev.record.contentHash],
     [
       'Batch',
-      ev.batch?.batchId ??
+      (ev.batch ? batchIdWords(ev.batch.batchId) : null) ??
         (fileRoots.length
-          ? `${[...new Set(fileRoots.map((c) => oneLine(c.batchId)))].join(', ')} (${said})`
+          ? `${[...new Set(fileRoots.map((c) => batchIdWords(c.batchId)))].join(', ')} (${said})`
           : 'not in a batch yet'),
     ],
     ['Batch root', ev.batch?.root ?? (fileRoots.length ? [...new Set(fileRoots.map((c) => c.root))].join(', ') : null)],
@@ -529,7 +530,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     const a = fileRootAnchor(c);
     const rows: [string, string | null][] = [
       ['Folder', c.folder],
-      ['Batch', oneLine(c.batchId)],
+      ['Batch', batchIdWords(c.batchId)],
       ['Batch root', c.root],
       [
         'Given',

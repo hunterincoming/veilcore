@@ -58,7 +58,7 @@ test('a document link: not ready until dated, opens in the holder’s language, 
 
     const fp = decodeURIComponent(url.pathname.split('/').pop() ?? '');
     if (stage === 'none') return json(route, 404, { error: 'not in a batch yet' });
-    const batch = await buildBatch([fp], 'B-20261118-INSP');
+    const batch = await buildBatch([fp], 'B-20261118-1259');
     if (stage === 'pending') return json(route, 200, batch.proofs[fp]);
     const anchor = {
       chain: 'midnight',

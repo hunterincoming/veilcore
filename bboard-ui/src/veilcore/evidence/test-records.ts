@@ -100,7 +100,7 @@ export const practiceBatch = async (
 ): Promise<{ root: string; batchId: string; proofs: Record<string, InclusionProof> }> => {
   const b = await buildBatch(
     records.map((r) => r.recordFingerprint),
-    'B-20261015-TEST',
+    'B-20261015-7E57',
     '2026-10-15T12:00:00Z',
   );
   return { root: b.root, batchId: b.batchId, proofs: b.proofs };

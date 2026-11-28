@@ -38,20 +38,20 @@ describe('the chip', () => {
 
 describe('the paragraph', () => {
   it('without an indexer to ask: says this page has not looked the transaction up', () => {
-    const t = reportedText('B-1', 'mainnet', false, false);
+    const t = reportedText('B-20261015-0001', 'mainnet', false, false);
     expect(t).toMatch(/this page has not looked the transaction up, so it is not shown as anchored/);
     expect(t).not.toMatch(/test network/);
   });
   it('while or after looking: the registry’s report, with the result on its own line', () => {
-    const t = reportedText('B-1', 'preprod', true, false);
+    const t = reportedText('B-20261015-0001', 'preprod', true, false);
     expect(t).toMatch(/The registry reports that root was recorded on/);
     expect(t).not.toMatch(/has not looked/);
     expect(t).toMatch(/A test network can be reset/);
   });
   it('confirmed: no "the registry reports", and the test note comes once, from the line under it', () => {
-    const t = reportedText('B-1', 'preprod', true, true);
+    const t = reportedText('B-20261015-0001', 'preprod', true, true);
     expect(t).toBe(
-      "Checked in this browser: your record's proof code is in batch B-1, and the path from it folds to the batch root.",
+      "Checked in this browser: your record's proof code is in batch B-20261015-0001, and the path from it folds to the batch root.",
     );
     const line = anchorLine(OK, { network: 'preprod', bound: true });
     expect(line?.status).toBe('checked');

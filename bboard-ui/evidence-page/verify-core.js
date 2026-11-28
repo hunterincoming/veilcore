@@ -26,6 +26,28 @@ var VeilcoreVerify = (function () {
   function isHex64(v) {
     return typeof v === 'string' && HEX64.test(v);
   }
+  /**
+   * A registry batch id: B-, the UTC day sealed (YYYYMMDD), -, four uppercase hex characters, the
+   * one form the registry makes (the site's veilcore/batch-id-rule.ts; its tests check the two
+   * match). Anything else is junk, shown as not given and never printed: a broken registry or an
+   * edited file could put a sentence there.
+   */
+  var BATCH_ID = /^B-[0-9]{8}-[0-9A-F]{4}$/;
+  function batchIdOf(v) {
+    return typeof v === 'string' && BATCH_ID.test(v) ? v : null;
+  }
+  /**
+   * Text from the registry or a file, on one line: control and format characters (line breaks,
+   * tabs, direction marks such as U+202E that show the text after them reversed, zero-width
+   * characters) and line or paragraph separators become spaces. README.txt, the examiner summary,
+   * the declaration (the site's evidence/words.ts oneLine) and verify.html's own plain do the same.
+   */
+  function plain(v) {
+    return String(v).replace(/[\p{Cc}\p{Cf}\u2028\u2029]+/gu, ' ').replace(/ {2,}/g, ' ').trim();
+  }
+  function plainOrNull(v) {
+    return typeof v === 'string' ? plain(v) : null;
+  }
   function isObject(v) {
     return typeof v === 'object' && v !== null && !Array.isArray(v);
   }
@@ -161,9 +183,9 @@ var VeilcoreVerify = (function () {
       var folded = await foldProof(proof);
       if (!folded.ok) return { status: 'fail', reason: 'The proof does not check: ' + folded.reason + '.', computedRoot: folded.computedRoot };
       if (batchRoot !== undefined && batchRoot !== null && batchRoot !== proof.root) {
-        return { status: 'fail', reason: 'The proof leads to ' + proof.root + ', not to this bundle’s batch root ' + String(batchRoot) + '.', computedRoot: folded.computedRoot };
+        return { status: 'fail', reason: 'The proof leads to ' + proof.root + ', not to this bundle’s batch root ' + plain(batchRoot) + '.', computedRoot: folded.computedRoot };
       }
-      return { status: 'ok', root: proof.root, batchId: typeof proof.batchId === 'string' ? proof.batchId : null, depth: proof.path.length };
+      return { status: 'ok', root: proof.root, batchId: batchIdOf(proof.batchId), depth: proof.path.length };
     } catch (e) {
       return { status: 'fail', reason: 'The proof could not be checked: ' + messageOf(e) };
     }
@@ -694,14 +716,14 @@ var VeilcoreVerify = (function () {
     if (pinned && address) for (var i = 0; i < pinned.length; i++) if (pinned[i].address === address && pinned[i].kind === 'veilcore') entry = pinned[i];
     return {
       current: current,
-      chain: typeof a.chain === 'string' ? a.chain : 'midnight',
+      chain: typeof a.chain === 'string' ? plain(a.chain) : 'midnight',
       network: typeof a.network === 'string' ? a.network : 'unknown',
       testNetwork: a.network !== 'mainnet',
-      txHash: typeof a.txHash === 'string' ? a.txHash : null,
-      contractAddress: typeof a.contractAddress === 'string' ? a.contractAddress : null,
+      txHash: plainOrNull(a.txHash),
+      contractAddress: plainOrNull(a.contractAddress),
       blockHeight: typeof a.blockHeight === 'number' ? a.blockHeight : null,
       anchoredAt: typeof a.anchoredAt === 'string' ? a.anchoredAt : null,
-      replacedAt: typeof a.replacedAt === 'string' ? a.replacedAt : null,
+      replacedAt: plainOrNull(a.replacedAt),
       explorer: EXPLORERS[a.network] || null,
       root: root,
       // null: no list for this network (a local chain, Preview), or the bundle names no
@@ -740,7 +762,7 @@ var VeilcoreVerify = (function () {
   function otherBatchOf(o, root, batchId) {
     return {
       sameRoot: !!root && o.root === root,
-      id: typeof o.batchId === 'string' && o.batchId !== batchId ? o.batchId.replace(/\s+/g, ' ') : null,
+      id: batchIdOf(o.batchId) && o.batchId !== batchId ? o.batchId : null,
     };
   }
 
@@ -785,14 +807,14 @@ var VeilcoreVerify = (function () {
   function otherContract(registry, a) {
     var c = registry.nowContract;
     if (typeof c !== 'string' || !/^[0-9a-f]{64}$/.test(c) || !isObject(a) || typeof a.contractAddress !== 'string') return null;
-    return 'VeilCore’s registry now reports contract ' + c + ' for ' + txWords(a) + '; this bundle names contract ' + a.contractAddress + ', the one the registry reported first. The transaction itself shows which contract it called: go by that.';
+    return 'VeilCore’s registry now reports contract ' + c + ' for ' + txWords(a) + '; this bundle names contract ' + plain(a.contractAddress) + ', the one the registry reported first. The transaction itself shows which contract it called: go by that.';
   }
 
   function lookups(ev, contracts) {
     var batch = isObject(ev.batch) ? ev.batch : null;
     var proof = isObject(ev.proof) ? ev.proof : null;
     var root = batch && isHex64(batch.root) ? batch.root : proof && isHex64(proof.root) ? proof.root : null;
-    var batchId = batch && typeof batch.batchId === 'string' ? batch.batchId : proof && typeof proof.batchId === 'string' ? proof.batchId : null;
+    var batchId = (batch && batchIdOf(batch.batchId)) || (proof && batchIdOf(proof.batchId)) || null;
     var midnight = [];
     var registry = isObject(ev.registry) ? ev.registry : {};
     var source = typeof registry.source === 'string' ? registry.source : null;
@@ -821,8 +843,8 @@ var VeilcoreVerify = (function () {
       if (m) m.script = files.indexOf(folder + '/check-on-midnight.mjs') >= 0 ? folder + '/check-on-midnight.mjs' : false;
       fileRoots.push({
         index: j,
-        folder: folder,
-        batchId: typeof x.batchId === 'string' ? x.batchId : '',
+        folder: plain(folder),
+        batchId: batchIdOf(x.batchId) || '',
         root: x.root,
         files: files,
         // A root the registry gave later, after giving another for the same batch.
@@ -898,7 +920,7 @@ var VeilcoreVerify = (function () {
 
   var NETWORK_WORDS = { mainnet: 'Midnight’s main network', preprod: 'Midnight preprod (a test network)', preview: 'Midnight Preview (a test network)' };
   function networkWords(n) {
-    return NETWORK_WORDS[n] || 'the Midnight network “' + n + '”';
+    return NETWORK_WORDS[n] || 'the Midnight network “' + plain(n) + '”';
   }
 
   /**
@@ -943,7 +965,7 @@ var VeilcoreVerify = (function () {
     // written for its network (bundle.ts inFolder); otherwise the bundle's proof/ script.
     var script = a.script === false
       ? 'This bundle has no script that reads it for this network.'
-      : 'A technical person can run ' + (typeof a.script === 'string' ? a.script : 'proof/check-on-midnight.mjs') + ' (README.txt, “For technical readers”, says how): it asks a Midnight indexer directly, with no VeilCore server involved, though the code it runs is VeilCore’s published code.';
+      : 'A technical person can run ' + (typeof a.script === 'string' ? plain(a.script) : 'proof/check-on-midnight.mjs') + ' (README.txt, “For technical readers”, says how): it asks a Midnight indexer directly, with no VeilCore server involved, though the code it runs is VeilCore’s published code.';
     out.push('We haven’t confirmed that any Midnight explorer shows the batch root: it sits inside the contract’s state after the call, not in plain text. If yours doesn’t show it, we know of no way to see it without running a command. ' + script + ' This record’s check page on VeilCore’s site does the same look-up in your browser, but that page is VeilCore’s too.');
     out.push('If the transaction succeeded, called that contract and wrote that root, this record existed, unchanged, by that transaction’s time: whoever had it sealed held this record by then. If any of it doesn’t match, nothing here dates the record.');
     return out;

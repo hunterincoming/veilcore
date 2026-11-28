@@ -40,6 +40,7 @@ import { isDemoLabKey } from '../demo-lab';
 import { custodyView } from '../custody';
 import { receiptCovers, sentByMe, type SentTransfer } from '../transfers';
 import { isObject, isString, isNumber, readJson } from '../json';
+import { batchIdOrNone, batchIdWords, isBatchId } from '../batch-id-rule';
 import { PREPROD_PINNED, pinnedAt } from '../../../../api/src/pinned-contracts';
 import { DOCS, DOCS_COMMIT, DOCS_VERSION, REPO_VIEW } from '../docs';
 import { verifyPageHtml, SDK_VERSION } from './verify-page';
@@ -207,7 +208,8 @@ export const reconcile = async (
   let batch: BatchFacts | null = null;
   if (proof) {
     const b = isObject(raw.batch) ? raw.batch : null;
-    const sameBatch = !!b && b.batchId === proof.batchId && b.root === proof.root;
+    // The proof's batch id is "" when the registry's isn't in its form (checkProof): the batch's is held the same way.
+    const sameBatch = !!b && batchIdOrNone(b.batchId) === proof.batchId && b.root === proof.root;
     const ots = sameBatch && isObject(b.opentimestamps) ? b.opentimestamps : null;
     const proofOts = Array.isArray((proof as unknown as Record<string, unknown>).anchors)
       ? ((proof as unknown as Record<string, unknown>).anchors as unknown[]).find(
@@ -1036,7 +1038,7 @@ const otherBatchOf = (ev: Evidence, o: OtherBatch): { readonly sameRoot: boolean
   const batchId = ev.batch?.batchId ?? ev.proof?.batchId;
   return {
     sameRoot: !!root && o.root === root,
-    id: isString(o.batchId) && o.batchId !== batchId ? oneLine(o.batchId) : null,
+    id: isBatchId(o.batchId) && o.batchId !== batchId ? o.batchId : null,
   };
 };
 
@@ -1690,7 +1692,7 @@ export const readmeText = (
     );
     for (const c of fileRoots)
       L.push(
-        `- ${c.folder}: batch ${oneLine(c.batchId)}, batch root ${c.root}${fileRootGiven(c)}${c.opentimestamps.available ? `, a Bitcoin stamp file (${c.opentimestamps.status === 'bitcoin' ? `names block ${c.opentimestamps.bitcoinBlockHeight ?? '?'}` : 'pending'})` : ''}${c.tokens ? `, ${c.tokens} RFC 3161 token${c.tokens === 1 ? '' : 's'}` : ''}.`,
+        `- ${c.folder}: batch ${batchIdWords(c.batchId)}, batch root ${c.root}${fileRootGiven(c)}${c.opentimestamps.available ? `, a Bitcoin stamp file (${c.opentimestamps.status === 'bitcoin' ? `names block ${c.opentimestamps.bitcoinBlockHeight ?? '?'}` : 'pending'})` : ''}${c.tokens ? `, ${c.tokens} RFC 3161 token${c.tokens === 1 ? '' : 's'}` : ''}.`,
       );
     if (fileRootsDisagree(ev)) L.push(`MORE THAN ONE ROOT: ${DISAGREE_WORDS}`);
     const twoTx = fileTxConflictLines(ev);
@@ -1755,7 +1757,7 @@ export const readmeText = (
     midnightSteps(lookup).forEach((step, i) => L.push(`   ${String.fromCharCode(97 + i)}. ${step}`));
   } else if (ev.batch) {
     L.push(
-      `2. Date it: the batch (${ev.batch.batchId}) isn't recorded on Midnight yet. Download a new bundle once it is.`,
+      `2. Date it: the batch${isBatchId(ev.batch.batchId) ? ` (${ev.batch.batchId})` : ''} isn't recorded on Midnight yet. Download a new bundle once it is.`,
     );
   } else if (ev.registry.fileRoots?.length) {
     L.push(

@@ -133,7 +133,7 @@ const standIn = async (page: Page) => {
     'GET /records/:record/evidence': async (route, url) => {
       const r = held.records.find((x) => x.id === idOf(url));
       if (!r) return json(route, 404, { error: 'no such record for this holder key' });
-      const batch = await buildBatch([r.recordFingerprint], 'B-20261022-STRN');
+      const batch = await buildBatch([r.recordFingerprint], 'B-20261022-5761');
       const anchor = {
         chain: 'midnight',
         network: 'preprod',

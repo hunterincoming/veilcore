@@ -43,6 +43,7 @@ import { base64 } from '@scure/base';
 import { verifyTimestampToken, type InclusionProof } from 'veilcore-records';
 import { VeilcoreVerify } from '../../evidence-page/verify-core.js';
 import { checkProof } from './proofs';
+import { batchIdOrNone } from './batch-id-rule';
 import { isNumber, isObject, isString } from './json';
 import { wasForgotten } from './record-keys';
 import { TSA_PINS, withinPin } from './instant-stamp';
@@ -330,7 +331,8 @@ const keepable = (p: InclusionProof): InclusionProof => {
     ...(isString(r.formatVersion) && r.formatVersion.length < 32 ? { formatVersion: r.formatVersion } : {}),
     commitment: p.commitment,
     root: p.root,
-    batchId: p.batchId,
+    // Only in the registry's form (batch-id-rule.ts); "" (not given) otherwise.
+    batchId: batchIdOrNone(p.batchId),
     ...(isString(r.sealedAt) ? { sealedAt: r.sealedAt } : {}),
     path: p.path.map((x) => ({ sibling: x.sibling, siblingIsLeft: x.siblingIsLeft })),
     ...(anchor && anchorFormOk(anchor) ? { anchor } : {}),
@@ -414,8 +416,9 @@ const pruneDeleted = (o: Own): void => {
   for (const k of Object.keys(o.batches)) if (!used.has(k)) delete o.batches[k];
 };
 
+/** The same batch and root. A batch id not in the registry's form counts as "" (batch-id-rule.ts). */
 const sameBatch = (a: { batchId: string; root: string }, b: { batchId: string; root: string }): boolean =>
-  a.batchId === b.batchId && a.root === b.root;
+  batchIdOrNone(a.batchId) === batchIdOrNone(b.batchId) && a.root === b.root;
 
 const anchorOf = (p: InclusionProof): Record<string, unknown> | undefined => {
   const a: unknown = (p as unknown as Record<string, unknown>).anchor;
@@ -595,7 +598,7 @@ const refreshFromRegistry = async (own: Own, wanted: ReadonlySet<string>, proofs
     const tsts = await checkedTokens(fresh ? batchTokensOf(fresh) : [], hexBytes(p.root));
     if (tsts.length) b = { ...b, tsts: mergeTokens(b.tsts, tsts) };
     // The Bitcoin file: fetched until it is finished, and kept only when it starts from this root.
-    if (b.otsStatus !== 'bitcoin' && fresh && otsAnchor(fresh)) {
+    if (b.otsStatus !== 'bitcoin' && fresh && otsAnchor(fresh) && batchIdOrNone(p.batchId)) {
       const bytes = await getBytes(`${BASE}/batches/${encodeURIComponent(p.batchId)}/root.bin.ots`);
       const ots = bytes ? base64.encode(bytes) : undefined;
       const read = ots ? await readOts(ots, p.root) : null;
@@ -698,7 +701,8 @@ export const keptEvidence = async (
   if (!p) return null;
   const st = await checkProof(fp, p).catch(() => ({ status: 'none' as const }));
   if (st.status === 'none') return null;
-  return { proof: st.proof, ...(await batchFacts(st.proof, own.batches[batchKey(st.proof.batchId, st.proof.root)])) };
+  // Its files are kept under the id as it was stored (an older copy may hold one not in the form).
+  return { proof: st.proof, ...(await batchFacts(st.proof, own.batches[batchKey(p.batchId, p.root)])) };
 };
 
 /**
@@ -756,7 +760,7 @@ export const keptFirst = (
     .filter(
       (c) => !sameBatch(c, p) && !(!same && sameBatch(c, proof) && txKey(anchorOf(c)) === txKey(now ?? undefined)),
     )
-    .map((c) => ({ root: c.root, batchId: c.batchId, anchor: anchorOf(c) ?? null }));
+    .map((c) => ({ root: c.root, batchId: batchIdOrNone(c.batchId), anchor: anchorOf(c) ?? null }));
   const nowContract =
     same &&
     raw &&
@@ -876,7 +880,7 @@ export const evidenceFromFile = async (
     ...(roots.slice(0, i).some((e) => sameBatch(e, r)) ? { otherTransaction: true } : {}),
   }));
   const own = load();
-  const ids = new Set(roots.map((r) => r.batchId));
+  const ids = new Set(roots.map((r) => r.batchId).filter((id) => id !== ''));
   const given = new Set(roots.map((r) => r.root));
   const registryRoots = [
     ...new Set(

@@ -10,6 +10,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { isNumber, isString } from '../json';
+import { batchIdWords } from '../batch-id-rule';
 import {
   fileDating,
   fileDatingNote,
@@ -202,7 +203,7 @@ export const declarationText = async (
   add('');
   if (ev.batch) {
     add(
-      `3. How the record was dated. VeilCore's registry put the record's proof code in batch ${t(ev.batch.batchId)}. The batch root, one code that stands for every record in the batch, is:`,
+      `3. How the record was dated. VeilCore's registry put the record's proof code in batch ${batchIdWords(ev.batch.batchId)}. The batch root, one code that stands for every record in the batch, is:`,
       `   ${t(ev.batch.root)}`,
     );
     if (tx && anchor) {
@@ -246,7 +247,10 @@ export const declarationText = async (
     );
     for (const c of fileRoots) {
       const a = fileRootAnchor(c);
-      add(`   - ${t(c.folder)}: batch ${t(c.batchId)}${fileRootGiven(c)}. Its batch root is:`, `     ${t(c.root)}`);
+      add(
+        `   - ${t(c.folder)}: batch ${batchIdWords(c.batchId)}${fileRootGiven(c)}. Its batch root is:`,
+        `     ${t(c.root)}`,
+      );
       if (a)
         add(
           `     The backup file says this batch root was recorded on ${t(networkWords(a.network))}${isNumber(a.blockHeight) ? `, in block ${a.blockHeight}` : ''}${utcWords(a.anchoredAt) ? `, at ${utcWords(a.anchoredAt)}` : ''}, in transaction:`,
