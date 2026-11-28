@@ -33,6 +33,7 @@ import { reportedText, settlementChip } from './settlement-words';
 import { Fact } from './verify/DisclosedFacts';
 import { V2Caution } from './verify/V2Caution';
 import { CODE_FONT } from '../config/theme';
+import { batchIdWords } from '../veilcore/batch-id-rule';
 
 export const SettlementStatus: React.FC<{ record: StrainRecord }> = ({ record }) => {
   // The record's proof and its anchor looked up on Midnight: the same answer the plant
@@ -81,7 +82,9 @@ export const SettlementStatus: React.FC<{ record: StrainRecord }> = ({ record })
       <Typography variant="body2" color="text.secondary">
         {reported
           ? reportedText(proof.batchId, network, anchorText !== undefined, confirmed, tr)
-          : t('app.plant.date.inBatchNotAnchored', { batch: proof.batchId })}
+          : t('app.plant.date.inBatchNotAnchored', {
+              batch: batchIdWords(proof.batchId, t('app.plant.date.batchNotGiven')),
+            })}
       </Typography>
 
       {anchorText && (
@@ -94,7 +97,9 @@ export const SettlementStatus: React.FC<{ record: StrainRecord }> = ({ record })
       <V2Caution check={anchor} network={network} tr={tr} />
 
       <Box sx={{ fontFamily: CODE_FONT, fontSize: 12, color: 'text.secondary' }}>
-        <div>{t('app.plant.date.batchLine', { batch: proof.batchId })}</div>
+        <div>
+          {t('app.plant.date.batchLine', { batch: batchIdWords(proof.batchId, t('app.plant.date.batchNotGiven')) })}
+        </div>
         <div>{t('app.plant.date.rootLine', { root: proof.root.slice(0, 32) })}</div>
         {reported && proof.anchor?.txHash && (
           <div style={{ wordBreak: 'break-all' }}>

@@ -338,7 +338,10 @@ describe('a date from version 2 on mainnet always says it is for testing and not
   const BUNDLE =
     'VeilCore contract version 2 is deployed on mainnet for testing by VeilCore. It is not yet independently reviewed and not for your records.';
   const proofOn = (network: string) =>
-    ({ status: 'anchor-reported', proof: { batchId: 'B-1', root: v2.root, anchor: { network, txHash: TX } } }) as never;
+    ({
+      status: 'anchor-reported',
+      proof: { batchId: 'B-20261015-0001', root: v2.root, anchor: { network, txHash: TX } },
+    }) as never;
   const v2Checked = () => onMainnet(pinnedWithV2([SINGLE]), { address: V2, state: v2.stateHex }, v2.root);
   const v1Checked = () => onMainnet(pinnedWithV2([SINGLE]), { address: V1, state: V1_STATE }, v1Tx.root);
   /** The caution as each surface renders it: the check page and plant panel, the date row, the History and the authority pack. */
@@ -346,7 +349,7 @@ describe('a date from version 2 on mainnet always says it is for testing and not
     alert: renderToStaticMarkup(React.createElement(V2Caution, { check: r, network, tr })),
     row: recordDateRow(proofOn(network), r, tr).caution ?? '',
     mark: recordDateRow(proofOn(network), r, tr).mark,
-    history: anchorHistoryEvent(r, { network, txHash: TX, batchId: 'B-1' }, tr),
+    history: anchorHistoryEvent(r, { network, txHash: TX, batchId: 'B-20261015-0001' }, tr),
     pack: dateLines({ state: 'anchored', midnight: { network, check: r } } as never, tr).join(' '),
   });
 

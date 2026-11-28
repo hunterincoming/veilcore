@@ -124,7 +124,7 @@ const build = async (): Promise<Built> => {
   const others = await Promise.all([3, 4].map((n) => practiceRecord(n)));
   const batch = await buildBatch(
     [record.recordFingerprint, sdk.commitment, ...others.map((r) => r.recordFingerprint)],
-    'B-20261120-OFFL',
+    'B-20261120-0FF1',
     '2026-11-20T12:00:00Z',
   );
   const anchor = {

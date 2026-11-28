@@ -146,7 +146,7 @@ test('a pack for the authority in Spanish: the missing chromatography first, and
   // site and the stand-in registry, so no date is checked: the pack must say it is the registry's word.
   await page.route('**/proof/*', async (route) => {
     const fp = decodeURIComponent(new URL(route.request().url()).pathname.split('/').pop() ?? '');
-    const batch = await buildBatch([fp], 'B-20261118-PACK');
+    const batch = await buildBatch([fp], 'B-20261118-9ACC');
     const anchor = {
       chain: 'midnight',
       network: 'preview',

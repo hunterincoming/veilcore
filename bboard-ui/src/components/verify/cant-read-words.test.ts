@@ -55,7 +55,7 @@ const proof = {
   commitment: 'aa'.repeat(32),
   path: [],
   root: 'bb'.repeat(32),
-  batchId: 'b1',
+  batchId: 'B-20261015-00B1',
   sealedAt: AT,
   anchor: { chain: 'midnight', network: 'mainnet', txHash: 'cc'.repeat(32), anchoredAt: AT },
 } as unknown as InclusionProof;
@@ -91,7 +91,7 @@ describe.each(LANGS.map((tr) => [tr.lang, tr] as const))('in %s', (_lang, tr) =>
     // History: the registry's report, not "don't rely on it".
     const ev = anchorHistoryEvent(
       state,
-      { network: 'mainnet', txHash: 'cc'.repeat(32), anchoredAt: AT, batchId: 'b1' },
+      { network: 'mainnet', txHash: 'cc'.repeat(32), anchoredAt: AT, batchId: 'B-20261015-00B1' },
       tr,
     );
     expect(ev.title).toBe(tr.t('app.verify.anchor.eventReportedTitle'));
@@ -105,11 +105,15 @@ describe.each(LANGS.map((tr) => [tr.lang, tr] as const))('in %s', (_lang, tr) =>
   it('a state it can’t read, or a transaction not reached yet, says “couldn’t read”, not “couldn’t reach”', () => {
     for (const why of ['unreadable', 'not-yet'] as const) {
       const { state } = CANT[why];
-      const ev = anchorHistoryEvent(state, { network: 'mainnet', anchoredAt: AT, batchId: 'b1' }, tr);
+      const ev = anchorHistoryEvent(state, { network: 'mainnet', anchoredAt: AT, batchId: 'B-20261015-00B1' }, tr);
       expect(ev.detail).toContain(tr.t('app.verify.anchor.whyUnread'));
       expect(recordDateRow(reported, state, tr).sub).toContain(tr.t('app.plant.couldntRead'));
     }
-    const ev = anchorHistoryEvent(CANT['no-answer'].state, { network: 'mainnet', anchoredAt: AT, batchId: 'b1' }, tr);
+    const ev = anchorHistoryEvent(
+      CANT['no-answer'].state,
+      { network: 'mainnet', anchoredAt: AT, batchId: 'B-20261015-00B1' },
+      tr,
+    );
     expect(ev.detail).toContain(tr.t('app.verify.anchor.whyUnreachable'));
   });
 

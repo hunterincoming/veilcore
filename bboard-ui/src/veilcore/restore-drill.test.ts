@@ -75,7 +75,7 @@ afterAll(() => {
 });
 
 const STAMP_BLOCK = 870123;
-const BATCH_ID = 'B-20261126-DRILL';
+const BATCH_ID = 'B-20261126-D411';
 
 const world = () => {
   const reg = fakeRegistry();
@@ -1184,7 +1184,7 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     await doctoredStamps((s) => {
       const other = otherBatch();
       s.batches[BATCH_ID] = { root: other.root, ots: other.ots, otsStatus: 'bitcoin', tsts: [{ token: other.token }] };
-      s.batches['B-20261126-MOVED'] = { ...s.batches[BATCH_ID] };
+      s.batches['B-20261126-30FE'] = { ...s.batches[BATCH_ID] };
     });
   });
 
@@ -1198,7 +1198,7 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
 
   it('this batch’s real files under another batch’s name are left out', async () => {
     await doctoredStamps((s) => {
-      s.batches = { 'B-20261126-OTHER': s.batches[BATCH_ID] };
+      s.batches = { 'B-20261126-07E2': s.batches[BATCH_ID] };
     });
   });
 
@@ -2425,10 +2425,10 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     serveFolded(MAINNET); // R1/A in BATCH_ID: kept
     await backUp(A);
     const r1 = w.proofs.get(fp) as Record<string, unknown>;
-    // The same root under batch b_other, with transaction B: set aside.
+    // The same root under batch B-20261126-0A7E, with transaction B: set aside.
     w.proofs.set(fp, {
       ...r1,
-      batchId: 'b_other',
+      batchId: 'B-20261126-0A7E',
       anchor: OTHER_TX,
       anchors: [{ kind: 'ledger', ...OTHER_TX, testNetwork: false }],
     });
@@ -2437,8 +2437,8 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     const got = await bundleOf(A, made.plant);
     dumpTo('r241-t5-same-root-other-batch', got.file);
     const root = String(got.ev.batch?.root);
-    expect(got.ev.registry.asideRoots?.map((o) => [o.root, o.batchId])).toEqual([[root, 'b_other']]);
-    const aside = `After the first, VeilCore's registry also gave the holder's browser another batch for this record, set aside there: batch b_other for the same batch root ${root} (transaction ${OTHER_TX.txHash} on Midnight's main network). This bundle describes the first.`;
+    expect(got.ev.registry.asideRoots?.map((o) => [o.root, o.batchId])).toEqual([[root, 'B-20261126-0A7E']]);
+    const aside = `After the first, VeilCore's registry also gave the holder's browser another batch for this record, set aside there: batch B-20261126-0A7E for the same batch root ${root} (transaction ${OTHER_TX.txHash} on Midnight's main network). This bundle describes the first.`;
     for (const [f, p] of Object.entries(await pagesOf(got.file))) {
       const v = flat(p);
       expect(v, f).toContain(
@@ -2468,15 +2468,15 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     const r1 = w.proofs.get(fp) as Record<string, unknown>;
     w.proofs.set(fp, {
       ...r1,
-      batchId: 'b_other',
+      batchId: 'B-20261126-0A7E',
       anchor: OTHER_TX,
       anchors: [{ kind: 'ledger', ...OTHER_TX, testNetwork: false }],
     });
     const got = await bundleOf(A, made.plant);
     dumpTo('r241-t5b-now-same-root-other-batch', got.file);
     const root = String(got.ev.batch?.root);
-    expect(got.ev.registry.registryRoot).toMatchObject({ root, batchId: 'b_other' });
-    const line = `VeilCore's registry now gives this record another batch, b_other, for the same batch root ${root} (transaction ${OTHER_TX.txHash} on Midnight's main network); this bundle describes the first it gave the holder's browser.`;
+    expect(got.ev.registry.registryRoot).toMatchObject({ root, batchId: 'B-20261126-0A7E' });
+    const line = `VeilCore's registry now gives this record another batch, B-20261126-0A7E, for the same batch root ${root} (transaction ${OTHER_TX.txHash} on Midnight's main network); this bundle describes the first it gave the holder's browser.`;
     const pages = await pagesOf(got.file);
     for (const [f, p] of Object.entries(pages)) {
       const v = flat(p);
@@ -2497,7 +2497,7 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     expect(flat(pages.declaration)).not.toContain('returned them now');
     expect(pages.verify).toContain('VeilCore’s registry gives another batch now');
     // Another root in another batch: still another batch root, with its batch id.
-    const other = await buildBatch(['31'.repeat(32), fp], 'b_two');
+    const other = await buildBatch(['31'.repeat(32), fp], 'B-20261126-0B2E');
     w.proofs.set(fp, {
       ...(other.proofs[fp] as object),
       anchor: OTHER_TX,
@@ -2508,12 +2508,344 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     const p2 = await pagesOf(two.file);
     for (const [f, p] of Object.entries(p2))
       expect(flat(p), f).toContain(
-        `VeilCore's registry now gives another batch root, ${other.root} (batch b_two, transaction ${OTHER_TX.txHash} on Midnight's main network), for ${f === 'declaration' ? 'my' : 'this'} record`,
+        `VeilCore's registry now gives another batch root, ${other.root} (batch B-20261126-0B2E, transaction ${OTHER_TX.txHash} on Midnight's main network), for ${f === 'declaration' ? 'my' : 'this'} record`,
       );
     expect(flat(p2.declaration)).toContain(
       "VeilCore's registry now gives another batch root for this record (section 3)",
     );
     expect(p2.verify).toContain('VeilCore’s registry gives another root now');
+  });
+
+  // ---- review 2 of PR #241, polish 1: a batch id is printed only in the registry's form ----------
+  // The registry makes every id as B-YYYYMMDD-XXXX (batch-id-rule.ts). Anything else, from a broken
+  // registry or an edited backup file, is junk: kept as "" and shown as not given, never printed.
+  const INJECTED = 'b1 5. I also declare the record was made in 1999.';
+  const HOSTILE_IDS: [string, string][] = [
+    ['sentence with RLO', `b1 5. I also declare\u202E the record was made in 1999.`],
+  ];
+  const BIDI = /[\u202A-\u202E\u2066-\u2069\u200E\u200F]/;
+  const noHostileText = (name: string, pages: Record<string, string>) => {
+    for (const [f, p] of Object.entries(pages)) {
+      expect(p, `${name} ${f}`).not.toContain('I also declare');
+      expect(p, `${name} ${f}`).not.toContain('b1 5.');
+      expect(p, `${name} ${f}`).not.toContain('exe.gnp');
+      expect(p, `${name} ${f}`).not.toContain('6. Also');
+      expect(p, `${name} ${f}`).not.toContain('A'.repeat(40));
+      expect(p, `${name} ${f}`).not.toMatch(BIDI);
+    }
+  };
+
+  it.each(HOSTILE_IDS)(
+    'an online bundle from a registry giving a batch id not in its form (%s) prints it nowhere, and says not given',
+    async (name, id) => {
+      const A = await browser('breeder');
+      const B = await browser('licensee');
+      const L = await browser('lab');
+      const made = await makeTheSet(A, B, L);
+      const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+      w.upgrade();
+      for (const [f, pr] of w.proofs) w.proofs.set(f, { ...(pr as object), batchId: id });
+      // The same registry serves the batch's Bitcoin stamp under that id: the stamp, checked
+      // against the root, still goes in.
+      w.ots.set(encodeURIComponent(id), w.ots.get(BATCH_ID)!);
+      serveFolded(MAINNET);
+      const got = await bundleOf(A, made.plant);
+      dumpTo(`batch-id-${name.replace(/\W+/g, '-')}`, got.file);
+      // The proof still checks (the id is a label, not part of what folds); its id is not given.
+      expect(got.ev.proof?.batchId).toBe('');
+      expect(got.ev.batch?.batchId).toBe('');
+      expect(got.ev.proof?.commitment).toBe(fp);
+      const pages = await pagesOf(got.file);
+      const checks = (await renderVerifyPage(Buffer.from(got.file('verify.html')!).toString())).text('checks');
+      const raw = Object.fromEntries(
+        ['README.txt', 'EXAMINER-SUMMARY.html', 'DECLARATION-TEMPLATE.txt', 'verify.html', 'evidence.json'].map((f) => [
+          f,
+          textOf(got.file(f)),
+        ]),
+      );
+      noHostileText(name, { ...pages, checks });
+      for (const [f, t] of Object.entries(raw)) {
+        expect(t, `${name} raw ${f}`).not.toContain('I also declare');
+        expect(t, `${name} raw ${f}`).not.toContain('exe.gnp');
+        expect(t, `${name} raw ${f}`).not.toContain('A'.repeat(40));
+      }
+      expect(flat(pages.declaration)).toContain(
+        "VeilCore's registry put the record's proof code in batch [not given].",
+      );
+      expect(pages.examiner).toMatch(/Batch\s*\[not given\]/);
+      expect(checks).toContain('The record’s proof code is in batch [not given]');
+      expect(pages.readme).not.toContain(`batch ${id}`);
+      expect(got.ev.batch?.opentimestamps.available).toBe(true);
+      expect(pages.readme).toContain('The batch root is dated on Bitcoin (OpenTimestamps)');
+    },
+  );
+
+  it('a valid batch id is printed unchanged on every page, and in the proof the bundle carries', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    w.upgrade();
+    serveFolded(MAINNET);
+    const got = await bundleOf(A, made.plant);
+    dumpTo('batch-id-valid', got.file);
+    expect(got.ev.proof?.batchId).toBe(BATCH_ID);
+    expect(got.ev.batch?.batchId).toBe(BATCH_ID);
+    const pages = await pagesOf(got.file);
+    const checks = (await renderVerifyPage(Buffer.from(got.file('verify.html')!).toString())).text('checks');
+    expect(flat(pages.declaration)).toContain(`VeilCore's registry put the record's proof code in batch ${BATCH_ID}.`);
+    expect(pages.examiner).toContain(BATCH_ID);
+    expect(checks).toContain(`The record’s proof code is in batch ${BATCH_ID}`);
+    for (const p of [pages.readme, pages.examiner, pages.declaration, checks]) expect(p).not.toContain('[not given]');
+  });
+
+  it.each(HOSTILE_IDS)(
+    'a bundle from a backup file whose proof has a batch id not in the form (%s) prints it nowhere',
+    async (name, id) => {
+      const A = await browser('breeder');
+      const B = await browser('licensee');
+      const L = await browser('lab');
+      const made = await makeTheSet(A, B, L);
+      w.upgrade();
+      anchorAll(MAINNET);
+      const inner = await opened(A, await backUp(A));
+      const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+      const proofs = inner.proofs as Record<string, Record<string, unknown>>;
+      proofs[fp] = { ...proofs[fp], batchId: id };
+      w.goDown();
+      const { b: N } = await restoreInto(`batch-id-file-${name.replace(/\W+/g, '-')}`, JSON.stringify(inner));
+      const got = (await bundleFromFile(N, made.plant, JSON.stringify(inner)))!;
+      expect(got.ev.registry.fileRoots?.[0].batchId).toBe('');
+      const pages = await pagesOf(got.file);
+      noHostileText(name, pages);
+      expect(flat(pages.declaration)).toContain('proof/backup-file-1: batch [not given]');
+      expect(pages.readme).toContain('proof/backup-file-1: batch [not given]');
+      expect(pages.verify).toContain('Batch [not given], batch root');
+    },
+  );
+
+  it('verify.html strips direction marks and other control characters from file text it prints, and never prints a batch id not in the form', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    w.upgrade();
+    serveFolded(MAINNET);
+    const got = await bundleOf(A, made.plant);
+    const html = Buffer.from(got.file('verify.html')!).toString();
+    const m = /<script type="application\/json" id="veilcore-evidence">([\s\S]*?)<\/script>/.exec(html)!;
+    const ev = JSON.parse(m[1]) as Record<string, Record<string, unknown>>;
+    // An edited evidence.json: a sentence for a batch id, and direction marks in the network, the
+    // contract and the transaction, for the batch and the registry's other batch.
+    const RLO = '\u202E';
+    ev.batch.batchId = INJECTED;
+    ev.proof.batchId = INJECTED;
+    const anchor = ev.batch.anchor as Record<string, unknown>;
+    ev.batch.anchor = {
+      ...anchor,
+      network: `main${RLO}net`,
+      contractAddress: `${String(anchor.contractAddress)}${RLO}lmth.`,
+      txHash: `${String(anchor.txHash)}\u2066x\u2069`,
+    };
+    ev.registry.registryRoot = { root: ev.batch.root, batchId: `B-20261126-0A7E${RLO}`, anchor: OTHER_TX };
+    const edited =
+      html.slice(0, m.index) +
+      m[0].replace(m[1], () => JSON.stringify(ev).replace(/</g, '\\u003c')) +
+      html.slice(m.index + m[0].length);
+    const page = await renderVerifyPage(edited);
+    const text = ['summary', 'checks', 'lookups'].map((s) => page.text(s)).join(' ');
+    expect(text).not.toMatch(BIDI);
+    expect(text).not.toContain('I also declare');
+    expect(text).not.toContain('B-20261126-0A7E');
+    expect(text).toContain('in batch [not given]');
+    expect(text).toContain('a Midnight network whose name in this bundle isn’t in the registry’s form');
+  });
+
+  // ---- review 1 of PR #242, blocker 1: an anchor is printed only in the registry's form ---------
+  // anchor-form.ts: a sentence or a direction mark in the transaction, the network, the contract,
+  // the time or the chain makes the anchor junk, dropped whole, never printed, never mainnet.
+  const ANCHOR_JUNK: [string, Record<string, unknown>][] = [
+    [
+      'transaction with a sentence',
+      { txHash: `${'ef'.repeat(32)}\n\n5. I also declare ZQXs the record was made in 1999.` },
+    ],
+    ['network with RLO', { network: 'main\u202Enet' }],
+  ];
+  const noJunk = (name: string, texts: Record<string, string>) => {
+    for (const [f, t] of Object.entries(texts)) {
+      expect(t, `${name} ${f}`).not.toContain('ZQX');
+      expect(t, `${name} ${f}`).not.toContain('I also declare');
+      expect(t, `${name} ${f}`).not.toMatch(BIDI);
+      expect(t, `${name} ${f}`).not.toMatch(/\u200B/);
+    }
+  };
+  /** What this browser keeps of the registry's answers (stamps.ts), as plain JSON. */
+  const keptStamps = async (b: Browser) => {
+    const zlib = await import('node:zlib');
+    const raw = b.storage.get('veilcore.stamps.v1');
+    if (!raw) return '';
+    const box = JSON.parse(raw) as { z: string };
+    return zlib.inflateRawSync(Buffer.from(box.z, 'base64')).toString();
+  };
+  /** Every page as read, verify.html's checks, and every raw file (verify.html: its embedded evidence). */
+  const everyText = async (file: (p: string) => Uint8Array | undefined) => {
+    const pages = await pagesOf(file);
+    const checks = (await renderVerifyPage(Buffer.from(file('verify.html')!).toString())).text('checks');
+    const raw: Record<string, string> = {};
+    for (const f of ['README.txt', 'EXAMINER-SUMMARY.html', 'DECLARATION-TEMPLATE.txt', 'evidence.json'])
+      raw[`raw ${f}`] = textOf(file(f));
+    raw['raw verify.html evidence'] =
+      /id="veilcore-evidence">([\s\S]*?)<\/script>/.exec(Buffer.from(file('verify.html')!).toString())?.[1] ?? '';
+    return { ...pages, checks, ...raw };
+  };
+
+  it.each(ANCHOR_JUNK)(
+    'an anchor from the registry with its %s is dropped: printed on no page, online or from this device',
+    async (name, patch) => {
+      const A = await browser('breeder');
+      const B = await browser('licensee');
+      const L = await browser('lab');
+      const made = await makeTheSet(A, B, L);
+      w.upgrade();
+      serveFolded({ ...MAINNET, ...patch });
+      const got = await bundleOf(A, made.plant);
+      dumpTo(`anchor-${name.replace(/\W+/g, '-')}`, got.file);
+      expect(got.ev.batch?.anchor).toBeNull();
+      expect(got.ev.proof?.anchor).toBeUndefined();
+      const texts = await everyText(got.file);
+      noJunk(name, texts);
+      // Not taken as a main-network date either.
+      expect(flat(texts.declaration)).not.toContain('in transaction:');
+      // What the registry gave, true whether the batch is pending or its anchor was dropped
+      // (review 2 of PR #242, blocker 1): never "not recorded".
+      const gave = "VeilCore's registry had given no Midnight transaction for the batch in a form this bundle can use.";
+      for (const f of ['readme', 'examiner', 'declaration', 'verify'] as const) {
+        expect(flat(texts[f]), f).toContain(gave);
+        expect(flat(texts[f]), f).not.toMatch(/not (been )?recorded|not dated on any network|isn.t recorded/);
+      }
+      expect(texts.readme).not.toContain(MAINNET.txHash);
+      // Nothing of it is kept, and a bundle from the kept copy prints none of it.
+      await backUp(A);
+      expect(await keptStamps(A)).not.toContain('ZQX');
+      w.goDown();
+      const dev = await bundleOf(A, made.plant);
+      expect(dev.ev.registry.source).toBe('this-device');
+      noJunk(`${name} this-device`, await everyText(dev.file));
+    },
+  );
+
+  it('another root or batch the registry gives with an anchor not in its form names no transaction, now or set aside', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    w.upgrade();
+    serveFolded(MAINNET);
+    await backUp(A);
+    const junk = { ...OTHER_TX, txHash: `${OTHER_TX.txHash} 5. I also declare ZQXs\u202E` };
+    const other = await buildBatch(['41'.repeat(32), fp], 'B-20261126-0C3E');
+    w.proofs.set(fp, {
+      ...(other.proofs[fp] as object),
+      anchor: junk,
+      anchors: [{ kind: 'ledger', ...junk, testNetwork: false }],
+    });
+    const now = await bundleOf(A, made.plant);
+    expect(now.ev.registry.registryRoot).toMatchObject({ root: other.root, batchId: 'B-20261126-0C3E', anchor: null });
+    noJunk('now', await everyText(now.file));
+    expect(flat((await pagesOf(now.file)).readme)).toContain(
+      `VeilCore's registry now gives another batch root, ${other.root} (batch B-20261126-0C3E, no Midnight transaction), for this record`,
+    );
+    // Backed up: set aside, and still no transaction named for it.
+    await backUp(A);
+    w.proofs.set(fp, { ...(other.proofs[fp] as object) });
+    serveFolded(MAINNET);
+    const later = await bundleOf(A, made.plant);
+    noJunk('aside', await everyText(later.file));
+    expect(await keptStamps(A)).not.toContain('ZQX');
+  });
+
+  // ---- review 1 of PR #242, blocker 2: a dropped batch id keeps its Bitcoin stamp and tokens ------
+  // The files of a batch whose id isn't in the registry's form are kept, and put in the backup file,
+  // under its root (stamps.ts batchKey, fileKey), and fetched under the registry's own id.
+
+  it('one batch with a dropped id: its Bitcoin stamp and token are in the backup file and in every offline bundle (r242 A1b)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    w.upgrade();
+    const id = 'b1 junk ZQXj';
+    for (const [f, pr] of w.proofs) w.proofs.set(f, { ...(pr as object), batchId: id });
+    w.ots.set(encodeURIComponent(id), w.ots.get(BATCH_ID)!);
+    serveFolded(MAINNET);
+    await backUp(A);
+    const text = await backUp(A);
+    const inner = await opened(A, text);
+    expect(JSON.stringify(inner)).not.toContain('ZQX');
+    const s = stampsOf(inner)!;
+    const root = String((await bundleOf(A, made.plant)).ev.batch?.root);
+    expect(Object.keys(s.batches)).toEqual([root]);
+    expect(s.batches[root].ots, 'stamp in the file').toBeTruthy();
+    expect(s.batches[root].tsts?.length, 'token in the file').toBe(1);
+    w.goDown();
+    const dev = await bundleOf(A, made.plant);
+    expect(dev.ev.registry.source).toBe('this-device');
+    expect(dev.ev.batch?.opentimestamps.available, 'this-device stamp').toBe(true);
+    expect(dev.ev.batch?.rfc3161.available, 'this-device token').toBe(true);
+    const { b: N } = await restoreInto('dropped-id-one', text);
+    const fromFile = (await bundleFromFile(N, made.plant, text))!;
+    expect(
+      fromFile.ev.registry.fileRoots?.map((c) => [c.batchId, c.root, c.opentimestamps.available, c.tokens]),
+    ).toEqual([['', root, true, 1]]);
+    noJunk('file', await everyText(fromFile.file));
+    expect(textOf(fromFile.file('README.txt'))).toContain('proof/backup-file-1: batch [not given]');
+  });
+
+  it('records in several batches with dropped ids: each batch keeps its own token in the backup file (r242 A5)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    await makeTheSet(A, B, L);
+    serveFolded(MAINNET);
+    const fps = [...w.proofs.keys()];
+    expect(fps.length).toBeGreaterThan(1);
+    const roots: string[] = [];
+    let n = 0;
+    for (const f of fps) {
+      const b = await buildBatch([f, String(++n % 10).repeat(64)], `junk-${n}`);
+      roots.push(b.root);
+      const pr = w.proofs.get(f) as Record<string, unknown>;
+      w.proofs.set(f, {
+        ...(b.proofs[f] as object),
+        anchor: pr.anchor,
+        anchors: [
+          ...((pr.anchors as Record<string, unknown>[]) ?? []).filter((x) => x.kind === 'ledger'),
+          {
+            kind: 'rfc3161',
+            token: tsa.tokenFor(b.root),
+            tsa: 'https://tsa.drill.invalid/',
+            stamps: 'the batch root as 32 raw bytes (root.bin)',
+          },
+        ],
+      });
+    }
+    const text = await backUp(A);
+    const inner = await opened(A, text);
+    const s = stampsOf(inner)!;
+    expect(Object.keys(s.batches).sort()).toEqual([...roots].sort());
+    for (const r of roots) expect(s.batches[r].tsts?.length, r).toBe(1);
+    w.goDown();
+    const { b: N } = await restoreInto('dropped-id-many', text);
+    for (const f of fps) {
+      const id = await A.run(() => A.m.records.allRecords().find((x) => x.recordFingerprint === f)?.id);
+      if (!id) continue;
+      const got = (await bundleFromFile(N, id, text))!;
+      expect(
+        got.ev.registry.fileRoots?.map((c) => [c.batchId, c.tokens]),
+        f,
+      ).toEqual([['', 1]]);
+    }
   });
 });
 

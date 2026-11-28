@@ -42,7 +42,9 @@ import { deflateSync, inflateSync, strFromU8, strToU8 } from 'fflate';
 import { base64 } from '@scure/base';
 import { verifyTimestampToken, type InclusionProof } from 'veilcore-records';
 import { VeilcoreVerify } from '../../evidence-page/verify-core.js';
-import { checkProof } from './proofs';
+import { checkProof, registryBatchIdOf } from './proofs';
+import { batchIdOrNone, isBatchId } from './batch-id-rule';
+import { anchorFormOk } from './anchor-form';
 import { isNumber, isObject, isString } from './json';
 import { wasForgotten } from './record-keys';
 import { TSA_PINS, withinPin } from './instant-stamp';
@@ -128,6 +130,13 @@ type Own = {
 
 /** A batch's key: its id and its root, so one root's files never stand in for another's. */
 const batchKey = (batchId: string, root: string): string => `${batchId} ${root}`;
+
+/**
+ * A batch's key in a backup file's `stamps.batches`: its id, or, for an id not in the registry's
+ * form, its root (64 hex, never a batch id), so batches whose ids were dropped never share one
+ * (review 1 of PR #242, blocker 2). Readers match the files to the proof's root either way.
+ */
+const fileKey = (p: { batchId: string; root: string }): string => (isBatchId(p.batchId) ? p.batchId : p.root);
 
 const empty = (): Own => ({ batches: {}, records: {}, proofs: {}, changed: {}, ids: {} });
 
@@ -273,34 +282,6 @@ const plain = (v: unknown, depth = 0): unknown => {
 };
 
 const ANCHOR_FIELDS = ['chain', 'network', 'txHash', 'contractAddress', 'blockHeight', 'anchoredAt', 'testNetwork'];
-/** A chain or network name as the registry takes one (veilcore-api server.js NAME). */
-const NAME = /^[a-z][a-z0-9-]{0,31}$/;
-/** A date and time with a time zone, as the registry takes anchoredAt (veilcore-api server.js ISO_INSTANT). */
-const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,9})?)?(Z|[+-]\d{2}:\d{2})$/;
-
-/**
- * An anchor's fields in the form the registry stores them (veilcore-api recordAnchor: 64 lowercase
- * hex, a short lower-case network name on chain "midnight" (every page calls it a Midnight
- * transaction; review 11, polish 2), a block number of 0 or more, a date and time with a time zone,
- * and a test-network flag that agrees with the network's name), or false. These reach README.txt
- * and every page of a bundle, so one from a doctored backup file that isn't in that form is junk
- * (review 9, R9-5; review 10, polish 3).
- */
-export const anchorFormOk = (a: Record<string, unknown>): boolean =>
-  a.chain === 'midnight' &&
-  isString(a.network) &&
-  NAME.test(a.network) &&
-  isString(a.txHash) &&
-  HEX64.test(a.txHash) &&
-  (a.contractAddress === undefined || (isString(a.contractAddress) && HEX64.test(a.contractAddress))) &&
-  (a.blockHeight === undefined ||
-    (isNumber(a.blockHeight) && Number.isSafeInteger(a.blockHeight) && a.blockHeight >= 0)) &&
-  (a.anchoredAt === undefined ||
-    (isString(a.anchoredAt) &&
-      a.anchoredAt.length <= 40 &&
-      ISO_INSTANT.test(a.anchoredAt) &&
-      Number.isFinite(Date.parse(a.anchoredAt)))) &&
-  (a.testNetwork === undefined || a.testNetwork === (a.network !== 'mainnet'));
 
 /**
  * A proof as kept here, rebuilt from its known fields only (review 5): the format version, the
@@ -330,7 +311,8 @@ const keepable = (p: InclusionProof): InclusionProof => {
     ...(isString(r.formatVersion) && r.formatVersion.length < 32 ? { formatVersion: r.formatVersion } : {}),
     commitment: p.commitment,
     root: p.root,
-    batchId: p.batchId,
+    // Only in the registry's form (batch-id-rule.ts); "" (not given) otherwise.
+    batchId: batchIdOrNone(p.batchId),
     ...(isString(r.sealedAt) ? { sealedAt: r.sealedAt } : {}),
     path: p.path.map((x) => ({ sibling: x.sibling, siblingIsLeft: x.siblingIsLeft })),
     ...(anchor && anchorFormOk(anchor) ? { anchor } : {}),
@@ -543,6 +525,13 @@ export const stampsForBackup = async (
 
 /** What is kept here refreshed from the registry's answers (stampsForBackup). */
 const refreshFromRegistry = async (own: Own, wanted: ReadonlySet<string>, proofs: Record<string, unknown>) => {
+  // The registry's own id for each answer, to ask for its batch's files by, even one not in its
+  // form (proofs.ts registryBatchIdOf; the answers came through checkProof).
+  const askedAs = new Map<string, string>();
+  for (const fp of wanted) {
+    const id = registryBatchIdOf(proofs[fp]);
+    if (id) askedAs.set(fp, id);
+  }
   for (const fp of wanted) {
     // One record's answer that can't be kept never stops the others.
     try {
@@ -579,7 +568,7 @@ const refreshFromRegistry = async (own: Own, wanted: ReadonlySet<string>, proofs
     }
   }
   // Each batch (id and root) these records sit in, once, with the registry's answer just now.
-  const batchOf = new Map<string, { p: InclusionProof; fresh?: InclusionProof }>();
+  const batchOf = new Map<string, { p: InclusionProof; fresh?: InclusionProof; asked?: string }>();
   for (const fp of wanted) {
     const p = own.proofs[fp];
     if (!p) continue;
@@ -588,15 +577,18 @@ const refreshFromRegistry = async (own: Own, wanted: ReadonlySet<string>, proofs
     const fresh =
       isObject(f) && sameBatch(f as unknown as InclusionProof, p) ? (f as unknown as InclusionProof) : undefined;
     const had = batchOf.get(k);
-    if (!had || (!had.fresh && fresh)) batchOf.set(k, { p, fresh });
+    if (!had || (!had.fresh && fresh)) batchOf.set(k, { p, fresh, asked: askedAs.get(fp) });
   }
-  await inBatches([...batchOf.entries()], async ([key, { p, fresh }]) => {
+  await inBatches([...batchOf.entries()], async ([key, { p, fresh, asked }]) => {
     let b: BatchStamps = own.batches[key] ?? { root: p.root };
     const tsts = await checkedTokens(fresh ? batchTokensOf(fresh) : [], hexBytes(p.root));
     if (tsts.length) b = { ...b, tsts: mergeTokens(b.tsts, tsts) };
     // The Bitcoin file: fetched until it is finished, and kept only when it starts from this root.
-    if (b.otsStatus !== 'bitcoin' && fresh && otsAnchor(fresh)) {
-      const bytes = await getBytes(`${BASE}/batches/${encodeURIComponent(p.batchId)}/root.bin.ots`);
+    // Asked for under the registry's own id for the batch, as gathering a bundle does (bundle.ts
+    // fromPublicRoutes), even one not in its form: the file is kept only if it starts from this root.
+    const id = asked ?? p.batchId;
+    if (b.otsStatus !== 'bitcoin' && fresh && otsAnchor(fresh) && id) {
+      const bytes = await getBytes(`${BASE}/batches/${encodeURIComponent(id)}/root.bin.ots`);
       const ots = bytes ? base64.encode(bytes) : undefined;
       const read = ots ? await readOts(ots, p.root) : null;
       if (ots && read && better(b, read.status, true)) b = withOts(b, ots, read);
@@ -632,7 +624,7 @@ const inFile = (own: Own, wanted: ReadonlySet<string>): StampsInFile | undefined
   for (const fp of wanted) {
     const p = own.proofs[fp];
     const b = p ? own.batches[batchKey(p.batchId, p.root)] : undefined;
-    if (p && b && (b.ots || b.tsts?.length) && !batches[p.batchId]) batches[p.batchId] = b;
+    if (p && b && (b.ots || b.tsts?.length) && !batches[fileKey(p)]) batches[fileKey(p)] = b;
     const r = own.records[fp];
     if (r?.instant?.length) records[fp] = { instant: r.instant };
     for (const c of (own.changed[fp] ?? []).slice(0, MAX_ASIDE)) {
@@ -826,7 +818,12 @@ export const evidenceFromFile = async (
   const candidates: { proof: unknown; files: unknown; later: boolean }[] = [];
   const first = isObject(file.proofs) ? file.proofs[fp] : undefined;
   if (isObject(first) && isString(first.batchId))
-    candidates.push({ proof: first, files: batches[first.batchId], later: false });
+    // Its batch's files: under its id, or (an id not in the registry's form: fileKey) its root.
+    candidates.push({
+      proof: first,
+      files: batches[first.batchId] ?? (isString(first.root) ? batches[first.root] : undefined),
+      later: false,
+    });
   const changed = Array.isArray(s.changed) ? (s.changed as unknown[]) : [];
   for (const c of changed) {
     if (candidates.length > MAX_FILE_ROOTS) break;
@@ -876,7 +873,7 @@ export const evidenceFromFile = async (
     ...(roots.slice(0, i).some((e) => sameBatch(e, r)) ? { otherTransaction: true } : {}),
   }));
   const own = load();
-  const ids = new Set(roots.map((r) => r.batchId));
+  const ids = new Set(roots.map((r) => r.batchId).filter((id) => id !== ''));
   const given = new Set(roots.map((r) => r.root));
   const registryRoots = [
     ...new Set(

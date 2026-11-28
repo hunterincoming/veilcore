@@ -10,6 +10,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { isNumber, isString } from '../json';
+import { batchIdWords } from '../batch-id-rule';
 import {
   fileDating,
   fileDatingNote,
@@ -163,7 +164,9 @@ export const declarationText = async (
       '',
       anchor
         ? `NOTE: this record is dated on ${t(networkWords(anchor.network))}. A test network can be reset and its dates carry no weight. This bundle is practice data: do not use it as evidence.`
-        : 'NOTE: this record is not dated on any network yet. Until it is, nothing in this bundle dates it.',
+        : ev.batch
+          ? "NOTE: when this bundle was made, VeilCore's registry had given no Midnight transaction for the batch in a form this bundle can use. So no Midnight transaction in this bundle dates the record."
+          : 'NOTE: this record is not dated on any network yet. Until it is, nothing in this bundle dates it.',
     );
   }
   add('', '', rule, 'PART 1: DECLARATION OF THE RECORD HOLDER', rule, '');
@@ -202,7 +205,7 @@ export const declarationText = async (
   add('');
   if (ev.batch) {
     add(
-      `3. How the record was dated. VeilCore's registry put the record's proof code in batch ${t(ev.batch.batchId)}. The batch root, one code that stands for every record in the batch, is:`,
+      `3. How the record was dated. VeilCore's registry put the record's proof code in batch ${batchIdWords(ev.batch.batchId)}. The batch root, one code that stands for every record in the batch, is:`,
       `   ${t(ev.batch.root)}`,
     );
     if (tx && anchor) {
@@ -232,7 +235,9 @@ export const declarationText = async (
           '   [On [date] I / ___ looked up each other transaction named here on [explorer or indexer]. Result for each: ___. / I have not looked them up myself.]',
         );
     } else {
-      add('   The batch had not been recorded on a network when this bundle was made.');
+      add(
+        "   When this bundle was made, VeilCore's registry had given no Midnight transaction for the batch in a form this bundle can use.",
+      );
     }
     if (ots) {
       add(
@@ -246,7 +251,10 @@ export const declarationText = async (
     );
     for (const c of fileRoots) {
       const a = fileRootAnchor(c);
-      add(`   - ${t(c.folder)}: batch ${t(c.batchId)}${fileRootGiven(c)}. Its batch root is:`, `     ${t(c.root)}`);
+      add(
+        `   - ${t(c.folder)}: batch ${batchIdWords(c.batchId)}${fileRootGiven(c)}. Its batch root is:`,
+        `     ${t(c.root)}`,
+      );
       if (a)
         add(
           `     The backup file says this batch root was recorded on ${t(networkWords(a.network))}${isNumber(a.blockHeight) ? `, in block ${a.blockHeight}` : ''}${utcWords(a.anchoredAt) ? `, at ${utcWords(a.anchoredAt)}` : ''}, in transaction:`,

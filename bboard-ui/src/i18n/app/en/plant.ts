@@ -302,6 +302,7 @@ export const plant = {
   'app.plant.date.inBatchNotAnchored':
     "Checked in this browser: your record's proof code is in batch {batch}, which has not been anchored yet. When it is, the proof gains a reference to the transaction. Nothing about your record changes.",
   'app.plant.date.batchLine': 'batch {batch}',
+  'app.plant.date.batchNotGiven': '(not given)',
   'app.plant.date.rootLine': 'root {root}…',
   'app.plant.date.txChecked': 'tx (checked on Midnight) {tx}',
   'app.plant.date.txReported': 'tx (reported by the registry) {tx}',

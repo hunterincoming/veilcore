@@ -56,7 +56,7 @@ describe('a backup that works without VeilCore', () => {
     registry();
     const rec = await sealOne();
     const { buildBatch } = await import('veilcore-records');
-    const batch = await buildBatch([rec.recordFingerprint, 'ab'.repeat(32)], 'B-TEST');
+    const batch = await buildBatch([rec.recordFingerprint, 'ab'.repeat(32)], 'B-20261015-7E57');
     registry({ fp: rec.recordFingerprint, body: batch.proofs[rec.recordFingerprint] });
 
     const backup = await import('./backup');

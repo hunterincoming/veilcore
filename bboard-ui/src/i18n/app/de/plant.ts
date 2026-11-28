@@ -307,6 +307,7 @@ export const plant = {
   'app.plant.date.inBatchNotAnchored':
     'In diesem Browser geprüft: Der Prüfcode Ihres Datensatzes ist in Stapel {batch}, der noch nicht verankert wurde. Sobald er es ist, erhält der Nachweis einen Verweis auf die Transaktion. An Ihrem Datensatz ändert sich nichts.',
   'app.plant.date.batchLine': 'Stapel {batch}',
+  'app.plant.date.batchNotGiven': '(nicht angegeben)',
   'app.plant.date.rootLine': 'Wurzel {root}…',
   'app.plant.date.txChecked': 'Tx (auf Midnight geprüft) {tx}',
   'app.plant.date.txReported': 'Tx (vom Register gemeldet) {tx}',

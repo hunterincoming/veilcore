@@ -35,6 +35,7 @@ import { committedRecordFields } from './commitment';
 import { KEY_BOUND_ALGORITHM } from './key-binding';
 import { isAnimal } from './animal-profile';
 import { isStrain } from './strain-profile';
+import { batchIdWords } from './batch-id-rule';
 
 /** The profile every new record is sealed under: plant varieties, any crop. */
 export const PLANT_VARIETY_PROFILE = 'veilcore/profile/plant-variety/v1';
@@ -269,7 +270,7 @@ export const exportEnvelopeFor = async (
           ...(reported.contractAddress ? { contractAddress: reported.contractAddress } : {}),
           ...(reported.txHash ? { txHash: reported.txHash } : {}),
           ...(reported.anchoredAt ? { anchoredAt: reported.anchoredAt } : {}),
-          commitmentAlgorithm: `${REGISTERED_EXTENSION}: the anchored leaf is extensions["${REGISTERED_EXTENSION}"].fingerprint, in batch ${proof.status === 'anchor-reported' ? proof.proof.batchId : ''} (SPEC section 5). Reported by the registry; not looked up on the chain by the app that exported this.`,
+          commitmentAlgorithm: `${REGISTERED_EXTENSION}: the anchored leaf is extensions["${REGISTERED_EXTENSION}"].fingerprint, in batch ${proof.status === 'anchor-reported' ? batchIdWords(proof.proof.batchId) : ''} (SPEC section 5). Reported by the registry; not looked up on the chain by the app that exported this.`,
         }
       : undefined;
 

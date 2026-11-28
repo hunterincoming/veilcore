@@ -99,7 +99,7 @@ const standIn = async (
     sealAndAnchor: async () => {
       const batch = await buildBatch(
         rows.map((r) => r.recordFingerprint as string),
-        'B-20261115-LOCAL',
+        'B-20261115-10CA',
       );
       for (const [commitment, proof] of Object.entries(batch.proofs)) {
         const anchored = {

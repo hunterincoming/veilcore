@@ -301,6 +301,7 @@ export const plant = {
   'app.plant.date.inBatchNotAnchored':
     'Comprobado en este navegador: el código de prueba de su registro está en el lote {batch}, que todavía no se ha anclado. Cuando se ancle, la prueba sumará una referencia a la transacción. Nada de su registro cambia.',
   'app.plant.date.batchLine': 'lote {batch}',
+  'app.plant.date.batchNotGiven': '(no indicado)',
   'app.plant.date.rootLine': 'raíz {root}…',
   'app.plant.date.txChecked': 'tx (comprobada en Midnight) {tx}',
   'app.plant.date.txReported': 'tx (informada por el servidor de registros) {tx}',

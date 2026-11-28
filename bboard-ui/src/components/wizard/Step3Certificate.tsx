@@ -48,6 +48,7 @@ import { damOf, isAnimal, parentLine, recordTitle, sireOf } from '../../veilcore
 import { isStrain } from '../../veilcore/strain-profile';
 import { strainGroupWords, strainParentWords } from '../flow/StrainForm';
 import { CODE_FONT } from '../../config/theme';
+import { batchIdWords } from '../../veilcore/batch-id-rule';
 
 // The certificate's own colours: a specimen sheet, ink on archival paper, every pair at
 // least 4.5:1. A check that passed is a ✓ in the quiet green; one that failed is a ✗ in the
@@ -192,7 +193,7 @@ export const Step3Certificate: React.FC<{
     anchor === 'checking'
       ? 'checking…'
       : anchor.status === 'anchor-reported'
-        ? `Not confirmed. In batch ${anchor.proof.batchId} (inclusion checked); the registry reports the root on ${networkLabel(anchor.proof.anchor?.network ?? NETWORK)}, tx ${anchor.proof.anchor?.txHash ?? ''}. Look it up before relying on the date.`
+        ? `Not confirmed. In batch ${batchIdWords(anchor.proof.batchId)} (inclusion checked); the registry reports the root on ${networkLabel(anchor.proof.anchor?.network ?? NETWORK)}, tx ${anchor.proof.anchor?.txHash ?? ''}. Look it up before relying on the date.`
         : anchor.status === 'pending'
           ? 'Not yet: in a batch waiting to be anchored. Until then, its date rests on this registry’s records.'
           : 'Not yet. Until it is anchored, its date rests on this registry’s records.';

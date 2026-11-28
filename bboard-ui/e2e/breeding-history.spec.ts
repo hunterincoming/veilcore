@@ -73,7 +73,7 @@ const RECORDS = [g3, g2, g1];
 
 /** g1 and g2 in a batch dated on preprod; g3 not in a batch yet. */
 const evidenceFor = async (): Promise<Record<string, unknown>> => {
-  const batch = await buildBatch([g1.recordFingerprint, g2.recordFingerprint], 'B-20261015-HIST');
+  const batch = await buildBatch([g1.recordFingerprint, g2.recordFingerprint], 'B-20261015-4157');
   const anchor = {
     chain: 'midnight',
     network: 'preprod',

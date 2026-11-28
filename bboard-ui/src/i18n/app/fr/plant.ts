@@ -304,6 +304,7 @@ export const plant = {
   'app.plant.date.inBatchNotAnchored':
     'Vérifié dans ce navigateur : le code de preuve de votre enregistrement est dans le lot {batch}, qui n’a pas encore été ancré. Quand il le sera, la preuve gagnera une référence à la transaction. Rien ne change dans votre enregistrement.',
   'app.plant.date.batchLine': 'lot {batch}',
+  'app.plant.date.batchNotGiven': '(non indiqué)',
   'app.plant.date.rootLine': 'racine {root}…',
   'app.plant.date.txChecked': 'tx (vérifiée sur Midnight) {tx}',
   'app.plant.date.txReported': 'tx (signalée par le registre) {tx}',

@@ -136,7 +136,7 @@ const proofOn = (network: string): ProofState =>
   ({
     status: 'anchor-reported',
     proof: {
-      batchId: 'B-1',
+      batchId: 'B-20261015-0001',
       root: 'ef'.repeat(32),
       anchor: { network, txHash: TX, anchoredAt: '2026-11-20T09:29:00Z' },
     },
@@ -496,7 +496,7 @@ describe('a date no indexer confirmed: the contract the registry’s report name
     ({
       status: 'anchor-reported',
       proof: {
-        batchId: 'B-1',
+        batchId: 'B-20261015-0001',
         root: 'ef'.repeat(32),
         anchor: {
           network,

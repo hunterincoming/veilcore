@@ -6,6 +6,7 @@
 import { isTestNetwork } from '../config/network';
 import { enT, type Translator } from '../i18n/translate';
 import { networkWords } from '../i18n/network-words';
+import { batchIdWords } from '../veilcore/batch-id-rule';
 import { anchorConfirmed, type AnchorState } from './verify/anchor-words';
 
 /** The chip over the section: never "Anchored" unless this browser found it on Midnight. */
@@ -35,7 +36,7 @@ export const reportedText = (
   tr: Translator = enT,
 ): string => {
   const test = isTestNetwork(network) ? tr.t('app.plant.date.testNote') : '';
-  const head = tr.t('app.plant.date.head', { batch: batchId });
+  const head = tr.t('app.plant.date.head', { batch: batchIdWords(batchId, tr.t('app.plant.date.batchNotGiven')) });
   // The confirmed line (anchor-words.ts) carries the test-network note itself.
   if (confirmed) return head;
   const net = networkWords(network, tr);

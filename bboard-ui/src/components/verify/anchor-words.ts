@@ -10,6 +10,7 @@ import { isTestNetwork } from '../../config/network';
 import { utcStamp } from '../../veilcore/time';
 import { enT, type Translator } from '../../i18n/translate';
 import { networkWords } from '../../i18n/network-words';
+import { batchIdWords } from '../../veilcore/batch-id-rule';
 import { MAINNET_PINNED, pinnedAt, type PinnedEntry } from '../../../../api/src/pinned-contracts';
 
 export type AnchorState = AnchorCheck | 'checking';
@@ -236,7 +237,7 @@ export const anchorHistoryEvent = (
         : tr.t('app.verify.anchor.headingChecked'),
       detail:
         tr.t('app.verify.anchor.eventChecked', {
-          batch: a.batchId,
+          batch: batchIdWords(a.batchId, tr.t('app.plant.date.batchNotGiven')),
           tx: check.txHash,
           block: String(check.blockHeight),
           where,
@@ -248,7 +249,10 @@ export const anchorHistoryEvent = (
     return {
       at: reportedAt,
       title: tr.t('app.verify.anchor.headingFailed'),
-      detail: tr.t('app.verify.anchor.eventFailed', { batch: a.batchId, reason: check.reason }),
+      detail: tr.t('app.verify.anchor.eventFailed', {
+        batch: batchIdWords(a.batchId, tr.t('app.plant.date.batchNotGiven')),
+        reason: check.reason,
+      }),
       strong: false,
     };
   const why =
@@ -263,7 +267,7 @@ export const anchorHistoryEvent = (
     at: reportedAt,
     title: tr.t('app.verify.anchor.eventReportedTitle'),
     detail: tr.t('app.verify.anchor.eventReported', {
-      batch: a.batchId,
+      batch: batchIdWords(a.batchId, tr.t('app.plant.date.batchNotGiven')),
       where,
       tx: a.txHash ? tr.t('app.verify.anchor.inTx', { tx: a.txHash }) : '',
       date: registryDateWords(a.anchoredAt, tr),

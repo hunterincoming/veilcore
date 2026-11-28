@@ -13,6 +13,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { isNumber, isObject, isString } from '../json';
+import { batchIdWords } from '../batch-id-rule';
 import {
   fileDating,
   fileDatingNote,
@@ -392,9 +393,9 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     : test
       ? anchor
         ? `Practice data. This record is dated on ${networkWords(anchor.network)}. A test network can be reset and its dates carry no weight.`
-        : tsa || ots?.status === 'bitcoin'
-          ? `This record is not dated on Midnight yet. The ${tsa ? 'RFC 3161 token' : 'Bitcoin stamp'} below dates its batch root.`
-          : 'This record is not dated on any network yet. Until it is, nothing here dates it.'
+        : !ev.batch
+          ? 'This record is not dated on any network yet. Until it is, nothing here dates it.'
+          : `When this bundle was made, VeilCore’s registry had given no Midnight transaction for the batch in a form this bundle can use.${tsa || ots?.status === 'bitcoin' ? ` The ${tsa ? 'RFC 3161 token' : 'Bitcoin stamp'} below dates its batch root.` : ' So no Midnight transaction here dates the record.'}`
       : null;
 
   // How it was checked: what the site did when it made the bundle, and what it did not do.
@@ -403,7 +404,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     ...(ev.registry.fileRoots?.length
       ? [
           `From the holder’s backup file, not confirmed with VeilCore’s registry: ${ev.registry.fileRoots
-            .map((c) => `${c.folder} (batch ${oneLine(c.batchId)}, batch root ${c.root}${fileRootGiven(c)})`)
+            .map((c) => `${c.folder} (batch ${batchIdWords(c.batchId)}, batch root ${c.root}${fileRootGiven(c)})`)
             .join('; ')}.`,
           ...(fileRootsDisagree(ev) ? [`More than one root: ${DISAGREE_WORDS}`] : []),
           ...(ev.registry.registryRoots ?? []).map(
@@ -413,7 +414,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
       : []),
     `The record’s proof code was worked out again from the sealed fields below and matched${keyBound ? ' (with the record’s key binding folded in)' : ''}. The bundle can’t be made if it doesn’t.`,
     ev.proof && ev.batch
-      ? `The proof leads from the record’s proof code to the root of batch ${ev.batch.batchId}. The batch root is one code that stands for every record in the batch.`
+      ? `The proof leads from the record’s proof code to the root of batch ${batchIdWords(ev.batch.batchId)}. The batch root is one code that stands for every record in the batch.`
       : fileRoots.length
         ? `The proof in each folder from the holder’s backup file leads from the record’s proof code to the batch root that folder names (a proof that doesn’t is left out). The batch root is one code that stands for every record in the batch.`
         : 'The record is not in a batch yet, so there is no proof and nothing to look up.',
@@ -461,24 +462,27 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     ['Content hash (SHA-256 of the sealed fields)', ev.record.contentHash],
     [
       'Batch',
-      ev.batch?.batchId ??
+      (ev.batch ? batchIdWords(ev.batch.batchId) : null) ??
         (fileRoots.length
-          ? `${[...new Set(fileRoots.map((c) => oneLine(c.batchId)))].join(', ')} (${said})`
+          ? `${[...new Set(fileRoots.map((c) => batchIdWords(c.batchId)))].join(', ')} (${said})`
           : 'not in a batch yet'),
     ],
     ['Batch root', ev.batch?.root ?? (fileRoots.length ? [...new Set(fileRoots.map((c) => c.root))].join(', ') : null)],
-    ['Batch sealed by the registry at', ev.batch?.sealedAt ? (utcWords(ev.batch.sealedAt) ?? ev.batch.sealedAt) : null],
+    ['Batch sealed by the registry at', utcWords(ev.batch?.sealedAt)],
     [
       'Registry first saw the record',
-      ev.registry.firstSeen
-        ? `${utcWords(ev.registry.firstSeen) ?? ev.registry.firstSeen} (the registry’s own clock, its word only)`
-        : null,
+      utcWords(ev.registry.firstSeen) && `${utcWords(ev.registry.firstSeen)} (the registry’s own clock, its word only)`,
     ],
   ];
 
   // Midnight: third, and as VeilCore's registry reported it. Nothing in the bundle read it from the chain.
   const midnightRows: [string, string | null][] = [
-    ['Network', anchor ? networkWords(anchor.network) : 'not recorded on a network yet'],
+    [
+      'Network',
+      anchor
+        ? networkWords(anchor.network)
+        : 'When this bundle was made, VeilCore’s registry had given no Midnight transaction for the batch in a form this bundle can use.',
+    ],
     ['Contract', anchor && isString(anchor.contractAddress) ? anchor.contractAddress : null],
     ['Transaction', tx],
     [`Block (${said})`, anchor && isNumber(anchor.blockHeight) ? String(anchor.blockHeight) : null],
@@ -503,10 +507,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
             ? `In Bitcoin block ${isNumber(ots.bitcoinBlockHeight) ? ots.bitcoinBlockHeight : '(not given)'}`
             : 'Pending: not yet in a Bitcoin block',
         ],
-        [
-          'Block time (as reported)',
-          ots.bitcoinBlockTime ? (utcWords(ots.bitcoinBlockTime) ?? ots.bitcoinBlockTime) : null,
-        ],
+        ['Block time (as reported)', utcWords(ots.bitcoinBlockTime)],
         ['Stamp file', 'proof/root.bin.ots, over proof/root.bin (the batch root as 32 bytes)'],
       ]
     : [];
@@ -529,7 +530,7 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
     const a = fileRootAnchor(c);
     const rows: [string, string | null][] = [
       ['Folder', c.folder],
-      ['Batch', oneLine(c.batchId)],
+      ['Batch', batchIdWords(c.batchId)],
       ['Batch root', c.root],
       [
         'Given',

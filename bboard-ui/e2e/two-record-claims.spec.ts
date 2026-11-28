@@ -67,7 +67,7 @@ const standIn = async (page: Page) => {
       const id = decodeURIComponent(url.pathname.split('/')[2] ?? '');
       const r = held.records.find((x) => x.id === id);
       if (!r) return json(route, 404, { error: 'no such record for this holder key' });
-      const batch = await buildBatch([r.recordFingerprint], 'B-20261126-PAIR');
+      const batch = await buildBatch([r.recordFingerprint], 'B-20261126-9A12');
       const anchor = {
         chain: 'midnight',
         network: 'preprod',

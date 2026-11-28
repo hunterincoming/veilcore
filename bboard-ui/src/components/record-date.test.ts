@@ -24,7 +24,7 @@ const proof = (over: Partial<InclusionProof['anchor'] & object> = {}): Inclusion
   ({
     commitment: 'aa'.repeat(32),
     root: ROOT,
-    batchId: 'B-1',
+    batchId: 'B-20261015-0001',
     path: [],
     anchor: {
       chain: 'midnight',

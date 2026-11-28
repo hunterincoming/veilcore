@@ -40,6 +40,8 @@ import { isDemoLabKey } from '../demo-lab';
 import { custodyView } from '../custody';
 import { receiptCovers, sentByMe, type SentTransfer } from '../transfers';
 import { isObject, isString, isNumber, readJson } from '../json';
+import { batchIdOrNone, batchIdWords, isBatchId } from '../batch-id-rule';
+import { anchorInForm, isInstant, isTsaUrl } from '../anchor-form';
 import { PREPROD_PINNED, pinnedAt } from '../../../../api/src/pinned-contracts';
 import { DOCS, DOCS_COMMIT, DOCS_VERSION, REPO_VIEW } from '../docs';
 import { verifyPageHtml, SDK_VERSION } from './verify-page';
@@ -181,7 +183,8 @@ const base64ToBytes = (b64: string): Uint8Array | null => {
 const looksLikeOts = (b: Uint8Array | null): b is Uint8Array =>
   !!b && b.length > OTS_MAGIC.length && String.fromCharCode(...b.subarray(0, OTS_MAGIC.length)) === OTS_MAGIC;
 
-const anchorObject = (v: unknown): Record<string, unknown> | null => (isObject(v) && isString(v.network) ? v : null);
+/** An anchor in the registry's form (anchor-form.ts), or null: one in any other form is never printed. */
+const anchorObject = (v: unknown): Record<string, unknown> | null => anchorInForm(v);
 
 /**
  * The registry's answer, held to the record: the proof must be about this fingerprint and
@@ -207,7 +210,8 @@ export const reconcile = async (
   let batch: BatchFacts | null = null;
   if (proof) {
     const b = isObject(raw.batch) ? raw.batch : null;
-    const sameBatch = !!b && b.batchId === proof.batchId && b.root === proof.root;
+    // The proof's batch id is "" when the registry's isn't in its form (checkProof): the batch's is held the same way.
+    const sameBatch = !!b && batchIdOrNone(b.batchId) === proof.batchId && b.root === proof.root;
     const ots = sameBatch && isObject(b.opentimestamps) ? b.opentimestamps : null;
     const proofOts = Array.isArray((proof as unknown as Record<string, unknown>).anchors)
       ? ((proof as unknown as Record<string, unknown>).anchors as unknown[]).find(
@@ -237,7 +241,7 @@ export const reconcile = async (
           available: true,
           ...(v.genTime ? { genTime: v.genTime } : {}),
           ...(v.signerSubject ? { signer: v.signerSubject } : {}),
-          ...(isString(tsaFacts.tsa) ? { tsa: tsaFacts.tsa } : {}),
+          ...(isTsaUrl(tsaFacts.tsa) ? { tsa: tsaFacts.tsa } : {}),
           ...(tsaFacts.requestedAfterSeal === true ? { requestedAfterSeal: true } : {}),
           ...(q
             ? {
@@ -254,9 +258,10 @@ export const reconcile = async (
     batch = {
       batchId: proof.batchId,
       root: proof.root,
-      ...(sameBatch && isString(b.sealedAt)
+      // Times the registry gives are held to its form (anchor-form.ts isInstant): never printed otherwise.
+      ...(sameBatch && isInstant(b.sealedAt)
         ? { sealedAt: b.sealedAt }
-        : proof.sealedAt
+        : isInstant(proof.sealedAt)
           ? { sealedAt: proof.sealedAt }
           : {}),
       ...(sameBatch && isNumber(b.recordCount) ? { recordCount: b.recordCount } : {}),
@@ -271,7 +276,7 @@ export const reconcile = async (
         ...(otsFacts && isNumber(otsFacts.bitcoinBlockHeight)
           ? { bitcoinBlockHeight: otsFacts.bitcoinBlockHeight }
           : {}),
-        ...(otsFacts && isString(otsFacts.bitcoinBlockTime) ? { bitcoinBlockTime: otsFacts.bitcoinBlockTime } : {}),
+        ...(otsFacts && isInstant(otsFacts.bitcoinBlockTime) ? { bitcoinBlockTime: otsFacts.bitcoinBlockTime } : {}),
         ...(otsFacts && Array.isArray(otsFacts.calendars) ? { calendars: otsFacts.calendars.filter(isString) } : {}),
         ...(otsOk ? { file: 'proof/root.bin.ots' } : {}),
       },
@@ -283,7 +288,7 @@ export const reconcile = async (
   );
   return {
     source: raw.source,
-    registryFirstSeen: isString(raw.registryFirstSeen) ? raw.registryFirstSeen : null,
+    registryFirstSeen: isInstant(raw.registryFirstSeen) ? raw.registryFirstSeen : null,
     proof,
     proofRefused: raw.proof !== null && raw.proof !== undefined && proof === null,
     batch,
@@ -857,7 +862,7 @@ const fileRootFacts = (c: import('../stamps').FileEvidence, i: number): FileRoot
     later: c.later,
     ...(c.otherTransaction ? { otherTransaction: true } : {}),
     proof: c.proof,
-    anchor: c.proof.anchor ?? null,
+    anchor: anchorInForm(c.proof.anchor),
     opentimestamps: c.ots
       ? {
           available: true,
@@ -1036,7 +1041,7 @@ const otherBatchOf = (ev: Evidence, o: OtherBatch): { readonly sameRoot: boolean
   const batchId = ev.batch?.batchId ?? ev.proof?.batchId;
   return {
     sameRoot: !!root && o.root === root,
-    id: isString(o.batchId) && o.batchId !== batchId ? oneLine(o.batchId) : null,
+    id: isBatchId(o.batchId) && o.batchId !== batchId ? o.batchId : null,
   };
 };
 
@@ -1228,6 +1233,7 @@ export const buildEvidence = async (
     }
   }
 
+  const laterAnchors = (gathered.laterAnchors ?? []).map(anchorInForm).filter((a) => a !== null);
   return {
     format: EVIDENCE_FORMAT,
     createdAt: now.toISOString(),
@@ -1258,10 +1264,16 @@ export const buildEvidence = async (
             : 'firstSeen is VeilCore’s registry’s own clock, its word only. The anchor is the transaction the registry operator reported; nobody has looked it up on the chain for you.',
       ...(gathered.fileRoots?.length ? { fileRoots: gathered.fileRoots.map(fileRootFacts) } : {}),
       ...(gathered.registryRoots?.length ? { registryRoots: gathered.registryRoots } : {}),
-      ...(gathered.registryNow !== undefined ? { registryNow: gathered.registryNow } : {}),
-      ...(gathered.laterAnchors?.length ? { laterAnchors: gathered.laterAnchors } : {}),
-      ...(gathered.registryRoot ? { registryRoot: gathered.registryRoot } : {}),
-      ...(gathered.asideRoots?.length ? { asideRoots: gathered.asideRoots } : {}),
+      // Every anchor the registry named besides the one described, held to its form (anchor-form.ts)
+      // like the described one: one in any other form is "none" (null), never printed.
+      ...(gathered.registryNow !== undefined ? { registryNow: anchorInForm(gathered.registryNow) } : {}),
+      ...(laterAnchors.length ? { laterAnchors } : {}),
+      ...(gathered.registryRoot
+        ? { registryRoot: { ...gathered.registryRoot, anchor: anchorInForm(gathered.registryRoot.anchor) } }
+        : {}),
+      ...(gathered.asideRoots?.length
+        ? { asideRoots: gathered.asideRoots.map((o) => ({ ...o, anchor: anchorInForm(o.anchor) })) }
+        : {}),
       ...(gathered.nowContract ? { nowContract: gathered.nowContract } : {}),
     },
     proof: gathered.proof,
@@ -1690,7 +1702,7 @@ export const readmeText = (
     );
     for (const c of fileRoots)
       L.push(
-        `- ${c.folder}: batch ${oneLine(c.batchId)}, batch root ${c.root}${fileRootGiven(c)}${c.opentimestamps.available ? `, a Bitcoin stamp file (${c.opentimestamps.status === 'bitcoin' ? `names block ${c.opentimestamps.bitcoinBlockHeight ?? '?'}` : 'pending'})` : ''}${c.tokens ? `, ${c.tokens} RFC 3161 token${c.tokens === 1 ? '' : 's'}` : ''}.`,
+        `- ${c.folder}: batch ${batchIdWords(c.batchId)}, batch root ${c.root}${fileRootGiven(c)}${c.opentimestamps.available ? `, a Bitcoin stamp file (${c.opentimestamps.status === 'bitcoin' ? `names block ${c.opentimestamps.bitcoinBlockHeight ?? '?'}` : 'pending'})` : ''}${c.tokens ? `, ${c.tokens} RFC 3161 token${c.tokens === 1 ? '' : 's'}` : ''}.`,
       );
     if (fileRootsDisagree(ev)) L.push(`MORE THAN ONE ROOT: ${DISAGREE_WORDS}`);
     const twoTx = fileTxConflictLines(ev);
@@ -1732,7 +1744,9 @@ export const readmeText = (
     L.push(
       anchor
         ? `This record is dated on ${networkWords(anchor.network)}. A test network can be reset and its dates carry no weight: treat this as practice data.`
-        : 'This record is not dated on any network yet. Until it is, nothing here dates it.',
+        : ev.batch
+          ? "When this bundle was made, VeilCore's registry had given no Midnight transaction for the batch in a form this bundle can use. So no Midnight transaction here dates the record."
+          : 'This record is not dated on any network yet. Until it is, nothing here dates it.',
     );
   }
   L.push('');
@@ -1755,7 +1769,7 @@ export const readmeText = (
     midnightSteps(lookup).forEach((step, i) => L.push(`   ${String.fromCharCode(97 + i)}. ${step}`));
   } else if (ev.batch) {
     L.push(
-      `2. Date it: the batch (${ev.batch.batchId}) isn't recorded on Midnight yet. Download a new bundle once it is.`,
+      "2. Date it on Midnight: when this bundle was made, VeilCore's registry had given no Midnight transaction for the batch in a form this bundle can use. Download a new bundle later.",
     );
   } else if (ev.registry.fileRoots?.length) {
     L.push(
@@ -1862,10 +1876,9 @@ export const readmeText = (
       `- When the lab report was saved to the ${subject}. That came after sealing and isn't inside the record's proof code, so the batch doesn't date it.`,
     );
   }
-  if (ev.registry.firstSeen)
-    L.push(
-      `- The registry first saw this record at ${utcWords(ev.registry.firstSeen) ?? ev.registry.firstSeen}. That is the registry's own clock, its word only.`,
-    );
+  const firstSeen = utcWords(ev.registry.firstSeen);
+  if (firstSeen)
+    L.push(`- The registry first saw this record at ${firstSeen}. That is the registry's own clock, its word only.`);
   L.push(
     `- The sealing time in the record (${utcWords(ev.record.sealedAtDeviceClock) ?? ev.record.sealedAtDeviceClock}) is the holder's device clock, the holder's word only.`,
   );

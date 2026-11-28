@@ -137,6 +137,7 @@ import { NameCheckText } from '../components/NameCheckText';
 import { rich, useT } from '../i18n/app';
 import { enT, forKind, type RecordKind, type Translator } from '../i18n/translate';
 import { networkWords } from '../i18n/network-words';
+import { batchIdWords } from '../veilcore/batch-id-rule';
 
 const API = import.meta.env.VITE_API_BASE ?? '';
 /** The mark for a date checked on a test network: the warning's amber, never mainnet's gold stamp. */
@@ -1288,7 +1289,7 @@ export const VerifyPage: React.FC = () => {
                           {bound ? (
                             <Fact>
                               {t('app.verify.batchBound', {
-                                batch: proof.proof.batchId,
+                                batch: batchIdWords(proof.proof.batchId, t('app.plant.date.batchNotGiven')),
                                 root: proof.proof.root.slice(0, 16),
                               })}
                             </Fact>
@@ -1296,7 +1297,7 @@ export const VerifyPage: React.FC = () => {
                             <Fact ok={false}>
                               {t('app.verify.batchUnbound', {
                                 forWhom,
-                                batch: proof.proof.batchId,
+                                batch: batchIdWords(proof.proof.batchId, t('app.plant.date.batchNotGiven')),
                                 root: proof.proof.root.slice(0, 16),
                               })}
                             </Fact>

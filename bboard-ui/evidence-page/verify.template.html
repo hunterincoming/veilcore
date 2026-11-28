@@ -420,7 +420,7 @@ return canonicalise;
         var cc = LK.fileRoots[ci];
         var ck = FR[ci] || {};
         var lines = [
-          'Batch ' + cc.batchId + ', batch root ' + cc.root + ' (' + cc.folder + ')' + (cc.otherTransaction ? ': the same batch root as another folder, with another Midnight transaction VeilCore’s registry gave later (a second date record for this root)' : cc.later ? ': VeilCore’s registry gave this root later, after giving another for the same batch' : '') + '.',
+          'Batch ' + (cc.batchId || '[not given]') + ', batch root ' + cc.root + ' (' + cc.folder + ')' + (cc.otherTransaction ? ': the same batch root as another folder, with another Midnight transaction VeilCore’s registry gave later (a second date record for this root)' : cc.later ? ': VeilCore’s registry gave this root later, after giving another for the same batch' : '') + '.',
           ck.proof && ck.proof.status === 'ok' ? 'Its proof leads from this record’s proof code to that root.' : 'Its proof does not check: ' + ((ck.proof && ck.proof.reason) || 'none') + '.',
           ck.stamp && ck.stamp.status === 'bitcoin' ? 'Its Bitcoin stamp file starts from that root and names block ' + ck.stamp.bitcoin.map(function (x) { return x.height; }).join(', ') + '; check it against Bitcoin (ots verify root.bin.ots in that folder).' : ck.stamp && ck.stamp.status === 'pending' ? 'Its Bitcoin stamp file starts from that root but holds only a promise, not yet a Bitcoin block (in that folder, run ots upgrade root.bin.ots first, which needs the internet once, then ots verify root.bin.ots).' : 'No Bitcoin stamp file that starts from that root.',
           (ck.tokens ? ck.tokens + ' RFC 3161 token' + (ck.tokens === 1 ? '' : 's') + ' in that folder (openssl ts -verify).' : 'No RFC 3161 token.'),
@@ -540,8 +540,8 @@ return canonicalise;
     if (p.status === 'ok') {
       checks.appendChild(result('ok', 'Proof leads to the batch root', [
         para([p.depth === 0
-          ? 'The record’s proof code is in batch ' + (p.batchId || '(unnamed)') + '. It is the batch’s only record, so its proof code is the batch root itself.'
-          : 'The record’s proof code is in batch ' + (p.batchId || '(unnamed)') + ': the proof’s ' + p.depth + ' step' + (p.depth === 1 ? '' : 's') + ' lead' + (p.depth === 1 ? 's' : '') + ' from it to the batch root, one code that stands for every record in the batch.']),
+          ? 'The record’s proof code is in batch ' + (p.batchId || '[not given]') + '. It is the batch’s only record, so its proof code is the batch root itself.'
+          : 'The record’s proof code is in batch ' + (p.batchId || '[not given]') + ': the proof’s ' + p.depth + ' step' + (p.depth === 1 ? '' : 's') + ' lead' + (p.depth === 1 ? 's' : '') + ' from it to the batch root, one code that stands for every record in the batch.']),
         facts([['Batch root', hex(p.root)]]),
       ], 'proof'));
     } else if (p.status === 'none' && report.lookups && report.lookups.fileRoots && report.lookups.fileRoots.length) {
@@ -612,7 +612,7 @@ return canonicalise;
       lk.appendChild(para(['Nothing to look up yet: the record isn’t in a batch.']));
     } else {
       if (L.midnight.length === 0) {
-        lk.appendChild(para(['The batch hasn’t been recorded on Midnight yet, so there is no transaction to look up. Download a new bundle once it has.']));
+        lk.appendChild(para(['When this bundle was made, VeilCore’s registry had given no Midnight transaction for the batch in a form this bundle can use. So there is no transaction to look up here. Download a new bundle later.']));
       }
       for (var i = 0; i < L.midnight.length; i++) {
         var a = L.midnight[i];
