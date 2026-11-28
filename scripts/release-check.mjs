@@ -84,6 +84,18 @@ export const isBuildFacts = (v) =>
   typeof v.npm === 'string';
 
 /**
+ * A manifest's proof files (docs/proof-files.md): the files the release reads from VeilCore's
+ * proof file host instead of serving them, { url: "https://…", files: { "/keys/x.prover": sha256 } }.
+ */
+export const isProofFiles = (v) =>
+  isObject(v) &&
+  typeof v.url === 'string' &&
+  /^https:\/\/[A-Za-z0-9.-]+$/.test(v.url) &&
+  isObject(v.files) &&
+  Object.keys(v.files).length > 0 &&
+  Object.entries(v.files).every(([p, h]) => /^\/(keys|params)\/[A-Za-z0-9_.]+$/.test(p) && typeof h === 'string' && HEX64.test(h));
+
+/**
  * Whether a value is a release manifest: every file a path and a SHA-256; since round 6 the
  * headers (lower-case names to values) and the build facts, when present, well formed. A
  * manifest from before round 6 has neither, and a check says what that leaves unchecked.
@@ -100,7 +112,8 @@ export const isManifest = (v) =>
   Object.keys(v.files).length > 0 &&
   Object.entries(v.files).every(([p, h]) => PATH.test(p) && !p.split('/').includes('..') && typeof h === 'string' && HEX64.test(h)) &&
   (v.headers === undefined || (isStringMap(v.headers) && Object.keys(v.headers).every((k) => k === k.toLowerCase()))) &&
-  (v.build === undefined || isBuildFacts(v.build));
+  (v.build === undefined || isBuildFacts(v.build)) &&
+  (v.proofFiles === undefined || isProofFiles(v.proofFiles));
 
 /** Where a release's manifest is kept, in the code and on the site. */
 export const manifestPath = (network, commit) => `releases/${network}/${commit}.json`;

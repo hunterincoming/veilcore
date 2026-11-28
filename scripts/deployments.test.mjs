@@ -257,7 +257,8 @@ test('every key and ZKIR file each site release served is the published build', 
     for (const m of readdirSync(dir).filter((f) => f.endsWith('.json'))) {
       const manifest = readJson(path.join(dir, m));
       files++;
-      for (const [served, h] of Object.entries(manifest.files)) {
+      // Served by the site itself, or (since the keys left the build) read from the proof file host.
+      for (const [served, h] of [...Object.entries(manifest.files), ...Object.entries(manifest.proofFiles?.files ?? {})]) {
         if (!/^\/(keys|zkir)\//.test(served)) continue;
         checked++;
         assert.ok(all.has(served), `releases/${n}/${m} serves ${served}, which is not an artefact of deployments/${n}.json`);
@@ -268,6 +269,18 @@ test('every key and ZKIR file each site release served is the published build', 
       if (s.VITE_REAL_CHAIN_CLAIMS_ADDRESS) assert.equal(s.VITE_REAL_CHAIN_CLAIMS_ADDRESS, byName(deployments[n], 'veilcore-claims').address, `releases/${n}/${m}`);
     }
     assert.ok(files > 0 && checked > 0, `releases/${n} has manifests with keys`);
+  }
+});
+
+test('the proof files the site is built with are version 1\'s published keys, on both networks', () => {
+  const table = readJson(path.join(ROOT, 'bboard-ui/src/veilcore/chain/proof-files.json'));
+  for (const n of NETWORKS) {
+    const all = new Map();
+    for (const c of deployments[n].contracts.filter(isV1)) for (const [f, h] of artefactRows(c)) all.set(f, h);
+    for (const [f, h] of Object.entries(table.files)) {
+      if (!f.startsWith('keys/')) continue;
+      assert.equal(h, all.get(f), `${f} on ${n}`);
+    }
   }
 });
 

@@ -97,6 +97,8 @@
     "deploy:prod": "node scripts/deploy-prod-retired.mjs",
     "deploy:mainnet": "node scripts/deploy-mainnet.mjs",
     "deploy:test": "node scripts/deploy-test-site.mjs",
+    "publish:proof-files": "node scripts/publish-proof-files.mjs",
+    "check:proof-files": "node scripts/proof-files.mjs",
     "check:site": "node scripts/check-site.mjs",
     "check:rebuild": "node scripts/check-rebuild.mjs",
     "verify:deployment": "node --experimental-strip-types --no-warnings --import ./api/test-ts-resolve.mjs scripts/verify-deployment.mjs",

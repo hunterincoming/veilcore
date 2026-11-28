@@ -650,6 +650,7 @@ describe('builds', () => {
     VITE_SPONSOR_URL: 'https://sponsor.example.org',
     VITE_INDEXER_URL: 'https://relay.example.org/indexer',
     VITE_INDEXER_WS_URL: 'wss://relay.example.org/indexer/ws',
+    VITE_PROOF_FILES_URL: 'https://keys.veilcore.org',
     ...SELF_OPERATOR,
   };
 
@@ -699,14 +700,25 @@ describe('builds', () => {
   }, 900_000);
 
   it('a mainnet build with the sponsor set up as deploy:mainnet does it builds (the pinned contract, through the relay)', () => {
-    const r = build('mainnet', path.join(tmp, 'dist-sponsor'), {
-      VEILCORE_TEST_DEPLOY_GUARD: guardFile('dummy4', DUMMY, DUMMY_CLAIMS),
+    const chain = {
       VITE_API_BASE: API,
       VITE_REAL_CHAIN: '1',
       VITE_REAL_CHAIN_CONTRACT_ADDRESS: DUMMY,
       VITE_SPONSOR_URL: 'https://sponsor.example.org',
       VITE_INDEXER_URL: 'https://relay.example.org/indexer',
       VITE_INDEXER_WS_URL: 'wss://relay.example.org/indexer/ws',
+    };
+    // The proving keys are not in the build: without the host they are read from, refused.
+    const noKeys = build('mainnet', path.join(tmp, 'dist-sponsor-nokeys'), {
+      VEILCORE_TEST_DEPLOY_GUARD: guardFile('dummy6', DUMMY, DUMMY_CLAIMS),
+      ...chain,
+    });
+    expect(noKeys.status).not.toBe(0);
+    expect(`${noKeys.stdout}${noKeys.stderr}`).toMatch(/VITE_REAL_CHAIN=1 needs VITE_PROOF_FILES_URL/);
+    const r = build('mainnet', path.join(tmp, 'dist-sponsor'), {
+      VEILCORE_TEST_DEPLOY_GUARD: guardFile('dummy4', DUMMY, DUMMY_CLAIMS),
+      ...chain,
+      VITE_PROOF_FILES_URL: 'https://keys.veilcore.org',
     });
     expect(r.status, r.stderr).toBe(0);
     // Readers that don't run JavaScript (search engines, AI assistants) get the facts.

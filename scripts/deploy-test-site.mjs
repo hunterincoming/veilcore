@@ -3,8 +3,10 @@
 // The full app on the preprod test network: logging with a date stamp, "prove it" by link,
 // lab results, everything, free (the sponsor pays test fees). It reads the chain through the
 // sponsor's indexer relay (sponsor/src/indexer-relay.ts), so the page carries no key and can
-// be hosted. Run from Hunter's Mac, because the proving files in bboard-ui/dist/keys come from
-// that machine's contract build, the one the practice contract was deployed from.
+// be hosted. Run from Hunter's Mac. The proving keys and parameters are not in the build: like
+// veilcore.org, the test site reads them from https://keys.veilcore.org, each checked against the
+// fingerprint pinned in the build, and this refuses unless every pinned file is there
+// (scripts/proof-files.mjs, docs/proof-files.md).
 //
 // It refuses to run unless both services say they are on preprod and the registry serves
 // everything the site uses (its /health lists sealed records, lab results, animal records
@@ -26,13 +28,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { execFileSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { checkTestSiteAllowed } from './site-prod-preflight.mjs';
 import { checkRegistryFeatures, featuresLine } from './registry-features.mjs';
 import { vercelEnv } from './vercel-token.mjs';
 import { deployGate } from './deploy-gate.mjs';
 import { contractsPackageProblem } from './contracts-package.mjs';
+import { PROOF_FILES_HOST, PROOF_FILES_TABLE, bigFilesInBuild, proofFilesReady } from './proof-files.mjs';
 
 const CONTRACT = '72fe33436d424fcf247919c8e2f0de224175cc55061739be0ebffb2d650f2f73'; // practice contract, 7 Oct
 const DOMAIN = 'test.veilcore.org';
@@ -84,17 +87,16 @@ export const checkTestRegistry = async (registry) => {
   return checkRegistryFeatures(registry, { agreements: true });
 };
 
-const CLAIMS_KEYS = ['proveRange', 'proveValue'].map((c) => `contract/src/managed/veilcore-claims/keys/${c}.prover`);
-const CLAIMS_PARAMS = ['bboard-ui/public/params/bls_midnight_2p15', 'bboard-ui/public/params/bls_midnight_2p16'];
-const FETCH_KEYS = 'npm exec --package=@veilcore/contracts@0.3.0 -- veilcore-keys fetch --to contract/src/managed';
+const CLAIMS_KEYS = ['proveRange', 'proveValue'].map((c) => `keys/${c}.prover`);
+const CLAIMS_PARAMS = ['params/bls_midnight_2p15', 'params/bls_midnight_2p16'];
 
 /**
  * Whether this test site offers claims, from the sponsor's /sponsor/status: only when the
  * sponsor pays for a claims contract, and then only with the claims proving keys and the k=15
- * and k=16 parameters on this computer.
+ * and k=16 parameters among the site's pinned proof files (`pinned(path)`).
  * @returns {{ ok: true, address?: string, line: string } | { ok: false, problem: string }}
  */
-export const claimsFor = (status, exists) => {
+export const claimsFor = (status, pinned) => {
   const raw = status?.claimsAddress;
   if (raw === undefined || raw === null || raw === '')
     return { ok: true, line: 'Claims: off (the sponsor names no claims contract).' };
@@ -102,17 +104,17 @@ export const claimsFor = (status, exists) => {
   if (!/^[0-9a-f]{64}$/.test(address))
     return { ok: false, problem: `The sponsor's claims address "${raw}" is not a contract address.` };
   if (address === CONTRACT) return { ok: false, problem: 'The sponsor names the main contract as its claims contract.' };
-  const keys = CLAIMS_KEYS.filter((f) => !exists(f));
+  const keys = CLAIMS_KEYS.filter((f) => !pinned(f));
   if (keys.length)
     return {
       ok: false,
-      problem: `The sponsor pays for claims but the claims proving keys are not on this computer (${keys.join(', ')}): run \`${FETCH_KEYS}\` first (it checks every file against the published fingerprints).`,
+      problem: `The sponsor pays for claims but the claims proving keys are not among the site's proof files (${keys.join(', ')} in ${PROOF_FILES_TABLE}).`,
     };
-  const params = CLAIMS_PARAMS.filter((f) => !exists(f));
+  const params = CLAIMS_PARAMS.filter((f) => !pinned(f));
   if (params.length)
     return {
       ok: false,
-      problem: `Claims need the k=15 and k=16 parameters (${params.join(', ')}): run \`cd bboard-ui && node scripts/fetch-params.mjs && cd ..\` first.`,
+      problem: `Claims need the k=15 and k=16 parameters among the site's proof files (${params.join(', ')} in ${PROOF_FILES_TABLE}).`,
     };
   return { ok: true, address, line: `Claims: on, claims contract ${address}.` };
 };
@@ -123,10 +125,8 @@ const main = async () => {
   const pkgProblem = contractsPackageProblem();
   if (pkgProblem) fail(pkgProblem);
   for (const n of gate.notes) console.log(n);
-  if (!existsSync('bboard-ui/public/params') || readdirSync('bboard-ui/public/params').length === 0)
-    fail('The proving parameters are missing: run `cd bboard-ui && node scripts/fetch-params.mjs && cd ..` first.');
-  if (!existsSync('contract/src/managed/veilcore/keys'))
-    fail('The contract has no compiled keys on this computer: run `cd contract && npm run compact && cd ..` first.');
+  if (!existsSync('contract/src/managed/veilcore/zkir'))
+    fail('The contract is not compiled on this computer: run `cd contract && npm run compact && cd ..` first.');
 
   const registry = httpsOrigin('VEILCORE_TEST_REGISTRY');
   const sponsor = httpsOrigin('VEILCORE_TEST_SPONSOR');
@@ -145,7 +145,11 @@ const main = async () => {
     fail(`The sponsor uses contract ${status.contractAddress}, not the practice contract ${CONTRACT}.`);
   // The claims contract comes from the sponsor itself, so the site never names a contract the
   // sponsor won't pay for (docs/claims-screen.md). No claims address there: no claims on the site.
-  const claims = claimsFor(status, existsSync);
+  console.log(`Checking the proof files on ${PROOF_FILES_HOST}…`);
+  const proof = await proofFilesReady();
+  if (!proof.ok) fail(proof.problem);
+  console.log(proof.line);
+  const claims = claimsFor(status, (f) => Object.hasOwn(proof.files, f));
   if (!claims.ok) fail(claims.problem);
   console.log(claims.line);
   const relay = await fetch(`${sponsor}/indexer`, {
@@ -186,6 +190,8 @@ const main = async () => {
     VITE_CANONICAL_ORIGIN: `https://${DOMAIN}`,
     // Always set, so an address left in this shell never reaches the build.
     VITE_REAL_CHAIN_CLAIMS_ADDRESS: claims.address ?? '',
+    // The checked proof files (above): the page reads them from there, and allows that address.
+    VITE_PROOF_FILES_URL: PROOF_FILES_HOST,
   };
   const run = (cmd, args, opts = {}) => execFileSync(cmd, args, { stdio: 'inherit', env, ...opts });
 
@@ -194,6 +200,9 @@ const main = async () => {
   rmSync('.vercel/output', { recursive: true, force: true });
   mkdirSync('.vercel/output/static', { recursive: true });
   cpSync('bboard-ui/dist', '.vercel/output/static', { recursive: true });
+  const big = bigFilesInBuild('.vercel/output/static');
+  if (big.length)
+    fail(`The build still has ${big.map((d) => `${d}/`).join(' and ')} in it; those files are served from ${PROOF_FILES_HOST}, not stored with every deploy.`);
   run('node', ['scripts/vercel-config.mjs']);
   // The release manifest (CONTRACT.md #31): every file served, the commit, the date, written
   // to releases/preprod/<commit>.json (commit and push it with this release) and printed.

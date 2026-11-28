@@ -11,7 +11,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, existsSync
 import { tmpdir } from 'node:os';
 import { join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildFacts, hashTree, headersFromConfig, secretSettingProblem, writeRelease } from './release-manifest.mjs';
+import { buildFacts, hashTree, headersFromConfig, proofFilesFor, secretSettingProblem, writeRelease } from './release-manifest.mjs';
 import { checkSite } from './check-site.mjs';
 import { checkRebuild } from './check-rebuild.mjs';
 import { APP_ROUTES, allMatch, checkFiles, isManifest, readRelease, routesToCheck } from './release-check.mjs';
@@ -57,6 +57,31 @@ test('a deploy writes release.json, the manifest in releases/<network>/<commit>.
     assert.equal(manifest.files['/index.html'], hashTree(dir)['/index.html']);
     assert.throws(() => writeRelease({ network: 'Main Net', staticDir: dir, repoRoot: repo, commit: COMMIT }), /network/);
     assert.throws(() => writeRelease({ network: 'mainnet', staticDir: dir, repoRoot: repo, commit: 'abc' }), /not a git commit/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+    rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+test('the manifest says which files the release reads from the proof file host, and checks the list is well formed', () => {
+  const { dir, repo } = site();
+  try {
+    const build = { mode: 'mainnet', settings: { VITE_PROOF_FILES_URL: 'https://keys.veilcore.org' }, node: 'v24', npm: '11' };
+    const proofFiles = proofFilesFor(build);
+    assert.equal(proofFiles.url, 'https://keys.veilcore.org');
+    assert.equal(Object.keys(proofFiles.files).length, 58);
+    assert.ok(Object.keys(proofFiles.files).every((p) => /^\/(keys|params)\//.test(p)));
+    const { manifest } = writeRelease({ network: 'mainnet', staticDir: dir, repoRoot: repo, commit: COMMIT, date: '2026-11-27T00:00:00.000Z', uncommittedChanges: false, build, proofFiles });
+    assert.ok(isManifest(manifest));
+    assert.deepEqual(manifest.proofFiles, proofFiles);
+    // The host's files are not in the site's own list: it doesn't serve them.
+    assert.ok(Object.keys(manifest.files).every((p) => !/^\/(keys|params)\//.test(p)));
+    assert.equal(proofFilesFor({ ...build, settings: {} }), undefined);
+    assert.throws(
+      () => writeRelease({ network: 'mainnet', staticDir: dir, repoRoot: repo, commit: COMMIT, proofFiles: { url: 'http://x', files: {} } }),
+      /proof files list/,
+    );
+    assert.equal(isManifest({ ...manifest, proofFiles: { url: 'https://keys.veilcore.org', files: { '/../x': 'ab' } } }), false);
   } finally {
     rmSync(dir, { recursive: true, force: true });
     rmSync(repo, { recursive: true, force: true });

@@ -31,6 +31,10 @@ export const errors = {
   'app.err.chain.circuitFilesMismatch':
     'Los archivos de prueba de este sitio para {circuit} no son los que usa el contrato.',
   'app.err.chain.filesMissing': 'Los archivos de prueba para {circuit} todavía no están en este sitio.',
+  'app.err.chain.proofFileWrong':
+    'Un archivo de prueba no era exactamente el archivo para el que se creó este sitio, así que no se usó. No se envió nada.',
+  'app.err.chain.proofFilesUnreachable':
+    'Ahora mismo no se pudieron descargar los archivos de prueba. No se envió nada. Inténtelo de nuevo en unos minutos.',
   'app.err.chain.paramsMissing': 'Los parámetros públicos (k={k}) todavía no están en este sitio.',
   'app.err.chain.callFailed': 'La red incluyó la llamada, pero no se completó ({status}).',
   'app.err.chain.hashUnreadable': 'La red la incluyó, pero no se pudo leer su hash de transacción',

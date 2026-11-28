@@ -1,7 +1,9 @@
 // Download the public proving parameters the browser prover needs (k=13 to k=16: the main
-// contract's circuits, and the claims contract's proveValue and proveRange) into public/params, so the site serves
-// them itself: the page's security policy allows only its own origin for these, and the
-// site does not depend on a third-party host at proving time.
+// contract's circuits, and the claims contract's proveValue and proveRange) into public/params.
+// VeilCore serves them itself, from its proof file host (scripts/publish-proof-files.mjs reads
+// them from here and publishes them once), so the site does not depend on a third-party host at
+// proving time. The site build leaves them out (they were in every deploy); a local `npm run dev`
+// still serves them from public/params.
 //
 // The files are public and the same for everyone. They come from srs.midnight.network,
 // the host Midnight's own proof server uses by default, and each one is checked against
@@ -16,8 +18,8 @@
 //   node scripts/fetch-params.mjs --pin     record the SHA-256 of a file with no pin yet
 //                                           (only for a new k; k=13 to k=16 are pinned)
 //
-// Not kept in git (public/params is ignored): run this before `npm run build` for a build
-// with VITE_REAL_CHAIN=1.
+// Not kept in git (public/params is ignored): run this before publishing the proof files, or
+// for a local build that proves without a proof file host.
 // SPDX-License-Identifier: Apache-2.0
 
 import { createHash } from 'node:crypto';
@@ -81,4 +83,4 @@ for (const k of K) {
   } else console.log(`k=${k}: ${bytes.length} bytes, SHA-256 matches the pin`);
 }
 if (changed) writeFileSync(pinsFile, JSON.stringify(pins, null, 2) + '\n');
-console.log(`Saved in ${out}. They are copied into dist/params by the build.`);
+console.log(`Saved in ${out}. scripts/publish-proof-files.mjs publishes them; the site build leaves them out.`);

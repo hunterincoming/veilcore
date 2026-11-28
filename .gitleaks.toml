@@ -42,3 +42,10 @@ paths = ['''^bboard-ui/src/veilcore/fixtures/w3c-eddsa-jcs-2022/keyPair\.json$''
 description = "sample custody cross-check vector: test data"
 targetRules = ["generic-api-key"]
 paths = ['''^bboard-ui/src/veilcore/custody-vectors\.ts$''']
+
+[[allowlists]]
+# Public: the SHA-256 of each proving key and parameter file the site pins (docs/proof-files.md).
+# Circuit names like recoverRecordSecret, next to a 64-hex pin, read as a key to this rule.
+description = "proof file pins: public SHA-256 hashes"
+targetRules = ["generic-api-key"]
+paths = ['''^bboard-ui/src/veilcore/chain/proof-files\.json$''']

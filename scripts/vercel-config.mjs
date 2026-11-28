@@ -58,9 +58,10 @@ for (const [name, scheme] of [
 }
 
 // Real-chain builds (VITE_REAL_CHAIN=1, see bboard-ui/src/veilcore/chain/config.ts) also
-// talk to Midnight's indexer (https and wss) and to VeilCore's sponsor service. Proofs
-// are made in a worker from this site's own /keys, /zkir and /params, so nothing else
-// is needed. A build without the flag gets exactly the policy below and nothing more.
+// talk to Midnight's indexer (https and wss), to VeilCore's sponsor service and to VeilCore's
+// proof file host (VITE_PROOF_FILES_URL). Proofs are made in a worker from this site's /zkir
+// and the keys and parameters from that host, each checked against its pinned SHA-256, so
+// nothing else is needed. A build without the flag gets exactly the policy below and nothing more.
 const REAL_CHAIN = process.env.VITE_REAL_CHAIN === '1';
 const chainOrigins = [];
 if (REAL_CHAIN) {
@@ -82,6 +83,20 @@ if (REAL_CHAIN) {
   const indexer = new URL(process.env.VITE_INDEXER_URL || `https://indexer.${network}.midnight.network/api/v4/graphql`);
   const indexerWs = new URL(process.env.VITE_INDEXER_WS_URL || `wss://indexer.${network}.midnight.network/api/v4/graphql/ws`);
   chainOrigins.push(new URL(sponsor).origin, indexer.origin, `${indexerWs.protocol}//${indexerWs.host}`);
+  // The proving keys and parameters, from VeilCore's own proof file host (keys.veilcore.org,
+  // docs/proof-files.md), each checked against the SHA-256 pinned in the build before use.
+  const proofFiles = (process.env.VITE_PROOF_FILES_URL || '').trim();
+  if (proofFiles) {
+    let u;
+    try {
+      u = new URL(proofFiles);
+    } catch {
+      throw new Error('VITE_PROOF_FILES_URL is not an address.');
+    }
+    if (u.protocol !== 'https:' || u.pathname !== '/' || u.search || u.hash || u.username || u.password)
+      throw new Error('VITE_PROOF_FILES_URL must be a plain https address, like https://keys.veilcore.org');
+    if (!chainOrigins.includes(u.origin)) chainOrigins.push(u.origin);
+  }
 }
 
 // The check page reads Midnight itself (bboard-ui/src/veilcore/chain/anchor-check.ts), on

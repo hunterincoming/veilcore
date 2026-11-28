@@ -21,10 +21,14 @@
 //      is published. None of the site's settings is one (they are addresses, a network name,
 //      a contract address and switches, all inside the published page anyway);
 //   5. writes the manifest, { format, network, commit, date, uncommittedChanges, files,
-//      headers, build }, to releases/<network>/<commit>.json in this checkout, and a copy
+//      headers, build, proofFiles }, to releases/<network>/<commit>.json in this checkout, and a copy
 //      into <folder> at the same path, so /check-this-site can read it; the copy is not in
 //      its own list;
 //   6. prints where it wrote it, and the manifest itself.
+// `proofFiles` (since the proving keys left the build, docs/proof-files.md): the files this
+// release does not serve itself, { url, files: { "/keys/anchor.prover": "<sha256>", … } }, each
+// fetched from <url>/sha256/<sha256> and checked against that SHA-256 by the page. Written when
+// the build names a host (VITE_PROOF_FILES_URL); the list is the build's pins.
 // The manifest in releases/ is committed and pushed with the release, so the public code
 // lists each release's files. Nothing here commits or pushes anything. With the manifest,
 // anyone can rebuild the release from that commit and compare: npm run check:rebuild --
@@ -40,7 +44,8 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { MANIFEST_FORMAT, RELEASE_FORMAT, SECURITY_HEADERS, isBuildFacts, manifestPath } from './release-check.mjs';
+import { MANIFEST_FORMAT, RELEASE_FORMAT, SECURITY_HEADERS, isBuildFacts, isProofFiles, manifestPath } from './release-check.mjs';
+import { readProofFiles } from './proof-files.mjs';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 /** Where the site's build writes the settings it saw (bboard-ui/vite.config.ts recordBuildSettings). */
@@ -128,6 +133,18 @@ export const buildFacts = ({ staticDir, settingsFile = BUILD_SETTINGS_FILE }) =>
   return facts;
 };
 
+/**
+ * The files a build reads from its proof file host, as a manifest lists them, or undefined when
+ * the build names none. Throws when it names one and the pins can't be read.
+ */
+export const proofFilesFor = (build, read = readProofFiles) => {
+  const url = build?.settings?.VITE_PROOF_FILES_URL;
+  if (!url) return undefined;
+  const table = read();
+  if (!table.ok) throw new Error(table.problem);
+  return { url, files: Object.fromEntries(Object.entries(table.files).map(([p, h]) => [`/${p}`, h])) };
+};
+
 /** Every file under `dir`, by the path it is served at: "/" and its segments, URL-encoded. */
 export const hashTree = (dir) => {
   const out = {};
@@ -153,7 +170,8 @@ const git = (args, cwd) => execFileSync('git', args, { cwd, encoding: 'utf8', st
  * into `staticDir`. `commit`, `date` and `uncommittedChanges` default to the checkout's.
  * @returns {{ manifest: object, file: string }}
  */
-export const writeRelease = ({ network, staticDir, repoRoot = process.cwd(), commit, date, uncommittedChanges, headers, build }) => {
+export const writeRelease = ({ network, staticDir, repoRoot = process.cwd(), commit, date, uncommittedChanges, headers, build, proofFiles }) => {
+  if (proofFiles !== undefined && !isProofFiles(proofFiles)) throw new Error('The proof files list is not well formed.');
   if (build) for (const [k, v] of Object.entries(build.settings ?? {})) {
     const problem = secretSettingProblem(k, v);
     if (problem) throw new Error(`Not writing the release manifest: ${problem}. The manifest is published; build without it.`);
@@ -173,6 +191,7 @@ export const writeRelease = ({ network, staticDir, repoRoot = process.cwd(), com
     files: hashTree(staticDir),
     ...(headers ? { headers } : {}),
     ...(build ? { build } : {}),
+    ...(proofFiles ? { proofFiles } : {}),
   };
   const text = `${JSON.stringify(manifest, null, 2)}\n`;
   const rel = manifestPath(network, head);
@@ -193,15 +212,19 @@ const main = () => {
   }
   let headers;
   let build;
+  let proofFiles;
   try {
     headers = headersFromConfig(join(staticDir, '..', 'config.json'));
     build = buildFacts({ staticDir });
+    proofFiles = proofFilesFor(build);
   } catch (e) {
     console.error(`\nNOT DEPLOYED. ${e instanceof Error ? e.message : String(e)}\n`);
     process.exit(1);
   }
-  const { manifest, rel, text } = writeRelease({ network, staticDir, headers, build });
+  const { manifest, rel, text } = writeRelease({ network, staticDir, headers, build, proofFiles });
   console.log(`\nRelease manifest: ${Object.keys(manifest.files).length} files, commit ${manifest.commit}, ${manifest.date}.`);
+  if (proofFiles)
+    console.log(`And ${Object.keys(proofFiles.files).length} proving files served from ${proofFiles.url}, each checked by the page against its SHA-256.`);
   console.log(`Written to ${rel}. Commit it and push it with this release, so anyone can check the site:`);
   console.log(`  npm run check:site -- <the site's address>, or open /check-this-site on the site;`);
   console.log(`  and rebuild it from the code to compare: npm run check:rebuild -- ${rel}`);

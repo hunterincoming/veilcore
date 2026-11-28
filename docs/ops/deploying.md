@@ -15,6 +15,12 @@ VEILCORE_MAINNET_SPONSOR=https://veilcore-sponsor-mainnet-production.up.railway.
 npm run deploy:mainnet
 ```
 
+The proving keys and parameters are not in the site's build: they are published once on
+`https://keys.veilcore.org` (`npm run publish:proof-files`, [`docs/proof-files.md`](../proof-files.md)),
+and `deploy:mainnet` and `deploy:test` download and check every one of them before building, and
+refuse if any is missing or different. A site deploy no longer stores them on Vercel (they were
+over 135 MB of every deploy, and filled the Hobby team's 10 GB).
+
 The site talks to the production registry (`https://veilcore-api-production.up.railway.app`).
 To build against another one, add `VEILCORE_MAINNET_REGISTRY=https://<registry>`; the script
 refuses anything that is not a plain https address, before building anything.

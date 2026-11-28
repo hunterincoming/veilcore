@@ -72,8 +72,8 @@ a fact" says so before the button, for every record, in five languages (`app.cla
    field set (site, registry, SDK vectors).
 2. **Done (29 Oct), not yet run on a network.** The claim call from the browser
    (`bboard-ui/src/veilcore/chain/claims-call.ts`): the claims contract named by
-   `VITE_REAL_CHAIN_CLAIMS_ADDRESS`, its proving files copied into the build when they exist
-   (`scripts/copy-claims-keys.mjs`), the public parameters k=15 and k=16 pinned (from Midnight's
+   `VITE_REAL_CHAIN_CLAIMS_ADDRESS`, its circuits copied into the build (`scripts/copy-claims-keys.mjs`) and its proving keys
+   read from keys.veilcore.org (`docs/proof-files.md`), the public parameters k=15 and k=16 pinned (from Midnight's
    own `data_provider.rs`), and the sponsor paying for claims on the claims contract only
    (`VEILCORE_CLAIMS_ADDRESS`, `MAINNET_CLAIMS` off). Checked here: the claim's inputs pass the
    claims contract's compiled circuits, Midnight's own circuit checker accepts them, the sponsor

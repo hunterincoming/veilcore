@@ -13,8 +13,8 @@ Together they show that what runs on mainnet was compiled from the source in thi
 The hashes live in [`deployments/mainnet.json`](../deployments/mainnet.json) (and
 [`deployments/preprod.json`](../deployments/preprod.json) for the test network), described by
 [`deployments/schema.json`](../deployments/schema.json). They are the same hashes as
-[`docs/fingerprints.md`](fingerprints.md), the deployment record and the files served under
-`/keys/` on veilcore.org (`releases/mainnet/`); a test (`scripts/deployments.test.mjs`) fails if
+[`docs/fingerprints.md`](fingerprints.md), the deployment record and the keys veilcore.org reads from
+https://keys.veilcore.org (`releases/mainnet/`, `files` and `proofFiles`; `docs/proof-files.md`); a test (`scripts/deployments.test.mjs`) fails if
 any of them disagree.
 
 ## What was deployed
@@ -194,8 +194,8 @@ please open an issue with the `verify:build` output.
 
 ### Check the published key files
 
-The keys are also published as the `zk-r4` release of this repository, and served by the site
-under `/keys/`. Their SHA-256 must equal the deployments file. Download one from the release,
+The keys are also published as the `zk-r4` release of this repository, and on
+`https://keys.veilcore.org/sha256/<SHA-256>`, where the site reads them (`docs/proof-files.md`). Their SHA-256 must equal the deployments file. Download one from the release,
 with the GitHub CLI or with curl:
 
 ```bash

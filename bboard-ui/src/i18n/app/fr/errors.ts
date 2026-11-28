@@ -31,6 +31,10 @@ export const errors = {
   'app.err.chain.circuitFilesMismatch':
     'Les fichiers de preuve de ce site pour {circuit} ne sont pas ceux qu’utilise le smart contract.',
   'app.err.chain.filesMissing': 'Les fichiers de preuve pour {circuit} ne sont pas encore sur ce site.',
+  'app.err.chain.proofFileWrong':
+    'Un fichier de preuve n’était pas exactement celui pour lequel ce site a été construit, il n’a donc pas été utilisé. Rien n’a été envoyé.',
+  'app.err.chain.proofFilesUnreachable':
+    'Les fichiers de preuve n’ont pas pu être téléchargés pour l’instant. Rien n’a été envoyé. Réessayez dans quelques minutes.',
   'app.err.chain.paramsMissing': 'Les paramètres publics (k={k}) ne sont pas encore sur ce site.',
   'app.err.chain.callFailed': 'Le réseau a inclus l’appel, mais il n’a pas abouti ({status}).',
   'app.err.chain.hashUnreadable': 'Le réseau l’a incluse, mais son hachage de transaction n’a pas pu être lu',

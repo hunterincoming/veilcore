@@ -89,7 +89,9 @@ That also brings the claims contract's keys ("prove a fact"). Never run a bare `
 VeilCore doesn't own that npm name. Keys that don't match the chain make every proof fail; the
 sponsor then leaves its anchoring job off and its log says so.
 
-Then the proving parameters for the site: `cd bboard-ui && node scripts/fetch-params.mjs && cd ..`.
+The site's build doesn't carry the proving keys or the proving parameters (since 27 November
+2026): visitors' browsers download them from a separate file host. Where that is, and how to
+serve them yourself, is in step 6, "Where the proving files come from".
 
 ## 1. The registry (veilcore-api)
 
@@ -236,6 +238,7 @@ build in.
 | `VITE_REAL_CHAIN_CONTRACT_VERSION` | Test networks only: `v1` or `v2`, the version of that contract, unless it is one of VeilCore's preprod contracts (`deployments/preprod.json`). Without it, check pages don't look a date up on Midnight: off mainnet a check names its contract version, and a defaulted one is refused. On mainnet the version comes from `deployments/mainnet.json`. |
 | `VITE_REAL_CHAIN_CLAIMS_ADDRESS` | The claims contract, if your sponsor pays for claims (its `/sponsor/status` names a `claimsAddress`). Needs the claims keys from step 0 and the k=15 and k=16 parameters. |
 | `VITE_SPONSOR_URL` | Your sponsor's https address. |
+| `VITE_PROOF_FILES_URL` | Where the browser reads the proving keys and parameters, each checked against the SHA-256 pinned in the build: `https://keys.veilcore.org`, or your own host (`docs/proof-files.md`). A mainnet build with `VITE_REAL_CHAIN=1` refuses to build without it. |
 | `VITE_INDEXER_URL`, `VITE_INDEXER_WS_URL` | Where the browser reads Midnight: on a test network `<sponsor>/indexer` and `wss://<sponsor host>/indexer/ws`; on mainnet `<relay>/indexer` and `wss://<relay host>/indexer/ws`. Never a Blockfrost address with a key in it: the page would publish it (the header step refuses one). |
 | `VITE_INDEXER_RELAY_URL` | Mainnet: `<relay>/indexer`, so check pages look the date up on Midnight. Test networks fall back to `VITE_INDEXER_URL`. |
 | `VITE_NETWORK_ID` | Set by the build: `npm run build` is preprod, `npm run build:mainnet` mainnet. Export `mainnet` too for a mainnet build, so the header step checks the mainnet rules. |
@@ -292,9 +295,39 @@ folder. Other servers need the same rules:
 - `/tools/passkey-check` serves `/tools/passkey-check.html`;
 - any other path that is not a file serves `/index.html`.
 
-Two things to know: the headers include `Strict-Transport-Security` with `includeSubDomains` for
-two years, which covers every name under your domain; and the proving keys and parameters under
-`/keys/` and `/params/` are large single files, so check your host's limit on file size.
+One thing to know: the headers include `Strict-Transport-Security` with `includeSubDomains` for
+two years, which covers every name under your domain.
+
+### Where the proving files come from
+
+The proving keys and parameters (over 135 MB) are **not** in the build: `npm run build` deletes
+`dist/keys` and `dist/params`. A visitor's browser downloads each one from the address in
+`VITE_PROOF_FILES_URL`, as `<that address>/sha256/<the file's SHA-256>`, and uses it only if its
+SHA-256 is the one pinned in the build (`bboard-ui/src/veilcore/chain/proof-files.json`). The
+host only has to be reachable, not trusted. Pick one:
+
+- **Use VeilCore's**: set `VITE_PROOF_FILES_URL=https://keys.veilcore.org` for the build. Nothing
+  else to run. Your visitors' browsers then also connect to keys.veilcore.org, which sees what any
+  file host sees (their IP address and which public file they asked for). Say so in your privacy
+  policy.
+- **Serve them yourself**: after step 0 (keys) and
+  `cd bboard-ui && node scripts/fetch-params.mjs && cd ..` (parameters), from the repository root:
+
+  ```
+  node --input-type=module -e "import { readProofFiles, gatherLocal, mergedList, stageHost } from './scripts/proof-files.mjs'; const t = readProofFiles(); const l = gatherLocal(t.files); if (!l.ok) { console.error(l.problems.join('\n')); process.exit(1); } console.log(stageHost('proof-files-host', mergedList({}, t.files), l.bytes).out);"
+  ```
+
+  It checks every file against its pin and writes `proof-files-host/.vercel/output/static/`:
+  `sha256/<SHA-256>` for each file, and `proof-files.json`. Serve that folder over https on a host
+  name of its own (for example `keys.example.org`), with `Access-Control-Allow-Origin: *` on every
+  file (the browser reads them from your site's pages, so without it every proof fails). Then
+  build with `VITE_PROOF_FILES_URL=https://keys.example.org`, and keep it set for the header step
+  (`scripts/vercel-config.mjs` adds it to the `connect-src` of your security policy).
+
+With neither (no `VITE_PROOF_FILES_URL`), a test-network build reads the files from your own site's
+`/keys/` and `/params/` without the check, and you would have to copy them into `dist/` after
+`npm run build` by hand. A mainnet build that proves (`VITE_REAL_CHAIN=1`) refuses to build
+without it. Use one of the two above.
 
 Check, after the upload: `npm run check:site -- https://<site>` compares every file and header
 with the release list. Then open your site, seal a record, and copy its check link: it must start
