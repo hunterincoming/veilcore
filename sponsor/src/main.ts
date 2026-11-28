@@ -41,6 +41,7 @@ import { protocolVersionToLedger } from "@midnight-ntwrk/midnight-js-protocol";
 import { log, scrubOutput } from "./log.js";
 import { installWsDiagnostics, midnightJsWebSocket } from "./ws-diagnostics.js";
 import { messageOf } from "./error-chain.js";
+import { buildInfo } from "./build-info.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -73,6 +74,8 @@ const main = async (): Promise<void> => {
   // Log why an indexer socket closed (code, reason, which wallet), which the wallet SDK drops:
   // it only prints "[object CloseEvent]". Observes only (ws-diagnostics.ts).
   installWsDiagnostics(log);
+  // Which build this is (package versions, commit or deployment): build-info.ts.
+  log("info", "sponsor build", buildInfo(process.env));
   const now = () => Date.now();
 
   // Which side of Midnight's Ledger 9 fork the network is on (fork.ts): the protocol version

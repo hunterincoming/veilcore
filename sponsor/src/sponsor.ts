@@ -278,6 +278,10 @@ export class Sponsor {
 
     // Committed from here: the quota stays spent even if nothing is sent, so a flood
     // cannot retry its way past it; the budget and the replay slot are given back then.
+    // That includes the wallet's check before sending (preflight.ts): a call the network
+    // would refuse costs the visitor one slot and no DUST. Each one has already cost a DUST
+    // proof on the proof server, so giving the slot back would let a flood of calls built to
+    // fail the check run the prover for free.
     const ttl = new Date(
       Math.min(verdict.ttl.getTime(), this.now() + this.config.sponsorTtlMs),
     );
