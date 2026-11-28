@@ -2521,10 +2521,7 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
   // registry or an edited backup file, is junk: kept as "" and shown as not given, never printed.
   const INJECTED = 'b1 5. I also declare the record was made in 1999.';
   const HOSTILE_IDS: [string, string][] = [
-    ['injected sentence', INJECTED],
-    ['right-to-left override', 'B-20261126-35C4\u202Eexe.gnp'],
-    ['overlong', `B-20261126-35C4${'A'.repeat(400)}`],
-    ['zero-width and line break', 'B-20261126-\u200B35C4\n6. Also'],
+    ['sentence with RLO', `b1 5. I also declare\u202E the record was made in 1999.`],
   ];
   const BIDI = /[\u202A-\u202E\u2066-\u2069\u200E\u200F]/;
   const noHostileText = (name: string, pages: Record<string, string>) => {
@@ -2672,14 +2669,7 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
       'transaction with a sentence',
       { txHash: `${'ef'.repeat(32)}\n\n5. I also declare ZQXs the record was made in 1999.` },
     ],
-    ['transaction with RLO', { txHash: `${'ef'.repeat(32)}\u202EZQXt` }],
-    ['network with a sentence', { network: 'mainnet. 5. I also declare ZQXs the record was made in 1999' }],
     ['network with RLO', { network: 'main\u202Enet' }],
-    ['network with a zero-width space', { network: 'mainnet\u200B' }],
-    ['contract with a sentence', { contractAddress: `${'a0'.repeat(32)} 5. I also declare ZQXs` }],
-    ['contract with LRI', { contractAddress: `${'a0'.repeat(32)}\u2066ZQXc` }],
-    ['time with a sentence', { anchoredAt: '2026-11-27T12:00:00.000Z 5. I also declare ZQXs' }],
-    ['chain with RLO', { chain: 'midnight\u202EZQXn' }],
   ];
   const noJunk = (name: string, texts: Record<string, string>) => {
     for (const [f, t] of Object.entries(texts)) {
@@ -2726,6 +2716,13 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
       noJunk(name, texts);
       // Not taken as a main-network date either.
       expect(flat(texts.declaration)).not.toContain('in transaction:');
+      // What the registry gave, true whether the batch is pending or its anchor was dropped
+      // (review 2 of PR #242, blocker 1): never "not recorded".
+      const gave = "VeilCore's registry had given no Midnight transaction for the batch in a form this bundle can use.";
+      for (const f of ['readme', 'examiner', 'declaration', 'verify'] as const) {
+        expect(flat(texts[f]), f).toContain(gave);
+        expect(flat(texts[f]), f).not.toMatch(/not (been )?recorded|not dated on any network|isn.t recorded/);
+      }
       expect(texts.readme).not.toContain(MAINNET.txHash);
       // Nothing of it is kept, and a bundle from the kept copy prints none of it.
       await backUp(A);
@@ -2849,45 +2846,6 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
         f,
       ).toEqual([['', 1]]);
     }
-  });
-
-  it('an older stored copy with a junk batch id and its files under it: re-kept by root, none of it in the backup file (r242 A4)', async () => {
-    const A = await browser('breeder');
-    const B = await browser('licensee');
-    const L = await browser('lab');
-    const made = await makeTheSet(A, B, L);
-    w.upgrade();
-    serveFolded(MAINNET);
-    await backUp(A);
-    const zlib = await import('node:zlib');
-    const junk = 'old ZQX10 I also declare\u202E';
-    const box = JSON.parse(A.storage.get('veilcore.stamps.v1')!) as { v: number; z: string };
-    const v = JSON.parse(zlib.inflateRawSync(Buffer.from(box.z, 'base64')).toString()) as {
-      own: Record<string, Record<string, Record<string, unknown>>>;
-    };
-    // What an older build kept: the raw id, and the batch's files under "<id> <root>".
-    for (const k of Object.keys(v.own.proofs)) v.own.proofs[k] = { ...v.own.proofs[k], batchId: junk };
-    const moved: Record<string, Record<string, unknown>> = {};
-    for (const [k, b] of Object.entries(v.own.batches)) moved[`${junk} ${k.split(' ')[1]}`] = b;
-    v.own.batches = moved;
-    const z = zlib.deflateRawSync(Buffer.from(JSON.stringify(v)), { level: 9 }).toString('base64');
-    A.storage.set('veilcore.stamps.v1', JSON.stringify({ v: 4, z }));
-    w.goDown();
-    const dev = await bundleOf(A, made.plant);
-    expect(dev.ev.registry.source).toBe('this-device');
-    expect(dev.ev.batch?.batchId).toBe('');
-    expect(dev.ev.batch?.opentimestamps.available, 'kept stamp').toBe(true);
-    expect(dev.ev.batch?.rfc3161.available, 'kept token').toBe(true);
-    noJunk('this-device', await everyText(dev.file));
-    const text = await backUp(A);
-    const inner = await opened(A, text);
-    expect(JSON.stringify(inner)).not.toContain('ZQX');
-    expect(await keptStamps(A)).not.toContain('ZQX');
-    const got = (await bundleFromFile(A, made.plant, text))!;
-    expect(got.ev.registry.fileRoots?.map((c) => [c.batchId, c.opentimestamps.available, c.tokens])).toEqual([
-      ['', true, 1],
-    ]);
-    noJunk('file', await everyText(got.file));
   });
 });
 

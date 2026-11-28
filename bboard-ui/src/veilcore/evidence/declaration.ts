@@ -164,7 +164,9 @@ export const declarationText = async (
       '',
       anchor
         ? `NOTE: this record is dated on ${t(networkWords(anchor.network))}. A test network can be reset and its dates carry no weight. This bundle is practice data: do not use it as evidence.`
-        : 'NOTE: this record is not dated on any network yet. Until it is, nothing in this bundle dates it.',
+        : ev.batch
+          ? "NOTE: when this bundle was made, VeilCore's registry had given no Midnight transaction for the batch in a form this bundle can use. So no Midnight transaction in this bundle dates the record."
+          : 'NOTE: this record is not dated on any network yet. Until it is, nothing in this bundle dates it.',
     );
   }
   add('', '', rule, 'PART 1: DECLARATION OF THE RECORD HOLDER', rule, '');
@@ -233,7 +235,9 @@ export const declarationText = async (
           '   [On [date] I / ___ looked up each other transaction named here on [explorer or indexer]. Result for each: ___. / I have not looked them up myself.]',
         );
     } else {
-      add('   The batch had not been recorded on a network when this bundle was made.');
+      add(
+        "   When this bundle was made, VeilCore's registry had given no Midnight transaction for the batch in a form this bundle can use.",
+      );
     }
     if (ots) {
       add(

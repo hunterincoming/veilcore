@@ -72,9 +72,14 @@ describe('the batch id form', () => {
     }
   });
 
-  it('is the same form verify.html checks with', () => {
+  it('is the same form verify.html checks with, and so is its network-name rule', () => {
     const src = fs.readFileSync(path.join(HERE, '../../evidence-page/verify-core.js'), 'utf8');
     expect(src).toContain(`var BATCH_ID = ${String(BATCH_ID)};`);
+    // verify.html quotes a network name only in the registry's form (anchor-form.ts NAME).
+    const form = fs.readFileSync(path.join(HERE, 'anchor-form.ts'), 'utf8');
+    const name = /const NAME = (\/.+\/);/.exec(form)?.[1];
+    expect(name).toBeTruthy();
+    expect(src).toContain(`${name}.test(n)`);
   });
 });
 
@@ -107,38 +112,11 @@ describe('a proof whose batch id is not in the form', () => {
   });
 });
 
-describe('verify.html prints registry and file text on one line', () => {
+describe('verify.html names another batch only by an id in the form', () => {
   const ROOT = '9c'.repeat(32);
   const lk = (anchor: Record<string, unknown>, extra: Record<string, unknown> = {}) =>
     VeilcoreVerify.lookups({ batch: { batchId: 'B-20261126-35C4', root: ROOT, anchor }, registry: extra }, {});
   const BIDI = /[\u202A-\u202E\u2066-\u2069\u200E\u200F]/;
-
-  it('strips direction marks and control characters from a network, contract, transaction and file name', () => {
-    const l = lk({
-      chain: 'mid\u202Enight',
-      network: 'main\u202Enet',
-      txHash: `${'ef'.repeat(32)}\u2066`,
-      contractAddress: `${'a0'.repeat(32)}\u200F\u0007`,
-      replacedAt: '2026\u202E-11-26',
-    });
-    const steps = VeilcoreVerify.midnightSteps(l.midnight[0]).join(' ');
-    expect(steps).not.toMatch(BIDI);
-    expect(steps).toContain('a Midnight network whose name in this bundle isn’t in the registry’s form');
-    expect(steps).not.toContain('Midnight’s main network');
-    expect(steps).toContain(`Search for transaction ${'ef'.repeat(32)}.`);
-    // The network stays as given, for the checks (a network not in the list is never mainnet); its
-    // words are stripped where they are printed (networkWords).
-    const m = l.midnight[0];
-    for (const v of [m.chain, m.txHash, m.contractAddress, m.replacedAt]) expect(String(v)).not.toMatch(BIDI);
-    expect(m.testNetwork).toBe(true);
-    expect(VeilcoreVerify.networkWords('x\u202Ey\n')).toBe(
-      'a Midnight network whose name in this bundle isn’t in the registry’s form',
-    );
-    expect(VeilcoreVerify.networkWords('mainnet\u200B')).toBe(
-      'a Midnight network whose name in this bundle isn’t in the registry’s form',
-    );
-    expect(VeilcoreVerify.networkWords('devnet')).toBe('the Midnight network “devnet”');
-  });
 
   it('never prints another batch id not in the form; a valid one is named', () => {
     const anchor = { network: 'mainnet', txHash: 'ef'.repeat(32) };

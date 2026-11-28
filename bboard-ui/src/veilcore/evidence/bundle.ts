@@ -1744,7 +1744,9 @@ export const readmeText = (
     L.push(
       anchor
         ? `This record is dated on ${networkWords(anchor.network)}. A test network can be reset and its dates carry no weight: treat this as practice data.`
-        : 'This record is not dated on any network yet. Until it is, nothing here dates it.',
+        : ev.batch
+          ? "When this bundle was made, VeilCore's registry had given no Midnight transaction for the batch in a form this bundle can use. So no Midnight transaction here dates the record."
+          : 'This record is not dated on any network yet. Until it is, nothing here dates it.',
     );
   }
   L.push('');
@@ -1767,7 +1769,7 @@ export const readmeText = (
     midnightSteps(lookup).forEach((step, i) => L.push(`   ${String.fromCharCode(97 + i)}. ${step}`));
   } else if (ev.batch) {
     L.push(
-      `2. Date it: the batch${isBatchId(ev.batch.batchId) ? ` (${ev.batch.batchId})` : ''} isn't recorded on Midnight yet. Download a new bundle once it is.`,
+      "2. Date it on Midnight: when this bundle was made, VeilCore's registry had given no Midnight transaction for the batch in a form this bundle can use. Download a new bundle later.",
     );
   } else if (ev.registry.fileRoots?.length) {
     L.push(
@@ -1874,10 +1876,9 @@ export const readmeText = (
       `- When the lab report was saved to the ${subject}. That came after sealing and isn't inside the record's proof code, so the batch doesn't date it.`,
     );
   }
-  if (ev.registry.firstSeen)
-    L.push(
-      `- The registry first saw this record at ${utcWords(ev.registry.firstSeen) ?? ev.registry.firstSeen}. That is the registry's own clock, its word only.`,
-    );
+  const firstSeen = utcWords(ev.registry.firstSeen);
+  if (firstSeen)
+    L.push(`- The registry first saw this record at ${firstSeen}. That is the registry's own clock, its word only.`);
   L.push(
     `- The sealing time in the record (${utcWords(ev.record.sealedAtDeviceClock) ?? ev.record.sealedAtDeviceClock}) is the holder's device clock, the holder's word only.`,
   );

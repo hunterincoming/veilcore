@@ -612,7 +612,7 @@ return canonicalise;
       lk.appendChild(para(['Nothing to look up yet: the record isn’t in a batch.']));
     } else {
       if (L.midnight.length === 0) {
-        lk.appendChild(para(['The batch hasn’t been recorded on Midnight yet, so there is no transaction to look up. Download a new bundle once it has.']));
+        lk.appendChild(para(['When this bundle was made, VeilCore’s registry had given no Midnight transaction for the batch in a form this bundle can use. So there is no transaction to look up here. Download a new bundle later.']));
       }
       for (var i = 0; i < L.midnight.length; i++) {
         var a = L.midnight[i];

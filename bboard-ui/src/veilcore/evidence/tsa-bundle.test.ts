@@ -129,7 +129,7 @@ describe('RFC 3161 token in the bundle', () => {
     expect(summary).not.toMatch(/certif/i);
     // No stale "nothing dates it" beside a token, and no line denying the token's standing.
     expect(summary).toContain(
-      'This record is not dated on Midnight yet. The RFC 3161 token below dates its batch root.',
+      'When this bundle was made, VeilCore’s registry had given no Midnight transaction for the batch in a form this bundle can use. The RFC 3161 token below dates its batch root.',
     );
     expect(summary).not.toMatch(/nothing here dates it/);
     expect(summary).not.toMatch(/any other legally/);

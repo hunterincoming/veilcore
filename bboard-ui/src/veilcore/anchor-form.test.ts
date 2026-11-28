@@ -28,6 +28,9 @@ const BAD: [string, Record<string, unknown>][] = [
   ['contract with a sentence', { ...OK, contractAddress: OK.contractAddress + SENTENCE }],
   ['time with a sentence', { ...OK, anchoredAt: OK.anchoredAt + SENTENCE }],
   ['negative block', { ...OK, blockHeight: -1 }],
+  ['block as text', { ...OK, blockHeight: '9999' }],
+  ['time in another form', { ...OK, anchoredAt: '2026-11-27 12:00 UTC' }],
+  ['network in capitals', { ...OK, network: 'Mainnet' }],
   ['another chain', { ...OK, chain: 'midnight\u202E' }],
   ['a test-network flag that disagrees', { ...OK, testNetwork: true }],
 ];

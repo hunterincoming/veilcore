@@ -128,11 +128,8 @@ type Own = {
   ids: Record<string, string>;
 };
 
-/**
- * A batch's key: its id and its root, so one root's files never stand in for another's. An id not
- * in the registry's form (batch-id-rule.ts) counts as "", so the key is the root's alone.
- */
-const batchKey = (batchId: string, root: string): string => `${batchIdOrNone(batchId)} ${root}`;
+/** A batch's key: its id and its root, so one root's files never stand in for another's. */
+const batchKey = (batchId: string, root: string): string => `${batchId} ${root}`;
 
 /**
  * A batch's key in a backup file's `stamps.batches`: its id, or, for an id not in the registry's
@@ -140,30 +137,6 @@ const batchKey = (batchId: string, root: string): string => `${batchIdOrNone(bat
  * (review 1 of PR #242, blocker 2). Readers match the files to the proof's root either way.
  */
 const fileKey = (p: { batchId: string; root: string }): string => (isBatchId(p.batchId) ? p.batchId : p.root);
-
-/**
- * What an older build kept, held to the form this one keeps: a batch id not in the registry's form
- * becomes "" in each proof, and its batch's files move to the root's key (batchKey), so no junk id
- * is used again or written to a backup file. The first files for a key stay.
- */
-const inKeptForm = (own: Own): Own => {
-  const proof = (p: InclusionProof): InclusionProof =>
-    isObject(p) && isString(p.batchId) && !isBatchId(p.batchId) && p.batchId !== '' ? { ...p, batchId: '' } : p;
-  const batches: Record<string, BatchStamps> = {};
-  for (const [k, b] of Object.entries(own.batches)) {
-    const i = k.lastIndexOf(' ');
-    const key = i < 0 ? k : batchKey(k.slice(0, i), k.slice(i + 1));
-    if (!(key in batches)) batches[key] = b;
-  }
-  return {
-    ...own,
-    batches,
-    proofs: Object.fromEntries(Object.entries(own.proofs).map(([fp, p]) => [fp, proof(p)])),
-    changed: Object.fromEntries(
-      Object.entries(own.changed).map(([fp, l]) => [fp, Array.isArray(l) ? l.map(proof) : l]),
-    ),
-  };
-};
 
 const empty = (): Own => ({ batches: {}, records: {}, proofs: {}, changed: {}, ids: {} });
 
@@ -179,13 +152,13 @@ const load = (): Own => {
     const v: unknown = JSON.parse(strFromU8(inflateSync(base64.decode(box.z))));
     if (!isObject(v) || !isObject(v.own)) return empty();
     const o = v.own;
-    return inKeptForm({
+    return {
       batches: obj(o.batches),
       records: obj(o.records),
       proofs: obj(o.proofs),
       changed: obj(o.changed),
       ids: obj(o.ids),
-    });
+    };
   } catch {
     return empty();
   }
@@ -309,8 +282,6 @@ const plain = (v: unknown, depth = 0): unknown => {
 };
 
 const ANCHOR_FIELDS = ['chain', 'network', 'txHash', 'contractAddress', 'blockHeight', 'anchoredAt', 'testNetwork'];
-// anchorFormOk: the registry's form for an anchor (anchor-form.ts), shared with proofs.ts and bundle.ts.
-export { anchorFormOk };
 
 /**
  * A proof as kept here, rebuilt from its known fields only (review 5): the format version, the
@@ -425,9 +396,8 @@ const pruneDeleted = (o: Own): void => {
   for (const k of Object.keys(o.batches)) if (!used.has(k)) delete o.batches[k];
 };
 
-/** The same batch and root. A batch id not in the registry's form counts as "" (batch-id-rule.ts). */
 const sameBatch = (a: { batchId: string; root: string }, b: { batchId: string; root: string }): boolean =>
-  batchIdOrNone(a.batchId) === batchIdOrNone(b.batchId) && a.root === b.root;
+  a.batchId === b.batchId && a.root === b.root;
 
 const anchorOf = (p: InclusionProof): Record<string, unknown> | undefined => {
   const a: unknown = (p as unknown as Record<string, unknown>).anchor;
@@ -596,12 +566,6 @@ const refreshFromRegistry = async (own: Own, wanted: ReadonlySet<string>, proofs
     } catch {
       /* this record's answer is left as it was */
     }
-  }
-  // What goes in the file holds no batch id out of the registry's form (batch-id-rule.ts).
-  for (const fp of wanted) {
-    const f = proofs[fp];
-    if (isObject(f) && isString(f.batchId) && !isBatchId(f.batchId) && f.batchId !== '')
-      proofs[fp] = { ...f, batchId: '' };
   }
   // Each batch (id and root) these records sit in, once, with the registry's answer just now.
   const batchOf = new Map<string, { p: InclusionProof; fresh?: InclusionProof; asked?: string }>();
@@ -784,7 +748,7 @@ export const keptFirst = (
     .filter(
       (c) => !sameBatch(c, p) && !(!same && sameBatch(c, proof) && txKey(anchorOf(c)) === txKey(now ?? undefined)),
     )
-    .map((c) => ({ root: c.root, batchId: batchIdOrNone(c.batchId), anchor: anchorOf(c) ?? null }));
+    .map((c) => ({ root: c.root, batchId: c.batchId, anchor: anchorOf(c) ?? null }));
   const nowContract =
     same &&
     raw &&

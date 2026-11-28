@@ -25,7 +25,7 @@
 
 import type { InclusionProof } from 'veilcore-records';
 import { verifyInclusion } from 'veilcore-records';
-import { isObject, isString, isBoolean, isNumber } from './json';
+import { isObject, isString, isBoolean } from './json';
 import { batchIdOrNone } from './batch-id-rule';
 import { anchorFormOk } from './anchor-form';
 
@@ -50,16 +50,11 @@ export type ProofState =
 /** True when the proof was checked here: bound to the record and folding to its root. */
 export const proofChecked = (s: ProofState): s is Exclude<ProofState, { status: 'none' }> => s.status !== 'none';
 
-const isAnchorRef = (v: unknown): boolean =>
-  isObject(v) &&
-  isString(v.chain) &&
-  isString(v.network) &&
-  (v.txHash === undefined || isString(v.txHash)) &&
-  (v.contractAddress === undefined || isString(v.contractAddress)) &&
-  (v.anchoredAt === undefined || isString(v.anchoredAt)) &&
-  (v.blockHeight === undefined || isNumber(v.blockHeight));
-
-/** The shape the SDK's verifier reads, checked before it is handed anything. */
+/**
+ * The shape the SDK's verifier reads, checked before it is handed anything. The anchor is not part
+ * of what folds: one in any form is checked by inForm below, and dropped there if it isn't the
+ * registry's, so a malformed anchor never costs the proof, its batch or its stamps.
+ */
 export const isInclusionProof = (v: unknown): v is InclusionProof =>
   isObject(v) &&
   isString(v.commitment) &&
@@ -70,8 +65,7 @@ export const isInclusionProof = (v: unknown): v is InclusionProof =>
   (v.sealedAt === undefined || isString(v.sealedAt)) &&
   Array.isArray(v.path) &&
   v.path.length <= MAX_DEPTH &&
-  v.path.every((s) => isObject(s) && isString(s.sibling) && HEX64.test(s.sibling) && isBoolean(s.siblingIsLeft)) &&
-  (v.anchor === undefined || v.anchor === null || isAnchorRef(v.anchor));
+  v.path.every((s) => isObject(s) && isString(s.sibling) && HEX64.test(s.sibling) && isBoolean(s.siblingIsLeft));
 
 const formOk = (a: unknown): boolean => isObject(a) && anchorFormOk(a);
 
