@@ -149,7 +149,7 @@ export const verify = {
   'app.verify.verdict.nothing': 'No se puede comprobar nada de este registro: no tiene código de prueba.',
   'app.verify.checks.see': 'Ver las comprobaciones',
   'app.verify.checks.hide': 'Ocultar las comprobaciones',
-  'app.verify.cta': '¿Quiere una fecha así para sus propias plantas o animales?',
+  'app.verify.cta': '¿Quiere una fecha así para sus propios registros?',
   'app.verify.ctaButton': 'Crear un registro, gratis',
   'app.verify.notFoundAsk': 'Pida a quien se lo envió que le mande el enlace de nuevo.',
   'app.verify.another.label': 'Otro ID de registro o enlace de comprobación',

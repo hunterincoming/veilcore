@@ -150,7 +150,7 @@ export const verify = {
   'app.verify.verdict.nothing': 'An diesem Datensatz lässt sich nichts prüfen: Er hat keinen Prüfcode.',
   'app.verify.checks.see': 'Prüfungen ansehen',
   'app.verify.checks.hide': 'Prüfungen ausblenden',
-  'app.verify.cta': 'Möchten Sie so ein Datum für Ihre eigenen Pflanzen oder Tiere?',
+  'app.verify.cta': 'Möchten Sie so ein Datum für Ihre eigenen Datensätze?',
   'app.verify.ctaButton': 'Datensatz anlegen, kostenlos',
   'app.verify.notFoundAsk': 'Bitten Sie den Absender, Ihnen den Link noch einmal zu schicken.',
   'app.verify.another.label': 'Andere Datensatz-ID oder anderer Prüflink',

@@ -21,7 +21,10 @@ import {
   fileRootsDisagree,
   fileTxConflictLines,
   inFolder,
+  asideRootsLine,
   keptAnchorLine,
+  keptCopy,
+  otherContractLine,
   otherRootLine,
   type Evidence,
   type FileRootFacts,
@@ -373,7 +376,8 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   // Two Midnight transactions for one batch root (review 10 of PR #233): each named, none ranked.
   const kept = keptAnchorLine(ev);
   const root = otherRootLine(ev);
-  const twoTx = [...(kept ? [kept] : []), ...(root ? [root] : []), ...fileTxConflictLines(ev)];
+  const since = [kept, otherContractLine(ev), root, asideRootsLine(ev)].filter((l): l is string => !!l);
+  const twoTx = [...since, ...fileTxConflictLines(ev)];
   // Each "- folder: transaction" line goes in one list under the line before it.
   const twoTxHtml = twoTx
     .reduce<{ head: string; items: string[] }[]>((out, l) => {
@@ -490,7 +494,11 @@ export const examinerSummaryHtml = (ev: Evidence, sigs: readonly SignatureLine[]
   const bitcoinRows: [string, string | null][] = ots
     ? [
         [
-          fromFile ? 'Status the holder’s backup file gives' : 'Status the registry reported',
+          fromFile
+            ? 'Status the holder’s backup file gives'
+            : keptCopy(ev)
+              ? 'Status the registry reported, in the copy kept in the holder’s browser at its last backup'
+              : 'Status the registry reported',
           ots.status === 'bitcoin'
             ? `In Bitcoin block ${isNumber(ots.bitcoinBlockHeight) ? ots.bitcoinBlockHeight : '(not given)'}`
             : 'Pending: not yet in a Bitcoin block',

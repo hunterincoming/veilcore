@@ -733,16 +733,66 @@ var VeilcoreVerify = (function () {
     return out;
   }
 
-  /** Rule A for roots (bundle.ts otherRootLine): another batch root the registry gives now, or null. */
-  function registryRoot(registry) {
+  /**
+   * The same batch root as the one described, under another batch id, is another batch, not another
+   * batch root (bundle.ts otherBatchOf). `id`: the other batch id when it differs, else null.
+   */
+  function otherBatchOf(o, root, batchId) {
+    return {
+      sameRoot: !!root && o.root === root,
+      id: typeof o.batchId === 'string' && o.batchId !== batchId ? o.batchId.replace(/\s+/g, ' ') : null,
+    };
+  }
+
+  /** Rule A for roots (bundle.ts otherRootLine): another batch root, or batch, the registry gives now, or null. */
+  function registryRoot(registry, root, batchId) {
     var o = isObject(registry.registryRoot) && isHex64(registry.registryRoot.root) ? registry.registryRoot : null;
-    return o ? 'VeilCore’s registry now gives another batch root, ' + o.root + ' (' + txWords(o.anchor) + '), for this record; this bundle describes the first it gave the holder’s browser. An honest registry never does this.' : null;
+    if (!o) return null;
+    var b = otherBatchOf(o, root, batchId);
+    var end = '; this bundle describes the first it gave the holder’s browser. An honest registry never does this.';
+    return b.sameRoot
+      ? 'VeilCore’s registry now gives this record another batch' + (b.id ? ', ' + b.id + ',' : '') + ' for the same batch root ' + o.root + ' (' + txWords(o.anchor) + ')' + end
+      : 'VeilCore’s registry now gives another batch root, ' + o.root + ' (' + (b.id ? 'batch ' + b.id + ', ' : '') + txWords(o.anchor) + '), for this record' + end;
+  }
+
+  /** What the set-aside list holds, for a sentence or (`roots` 'roots') a heading (bundle.ts asideNoun). */
+  function asideNoun(l, root, roots) {
+    var same = l.filter(function (o) { return otherBatchOf(o, root, null).sameRoot; }).length;
+    var one = roots.replace(/s$/, '');
+    if (same === 0) return l.length === 1 ? 'another ' + one : 'other ' + roots;
+    if (same === l.length) return l.length === 1 ? 'another batch' : 'other batches';
+    return 'other batches and ' + roots;
+  }
+
+  function asideList(registry) {
+    return Array.isArray(registry.asideRoots) ? registry.asideRoots.filter(function (o) { return isObject(o) && isHex64(o.root); }) : [];
+  }
+
+  /** Other roots (or batches of the same root) set aside before (bundle.ts asideRootsLine), or null. */
+  function asideRoots(registry, root, batchId) {
+    var l = asideList(registry);
+    if (!l.length) return null;
+    return 'After the first, VeilCore’s registry also gave the holder’s browser ' + asideNoun(l, root, 'batch roots') + ' for this record, set aside there: ' +
+      l.map(function (o) {
+        var b = otherBatchOf(o, root, batchId);
+        return b.sameRoot
+          ? 'batch ' + (b.id || '[not given]') + ' for the same batch root ' + o.root + ' (' + txWords(o.anchor) + ')'
+          : o.root + ' (' + (b.id ? 'batch ' + b.id + ', ' : '') + txWords(o.anchor) + ')';
+      }).join(', and ') + '. This bundle describes the first. An honest registry never does this.';
+  }
+
+  /** Another contract the registry reports now for the transaction described (bundle.ts otherContractLine), or null. */
+  function otherContract(registry, a) {
+    var c = registry.nowContract;
+    if (typeof c !== 'string' || !/^[0-9a-f]{64}$/.test(c) || !isObject(a) || typeof a.contractAddress !== 'string') return null;
+    return 'VeilCore’s registry now reports contract ' + c + ' for ' + txWords(a) + '; this bundle names contract ' + a.contractAddress + ', the one the registry reported first. The transaction itself shows which contract it called: go by that.';
   }
 
   function lookups(ev, contracts) {
     var batch = isObject(ev.batch) ? ev.batch : null;
     var proof = isObject(ev.proof) ? ev.proof : null;
     var root = batch && isHex64(batch.root) ? batch.root : proof && isHex64(proof.root) ? proof.root : null;
+    var batchId = batch && typeof batch.batchId === 'string' ? batch.batchId : proof && typeof proof.batchId === 'string' ? proof.batchId : null;
     var midnight = [];
     var registry = isObject(ev.registry) ? ev.registry : {};
     var source = typeof registry.source === 'string' ? registry.source : null;
@@ -800,7 +850,8 @@ var VeilcoreVerify = (function () {
     for (var u = 0; u < txOrder.length; u++) {
       var group = txByRoot[txOrder[u]];
       var seen = {};
-      for (var v = 0; v < group.length; v++) seen[group[v].midnight.txHash] = true;
+      // By chain, network and hash (stamps.ts txKey): the same hash on two networks is two.
+      for (var v = 0; v < group.length; v++) seen[JSON.stringify([group[v].midnight.chain, group[v].midnight.network, group[v].midnight.txHash])] = true;
       if (Object.keys(seen).length > 1) twoTx.push({ root: group[0].root, folders: group });
     }
     var distinct = {};
@@ -813,6 +864,9 @@ var VeilcoreVerify = (function () {
       // the holder's backup file says it, not confirmed with VeilCore's registry or Midnight.
       source: source,
       fromBackupFile: fromFile,
+      // The batch files are the copy kept in the holder's browser at its last backup, not the
+      // registry's answer when the bundle was made (bundle.ts keptCopy).
+      keptCopy: source === 'this-device' || (!fromFile && registryRoot(registry, root, batchId) !== null),
       fileRoots: fileRoots,
       registryRoots: registryRoots,
       // More than one root from the backup file (and the registry's).
@@ -821,7 +875,12 @@ var VeilcoreVerify = (function () {
       twoTx: twoTx,
       // What VeilCore's registry named for this root since the transaction described here (rule A).
       registryOther: fromFile ? [] : registryOther(registry),
-      registryRoot: fromFile ? null : registryRoot(registry),
+      registryRoot: fromFile ? null : registryRoot(registry, root, batchId),
+      // The headings for those two: another batch, not another root, when only the batch id differs.
+      registryRootIsBatch: !fromFile && isObject(registry.registryRoot) && registry.registryRoot.root === root,
+      asideRoots: fromFile ? null : asideRoots(registry, root, batchId),
+      asideHeading: fromFile || !asideList(registry).length ? null : asideNoun(asideList(registry), root, 'roots'),
+      otherContract: fromFile ? null : otherContract(registry, current),
       midnight: midnight,
       // The registry's report of the stamp, named as such; what the file itself shows is readStamp's.
       bitcoin: ots && ots.available ? { status: ots.status === 'bitcoin' ? 'bitcoin' : 'pending', file: ots.file || 'proof/root.bin.ots', bitcoinBlockHeight: typeof ots.bitcoinBlockHeight === 'number' ? ots.bitcoinBlockHeight : null } : null,

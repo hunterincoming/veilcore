@@ -134,7 +134,7 @@ export const verify = {
   'app.verify.verdict.nothing': 'この記録には証明コードがないため、何も確かめられません。',
   'app.verify.checks.see': '確認内容を見る',
   'app.verify.checks.hide': '確認内容を閉じる',
-  'app.verify.cta': '自分の植物や動物にも、このような日付を付けませんか？',
+  'app.verify.cta': '自分の記録にも、このような日付を付けませんか？',
   'app.verify.ctaButton': '無料で記録を作る',
   'app.verify.notFoundAsk': '送ってきた相手に、リンクをもう一度送ってもらってください。',
   'app.verify.another.label': 'ほかの記録IDまたは確認用リンク',

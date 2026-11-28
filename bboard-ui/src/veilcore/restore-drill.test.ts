@@ -2247,6 +2247,274 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
       [r2, THIRD.txHash, 'preview'],
     ]);
   });
+
+  // ---- review 13 of PR #233, polish ---------------------------------------------------------
+  /** Each page's words, quotes and spaces made plain. */
+  const flat = (p: string) => p.replace(/’/g, "'").replace(/\s+/g, ' ');
+
+  it('a bundle from the kept copy says the stamp status is from when the browser kept it, not when the bundle was made (review 13, polish 1 and 2)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    serveFolded(MAINNET); // R1/A, its Bitcoin stamp still pending
+    await backUp(A);
+    const online = await pagesOf((await bundleOf(A, made.plant)).file);
+    expect(flat(online.readme)).toContain('the stamp as pending, not yet in a Bitcoin block when the bundle was made.');
+    expect(flat(online.declaration)).toContain('When the bundle was made, the registry reported the stamp as pending');
+    expect(flat(online.declaration)).toContain("from what VeilCore's registry returned. It checked");
+    expect(flat(online.examiner)).not.toContain('at its last backup');
+    await serveOtherRoot(fp, '31', OTHER_TX); // the registry gives R2/B now: built on the kept R1/A
+    const other = await bundleOf(A, made.plant);
+    expect(other.ev.registry.registryRoot).toBeDefined();
+    w.goDown();
+    const device = await bundleOf(A, made.plant);
+    expect(device.ev.registry.source).toBe('this-device');
+    for (const [name, got] of [
+      ['other root', other],
+      ['this device', device],
+    ] as const) {
+      dumpTo(`r13-polish-1-${name.replace(/ /g, '-')}`, got.file);
+      const p = await pagesOf(got.file);
+      expect(flat(p.readme), name).toContain(
+        "the stamp as pending, not yet in a Bitcoin block, in the copy kept in the holder's browser at its last backup.",
+      );
+      expect(flat(p.declaration), name).toContain(
+        'In the copy kept in my browser at its last backup, the registry had reported the stamp as pending',
+      );
+      expect(flat(p.examiner), name).toContain(
+        "Status the registry reported, in the copy kept in the holder's browser at its last backup",
+      );
+      for (const [f, v] of Object.entries(p))
+        expect(flat(v), `${name} ${f}`).not.toMatch(/stamp as [^.]* when the bundle was made/);
+      // Declaration line 4 says the files come from the kept copy (polish 2).
+      expect(flat(p.declaration), name).toContain(
+        "from what VeilCore's registry had returned to that browser before, kept there",
+      );
+      expect(flat(p.declaration), name).not.toContain("from what VeilCore's registry returned. It checked");
+    }
+    // verify.html, before the stamp file is read, says the same.
+    const { VeilcoreVerify } = await import('../../evidence-page/verify-core.js');
+    const lk = (VeilcoreVerify as unknown as { lookups: (ev: unknown, c: unknown) => { keptCopy: boolean } }).lookups;
+    expect(lk(other.ev, null).keptCopy).toBe(true);
+    expect(lk(device.ev, null).keptCopy).toBe(true);
+    expect(
+      lk({ ...other.ev, registry: { ...other.ev.registry, registryRoot: undefined, source: 'evidence-route' } }, null)
+        .keptCopy,
+    ).toBe(false);
+  });
+
+  it('the same transaction hash on the main network and on Preview for one root gets the two-transactions box on every page (review 13, polish 3)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    const THIRD = { ...MAINNET, txHash: '3c'.repeat(32), blockHeight: 13000, anchoredAt: '2027-04-01T12:00:00.000Z' };
+    w.upgrade();
+    serveFolded(MAINNET); // R1/A: kept
+    await backUp(A);
+    const r2 = await serveOtherRoot(fp, '11', THIRD); // R2/C on the main network
+    await backUp(A);
+    await serveOtherRoot(fp, '11', { ...PREV_TX, txHash: THIRD.txHash }); // R2/C on Preview
+    const text = await backUp(A);
+    w.goDown();
+    const { b: N } = await restoreInto('r13-p3', text);
+    const got = (await bundleFromFile(N, made.plant, text))!;
+    dumpTo('r13-polish-3', got.file);
+    const p = await pagesOf(got.file);
+    expect(flat(p.readme)).toContain(`MORE THAN ONE TRANSACTION: VeilCore's registry gave two different date records`);
+    expect(flat(p.readme)).toContain(`Batch root ${r2}:`);
+    expect(flat(p.readme)).toContain(`transaction ${THIRD.txHash} on Midnight's main network`);
+    expect(flat(p.readme)).toContain(`transaction ${THIRD.txHash} on Midnight Preview (a test network)`);
+    expect(textOf(got.file('EXAMINER-SUMMARY.html'))).toContain('data-two-transactions="yes"');
+    expect(flat(p.declaration)).toContain(`My backup file names 2 Midnight transactions for batch root ${r2} (`);
+    expect(flat(p.declaration)).toContain(`transaction ${THIRD.txHash} on Midnight Preview (a test network))`);
+    expect(p.verify).toContain('Two different date records for one batch root');
+    expect(p.verify).toContain(`for batch root ${r2}`);
+  });
+
+  it('other roots set aside before are named on every page of online and this-device bundles, once each, the registry’s root now not among them (review 13, polish 4)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    const THIRD = { ...MAINNET, txHash: '3c'.repeat(32), blockHeight: 13000, anchoredAt: '2027-04-01T12:00:00.000Z' };
+    w.upgrade();
+    serveFolded(MAINNET); // R1/A: kept
+    await backUp(A);
+    const r2 = await serveOtherRoot(fp, '31', OTHER_TX); // R2/B: set aside
+    await backUp(A);
+    const r3 = await serveOtherRoot(fp, '41', THIRD); // R3/C: the registry's root now, also set aside
+    await backUp(A);
+    const aside = `After the first, VeilCore's registry also gave the holder's browser another batch root for this record, set aside there: ${r2} (transaction ${OTHER_TX.txHash} on Midnight's main network). This bundle describes the first.`;
+    const online = await bundleOf(A, made.plant);
+    dumpTo('r13-polish-4-online', online.file);
+    expect(online.ev.registry.asideRoots?.map((o) => o.root)).toEqual([r2]);
+    for (const [f, p] of Object.entries(await pagesOf(online.file))) {
+      const v = flat(p);
+      expect(v, `online ${f}`).toContain(
+        f === 'declaration'
+          ? aside
+              .replace("the holder's browser", 'my browser')
+              .replace('this record', 'my record')
+              .replace('This bundle', 'This declaration')
+          : aside,
+      );
+      expect(v.split(r2).length - 1, `online ${f}: R2 once`).toBe(1);
+      expect(v.split(r3).length - 1, `online ${f}: R3 once`).toBe(1);
+      expect(v, `online ${f}`).toContain(MAINNET.txHash);
+    }
+    w.goDown();
+    const device = await bundleOf(A, made.plant);
+    dumpTo('r13-polish-4-device', device.file);
+    expect(device.ev.registry.source).toBe('this-device');
+    expect(device.ev.registry.asideRoots?.map((o) => o.root)).toEqual([r2, r3]);
+    for (const [f, p] of Object.entries(await pagesOf(device.file))) {
+      const v = flat(p);
+      expect(v, `device ${f}`).toContain(
+        `${r2} (transaction ${OTHER_TX.txHash} on Midnight's main network), and ${r3} (transaction ${THIRD.txHash}`,
+      );
+      expect(v, `device ${f}`).toContain('other batch roots for');
+    }
+  });
+
+  it('the registry reporting another contract for the kept transaction is named on every page (review 12, polish 1)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    w.upgrade();
+    serveFolded(MAINNET); // A, VeilCore's contract: kept
+    await backUp(A);
+    const plain = await pagesOf((await bundleOf(A, made.plant)).file);
+    for (const [f, p] of Object.entries(plain)) {
+      expect(flat(p), f).not.toContain('reports contract');
+      expect(flat(p), f).not.toContain('registry also gave');
+    }
+    const ODD = 'ee'.repeat(32);
+    serveFolded({ ...MAINNET, contractAddress: ODD }); // the same transaction, another contract
+    const got = await bundleOf(A, made.plant);
+    dumpTo('r12-polish-1-contract', got.file);
+    expect(got.ev.batch?.anchor).toMatchObject({ txHash: MAINNET.txHash, contractAddress: MAINNET.contractAddress });
+    expect(got.ev.registry.nowContract).toBe(ODD);
+    for (const [f, p] of Object.entries(await pagesOf(got.file))) {
+      const v = flat(p);
+      // The declaration states it in the first person and gives the reader no order (review 1 of
+      // PR #241, blocker 1); the other pages tell the reader what to go by.
+      expect(v, f).toContain(
+        f === 'declaration'
+          ? `VeilCore's registry now reports contract ${ODD} for transaction ${MAINNET.txHash} on Midnight's main network; this declaration names contract ${MAINNET.contractAddress}, the one VeilCore's registry reported to my browser first. The transaction itself shows which contract it called.`
+          : `VeilCore's registry now reports contract ${ODD} for transaction ${MAINNET.txHash} on Midnight's main network; this bundle names contract ${MAINNET.contractAddress}, the one the registry reported first. The transaction itself shows which contract it called: go by that.`,
+      );
+      if (f === 'declaration') expect(v, f).not.toContain('go by that');
+      for (const bad of RULE_A_BAD) expect(v, `${f}: ${bad}`).not.toMatch(bad);
+    }
+  });
+
+  // ---- review 1 of PR #241, blocker 2 ------------------------------------------------------------
+  it('the same batch root set aside under another batch id is named as another batch, not another batch root, on every page (review 1 of PR #241, T5)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    w.upgrade();
+    serveFolded(MAINNET); // R1/A in BATCH_ID: kept
+    await backUp(A);
+    const r1 = w.proofs.get(fp) as Record<string, unknown>;
+    // The same root under batch b_other, with transaction B: set aside.
+    w.proofs.set(fp, {
+      ...r1,
+      batchId: 'b_other',
+      anchor: OTHER_TX,
+      anchors: [{ kind: 'ledger', ...OTHER_TX, testNetwork: false }],
+    });
+    await backUp(A);
+    w.proofs.set(fp, r1); // the registry gives R1/A again
+    const got = await bundleOf(A, made.plant);
+    dumpTo('r241-t5-same-root-other-batch', got.file);
+    const root = String(got.ev.batch?.root);
+    expect(got.ev.registry.asideRoots?.map((o) => [o.root, o.batchId])).toEqual([[root, 'b_other']]);
+    const aside = `After the first, VeilCore's registry also gave the holder's browser another batch for this record, set aside there: batch b_other for the same batch root ${root} (transaction ${OTHER_TX.txHash} on Midnight's main network). This bundle describes the first.`;
+    for (const [f, p] of Object.entries(await pagesOf(got.file))) {
+      const v = flat(p);
+      expect(v, f).toContain(
+        f === 'declaration'
+          ? aside
+              .replace("the holder's browser", 'my browser')
+              .replace('this record', 'my record')
+              .replace('This bundle', 'This declaration')
+          : aside,
+      );
+      expect(v, f).not.toContain('another batch root');
+      expect(v, f).not.toContain('other batch roots');
+    }
+    const v = (await pagesOf(got.file)).verify;
+    expect(v).toContain("VeilCore's registry gave another batch after the first".replace(/'/g, '’'));
+  });
+
+  it('the registry now giving the same batch root under another batch id says another batch, and another root names its batch id when it differs (review 1 of PR #241, T5b)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    w.upgrade();
+    serveFolded(MAINNET); // R1/A in BATCH_ID: kept
+    await backUp(A);
+    const r1 = w.proofs.get(fp) as Record<string, unknown>;
+    w.proofs.set(fp, {
+      ...r1,
+      batchId: 'b_other',
+      anchor: OTHER_TX,
+      anchors: [{ kind: 'ledger', ...OTHER_TX, testNetwork: false }],
+    });
+    const got = await bundleOf(A, made.plant);
+    dumpTo('r241-t5b-now-same-root-other-batch', got.file);
+    const root = String(got.ev.batch?.root);
+    expect(got.ev.registry.registryRoot).toMatchObject({ root, batchId: 'b_other' });
+    const line = `VeilCore's registry now gives this record another batch, b_other, for the same batch root ${root} (transaction ${OTHER_TX.txHash} on Midnight's main network); this bundle describes the first it gave the holder's browser.`;
+    const pages = await pagesOf(got.file);
+    for (const [f, p] of Object.entries(pages)) {
+      const v = flat(p);
+      expect(v, f).toContain(
+        f === 'declaration'
+          ? line
+              .replace('this record', 'my record')
+              .replace('this bundle', 'this declaration')
+              .replace("the holder's browser", 'my browser')
+          : line,
+      );
+      expect(v, f).not.toContain('another batch root');
+    }
+    expect(flat(pages.declaration)).toContain(
+      "VeilCore's registry now gives another batch for this record (section 3)",
+    );
+    expect(flat(pages.declaration)).toContain('as the registry returned them when the bundle was made.');
+    expect(flat(pages.declaration)).not.toContain('returned them now');
+    expect(pages.verify).toContain('VeilCore’s registry gives another batch now');
+    // Another root in another batch: still another batch root, with its batch id.
+    const other = await buildBatch(['31'.repeat(32), fp], 'b_two');
+    w.proofs.set(fp, {
+      ...(other.proofs[fp] as object),
+      anchor: OTHER_TX,
+      anchors: [{ kind: 'ledger', ...OTHER_TX, testNetwork: false }],
+    });
+    const two = await bundleOf(A, made.plant);
+    dumpTo('r241-t5b-other-root-other-batch', two.file);
+    const p2 = await pagesOf(two.file);
+    for (const [f, p] of Object.entries(p2))
+      expect(flat(p), f).toContain(
+        `VeilCore's registry now gives another batch root, ${other.root} (batch b_two, transaction ${OTHER_TX.txHash} on Midnight's main network), for ${f === 'declaration' ? 'my' : 'this'} record`,
+      );
+    expect(flat(p2.declaration)).toContain(
+      "VeilCore's registry now gives another batch root for this record (section 3)",
+    );
+    expect(p2.verify).toContain('VeilCore’s registry gives another root now');
+  });
 });
 
 // ---- every storage name: in the backup, or not needed after a restore ---------------------

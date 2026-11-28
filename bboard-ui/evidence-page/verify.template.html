@@ -453,7 +453,9 @@ return canonicalise;
         para(['This bundle describes transaction ' + LK.midnight[0].txHash + ' on ' + networkName(LK.midnight[0].network) + ', the first main-network transaction VeilCore’s registry gave the holder’s browser for this batch root. The registry ' + LK.registryOther.join(', and ') + ' for it, which an honest registry never does. Rely only on a transaction that you check yourself wrote this batch root.']),
       ], 'registry-since'));
     }
-    if (LK.registryRoot) summary.appendChild(result('bad', 'VeilCore’s registry gives another root now', [para([LK.registryRoot])], 'registry-root'));
+    if (LK.otherContract) summary.appendChild(result('bad', 'VeilCore’s registry reports another contract now', [para([LK.otherContract])], 'registry-contract'));
+    if (LK.registryRoot) summary.appendChild(result('bad', LK.registryRootIsBatch ? 'VeilCore’s registry gives another batch now' : 'VeilCore’s registry gives another root now', [para([LK.registryRoot])], 'registry-root'));
+    if (LK.asideRoots) summary.appendChild(result('bad', 'VeilCore’s registry gave ' + (LK.asideHeading || 'other roots') + ' after the first', [para([LK.asideRoots])], 'registry-aside-roots'));
     // What this does not show: no date until one of the bundle's own dates checks (polish 1).
     var FRall = report.fileRoots || [];
     var fileTx = (LK.fileRoots || []).some(function (x) { return x.midnight && x.midnight.txHash; });
@@ -647,7 +649,7 @@ return canonicalise;
           shows = 'The stamp file is not about this batch root: ' + st.reason + '. It dates nothing here.';
         } else {
           shows = (st ? 'This page couldn’t read the stamp file (' + st.reason + '). ' : 'This page hasn’t read the stamp file: choose proof/root.bin.ots below to read it. ') +
-            (L.fromBackupFile ? 'The holder’s backup file says the stamp is ' : 'VeilCore’s registry reported the stamp as ') + (b.status === 'bitcoin' ? 'in Bitcoin block ' + (b.bitcoinBlockHeight || '(not given)') : 'pending, not yet in a Bitcoin block') + ' when the bundle was made.';
+            (L.fromBackupFile ? 'The holder’s backup file says the stamp is ' : 'VeilCore’s registry reported the stamp as ') + (b.status === 'bitcoin' ? 'in Bitcoin block ' + (b.bitcoinBlockHeight || '(not given)') : 'pending, not yet in a Bitcoin block') + (L.keptCopy ? ', in the copy kept in the holder’s browser at its last backup.' : ' when the bundle was made.');
         }
         if (st && (st.status === 'bitcoin' || st.status === 'pending') && b.status === 'bitcoin' && b.bitcoinBlockHeight &&
             !(st.bitcoin || []).some(function (x) { return x.height === b.bitcoinBlockHeight; })) {

@@ -148,7 +148,7 @@ export const verify = {
   'app.verify.verdict.nothing': 'Rien ne peut être vérifié pour cet enregistrement : il n’a pas de code de preuve.',
   'app.verify.checks.see': 'Voir les vérifications',
   'app.verify.checks.hide': 'Masquer les vérifications',
-  'app.verify.cta': 'Vous voulez une date comme celle-ci pour vos propres plantes ou animaux ?',
+  'app.verify.cta': 'Vous voulez une date comme celle-ci pour vos propres enregistrements ?',
   'app.verify.ctaButton': 'Créer un enregistrement, gratuit',
   'app.verify.notFoundAsk': 'Demandez à la personne qui vous l’a envoyé de vous renvoyer le lien.',
   'app.verify.another.label': 'Autre identifiant d’enregistrement ou lien de vérification',

@@ -34,6 +34,7 @@ import { bindingForSecret, isHex64, KEY_BOUND_ALGORITHM } from '../key-binding';
 import { dnaBindingOf } from '../dna-link';
 import { LAB_SALT_PARAM, isBoundLabDocument, labLinkParams, signsReport } from '../lab-doc';
 import { checkProof } from '../proofs';
+import { txKey } from '../stamps';
 import { holderKeyIfAny } from '../holder';
 import { isDemoLabKey } from '../demo-lab';
 import { custodyView } from '../custody';
@@ -153,7 +154,19 @@ export type Gathered = {
   readonly registryNow?: Record<string, unknown> | null;
   readonly laterAnchors?: readonly Record<string, unknown>[];
   /** Rule A for roots: the registry now gives another root for the record (and this transaction, null: none). */
-  readonly registryRoot?: { readonly root: string; readonly anchor: Record<string, unknown> | null };
+  readonly registryRoot?: {
+    readonly root: string;
+    readonly batchId?: string;
+    readonly anchor: Record<string, unknown> | null;
+  };
+  /** Other roots the registry gave this browser for the record before, set aside (stamps.ts keptFirst). */
+  readonly asideRoots?: readonly {
+    readonly root: string;
+    readonly batchId?: string;
+    readonly anchor: Record<string, unknown> | null;
+  }[];
+  /** Another contract the registry reports now for the kept transaction (stamps.ts keptFirst). */
+  readonly nowContract?: string;
 };
 
 const base64ToBytes = (b64: string): Uint8Array | null => {
@@ -334,8 +347,13 @@ const fromThisDevice = async (fingerprint: string, online?: Gathered): Promise<G
       registryFirstSeen: online?.registryFirstSeen,
       attestations: online?.attestations ?? [],
     });
-    const later = g.proof ? (stamps.keptFirst(fingerprint, g.proof)?.later ?? []) : [];
-    return g.proof ? { ...g, ...(later.length ? { laterAnchors: later } : {}) } : null;
+    const k = g.proof ? stamps.keptFirst(fingerprint, g.proof) : null;
+    const later = k?.later ?? [];
+    // With `online`, the caller names the roots set aside (they leave out the registry's answer now).
+    const aside = online ? [] : (k?.asideRoots ?? []);
+    return g.proof
+      ? { ...g, ...(later.length ? { laterAnchors: later } : {}), ...(aside.length ? { asideRoots: aside } : {}) }
+      : null;
   } catch {
     return null;
   }
@@ -381,7 +399,7 @@ export const gatherEvidence = async (
     const k = (await import('../stamps')).keptFirst(record.recordFingerprint, got.proof, got.batch);
     if (k?.otherRoot) {
       const g = await fromThisDevice(record.recordFingerprint, got);
-      return g ? { ...g, registryRoot: k.otherRoot } : got;
+      return g ? { ...g, registryRoot: k.otherRoot, ...(k.asideRoots ? { asideRoots: k.asideRoots } : {}) } : got;
     }
     if (k)
       return {
@@ -390,6 +408,8 @@ export const gatherEvidence = async (
         batch: { ...got.batch, anchor: k.anchor },
         ...(k.now !== undefined ? { registryNow: k.now } : {}),
         ...(k.later.length ? { laterAnchors: k.later } : {}),
+        ...(k.asideRoots ? { asideRoots: k.asideRoots } : {}),
+        ...(k.nowContract ? { nowContract: k.nowContract } : {}),
       };
   }
   return got;
@@ -597,7 +617,19 @@ export type Evidence = {
     /** Gathered.laterAnchors: other transactions the registry gave the holder's browser for this root. */
     readonly laterAnchors?: readonly Record<string, unknown>[];
     /** Gathered.registryRoot: another root the registry gives for the record now (rule A). */
-    readonly registryRoot?: { readonly root: string; readonly anchor: Record<string, unknown> | null };
+    readonly registryRoot?: {
+      readonly root: string;
+      readonly batchId?: string;
+      readonly anchor: Record<string, unknown> | null;
+    };
+    /** Gathered.asideRoots: other roots the registry gave the holder's browser before, set aside. */
+    readonly asideRoots?: readonly {
+      readonly root: string;
+      readonly batchId?: string;
+      readonly anchor: Record<string, unknown> | null;
+    }[];
+    /** Gathered.nowContract: another contract the registry reports now for the transaction described. */
+    readonly nowContract?: string;
   };
   readonly proof: InclusionProof | null;
   readonly batch: BatchFacts | null;
@@ -942,7 +974,9 @@ export const fileTxConflicts = (ev: Evidence): FileRootFacts[][] => {
     const k = `${c.batchId} ${c.root}`;
     by.set(k, [...(by.get(k) ?? []), c]);
   }
-  return [...by.values()].filter((l) => new Set(l.map((c) => String(fileRootAnchor(c)!.txHash))).size > 1);
+  // Two transactions are two by chain, network and hash (stamps.ts txKey, rule B's identity): the
+  // same hash on the main network and on Preview is two (review 13 of PR #233, polish 3).
+  return [...by.values()].filter((l) => new Set(l.map((c) => txKey(fileRootAnchor(c)!))).size > 1);
 };
 
 /**
@@ -958,6 +992,21 @@ export const fileTxConflictLines = (ev: Evidence): string[] =>
       return `- ${c.folder}: transaction ${String(a.txHash)} on ${networkWords(a.network)}${c.otherTransaction ? ', given later' : ', given first'}.`;
     }),
   ]);
+
+/**
+ * The bundle's batch files are the copy kept in the holder's browser (refreshed at each backup),
+ * not the registry's answer now: with the registry out of reach, or when it gives another root now
+ * (review 13 of PR #233, polish 1).
+ */
+export const keptCopy = (ev: Evidence): boolean => ev.registry.source === 'this-device' || !!ev.registry.registryRoot;
+
+/**
+ * When the stamp's status was reported, to follow the status straight on: when the bundle was
+ * made, or in the copy kept in the browser at its last backup (that copy is refreshed only by a
+ * backup that reaches the registry: review 1 of PR #241, polish 1).
+ */
+export const stampReportedWhen = (ev: Evidence, whose: string): string =>
+  keptCopy(ev) ? `, in the copy kept in ${whose} browser at its last backup` : ' when the bundle was made';
 
 /** "transaction … on Midnight's main network", or "no Midnight transaction" for none. */
 const txWords = (a: Record<string, unknown> | null): string =>
@@ -975,14 +1024,75 @@ export const keptAnchorLine = (ev: Evidence): string | null => {
   return `This bundle describes ${txWords(kept)}, the first main-network transaction VeilCore's registry gave the holder's browser for this batch root. The registry ${other} for it, which an honest registry never does. Rely only on a transaction that you check yourself wrote this batch root.`;
 };
 
+type OtherBatch = { readonly root: string; readonly batchId?: string; readonly anchor: Record<string, unknown> | null };
+
+/**
+ * The same batch root as the one the bundle describes, under another batch id (review 1 of PR #241,
+ * blocker 2): then it is another batch, not another batch root. `id` is the other batch id when it
+ * differs from the described one, else null.
+ */
+const otherBatchOf = (ev: Evidence, o: OtherBatch): { readonly sameRoot: boolean; readonly id: string | null } => {
+  const root = ev.batch?.root ?? ev.proof?.root;
+  const batchId = ev.batch?.batchId ?? ev.proof?.batchId;
+  return {
+    sameRoot: !!root && o.root === root,
+    id: isString(o.batchId) && o.batchId !== batchId ? oneLine(o.batchId) : null,
+  };
+};
+
 /**
  * Rule A for roots (review 12, blocker 2): the registry now gives another batch root for the
- * record, and the bundle is built on the first it gave the holder's browser. Null when it doesn't.
+ * record, or another batch for the same root, and the bundle is built on the first it gave the
+ * holder's browser. Null when it doesn't.
  */
 export const otherRootLine = (ev: Evidence, mine = false): string | null => {
   const o = ev.registry.registryRoot;
   if (!o) return null;
-  return `VeilCore's registry now gives another batch root, ${o.root} (${txWords(o.anchor)}), for ${mine ? 'my' : 'this'} record; this ${mine ? 'declaration' : 'bundle'} describes the first it gave ${mine ? 'my' : "the holder's"} browser. An honest registry never does this.`;
+  const b = otherBatchOf(ev, o);
+  const end = `; this ${mine ? 'declaration' : 'bundle'} describes the first it gave ${mine ? 'my' : "the holder's"} browser. An honest registry never does this.`;
+  return b.sameRoot
+    ? `VeilCore's registry now gives ${mine ? 'my' : 'this'} record another batch${b.id ? `, ${b.id},` : ''} for the same batch root ${o.root} (${txWords(o.anchor)})${end}`
+    : `VeilCore's registry now gives another batch root, ${o.root} (${b.id ? `batch ${b.id}, ` : ''}${txWords(o.anchor)}), for ${mine ? 'my' : 'this'} record${end}`;
+};
+
+/** "another batch root", "other batches", …: what the set-aside list holds (review 1 of PR #241, polish 4). */
+const asideNoun = (ev: Evidence, l: readonly OtherBatch[], roots = 'batch roots'): string => {
+  const same = l.filter((o) => otherBatchOf(ev, o).sameRoot).length;
+  const one = roots.replace(/s$/, '');
+  if (same === 0) return l.length === 1 ? `another ${one}` : `other ${roots}`;
+  if (same === l.length) return l.length === 1 ? 'another batch' : 'other batches';
+  return `other batches and ${roots}`;
+};
+
+/**
+ * Other batch roots (or other batches for the same root) the registry gave the holder's browser for
+ * the record before, set aside (review 13, polish 4): named, as the set-aside transactions of the
+ * same root are. Null for none.
+ */
+export const asideRootsLine = (ev: Evidence, mine = false): string | null => {
+  const l = ev.registry.asideRoots;
+  if (!l?.length) return null;
+  const item = (o: OtherBatch): string => {
+    const b = otherBatchOf(ev, o);
+    return b.sameRoot
+      ? `batch ${b.id ?? '[not given]'} for the same batch root ${o.root} (${txWords(o.anchor)})`
+      : `${o.root} (${b.id ? `batch ${b.id}, ` : ''}${txWords(o.anchor)})`;
+  };
+  return `After the first, VeilCore's registry also gave ${mine ? 'my' : "the holder's"} browser ${asideNoun(ev, l)} for ${mine ? 'my' : 'this'} record, set aside there: ${l.map(item).join(', and ')}. This ${mine ? 'declaration' : 'bundle'} describes the first. An honest registry never does this.`;
+};
+
+/**
+ * The registry reports another contract now for the transaction described (review 12, polish 1),
+ * or null. The declaration's form (`mine`) states it and gives the reader no order (review 1 of
+ * PR #241, blocker 1).
+ */
+export const otherContractLine = (ev: Evidence, mine = false): string | null => {
+  const c = ev.registry.nowContract;
+  const a = ev.batch?.anchor;
+  if (!c || !a || !isString(a.contractAddress)) return null;
+  return mine
+    ? `VeilCore's registry now reports contract ${c} for ${txWords(a)}; this declaration names contract ${a.contractAddress}, the one VeilCore's registry reported to my browser first. The transaction itself shows which contract it called.`
+    : `VeilCore's registry now reports contract ${c} for ${txWords(a)}; this bundle names contract ${a.contractAddress}, the one the registry reported first. The transaction itself shows which contract it called: go by that.`;
 };
 
 /** What VeilCore's registry named for the batch root besides the kept transaction (rule A), or null. */
@@ -1151,6 +1261,8 @@ export const buildEvidence = async (
       ...(gathered.registryNow !== undefined ? { registryNow: gathered.registryNow } : {}),
       ...(gathered.laterAnchors?.length ? { laterAnchors: gathered.laterAnchors } : {}),
       ...(gathered.registryRoot ? { registryRoot: gathered.registryRoot } : {}),
+      ...(gathered.asideRoots?.length ? { asideRoots: gathered.asideRoots } : {}),
+      ...(gathered.nowContract ? { nowContract: gathered.nowContract } : {}),
     },
     proof: gathered.proof,
     batch: gathered.batch,
@@ -1605,7 +1717,7 @@ export const readmeText = (
       `${lockedParents} of this record's linked parents ${lockedParents === 1 ? 'is' : 'are'} the holder's own record${lockedParents === 1 ? '' : 's'}, locked in the browser this bundle was made in (sealed with a key it doesn't have), so ${lockedParents === 1 ? 'it is' : 'they are'} left out. The parents' names as sealed in this record are in it.`,
     );
   }
-  const since = [keptAnchorLine(ev), otherRootLine(ev)].filter(Boolean);
+  const since = [keptAnchorLine(ev), otherContractLine(ev), otherRootLine(ev), asideRootsLine(ev)].filter(Boolean);
   if (since.length) {
     L.push('');
     L.push(`WHAT THE REGISTRY NAMED SINCE: ${since.join(' ')}`);
@@ -1685,7 +1797,7 @@ export const readmeText = (
       L.push(`   ${String.fromCharCode(97 + i)}. ${step}`),
     );
     L.push(
-      `   ${ev.registry.source === 'backup-file' ? "The holder's backup file says" : "VeilCore's registry reported"} the stamp as ${reported} when the bundle was made. verify.html reads the stamp file itself and says what it shows.`,
+      `   ${ev.registry.source === 'backup-file' ? "The holder's backup file says" : "VeilCore's registry reported"} the stamp as ${reported}${stampReportedWhen(ev, "the holder's")}. verify.html reads the stamp file itself and says what it shows.`,
     );
     if (bitcoin.headersFile === BITCOIN_HEADERS_FILE)
       L.push(
