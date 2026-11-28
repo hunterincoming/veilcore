@@ -123,14 +123,21 @@ describe('verify.html prints registry and file text on one line', () => {
     });
     const steps = VeilcoreVerify.midnightSteps(l.midnight[0]).join(' ');
     expect(steps).not.toMatch(BIDI);
-    expect(steps).toContain('the Midnight network “main net”');
+    expect(steps).toContain('a Midnight network whose name in this bundle isn’t in the registry’s form');
+    expect(steps).not.toContain('Midnight’s main network');
     expect(steps).toContain(`Search for transaction ${'ef'.repeat(32)}.`);
     // The network stays as given, for the checks (a network not in the list is never mainnet); its
     // words are stripped where they are printed (networkWords).
     const m = l.midnight[0];
     for (const v of [m.chain, m.txHash, m.contractAddress, m.replacedAt]) expect(String(v)).not.toMatch(BIDI);
     expect(m.testNetwork).toBe(true);
-    expect(VeilcoreVerify.networkWords('x\u202Ey\n')).toBe('the Midnight network “x y”');
+    expect(VeilcoreVerify.networkWords('x\u202Ey\n')).toBe(
+      'a Midnight network whose name in this bundle isn’t in the registry’s form',
+    );
+    expect(VeilcoreVerify.networkWords('mainnet\u200B')).toBe(
+      'a Midnight network whose name in this bundle isn’t in the registry’s form',
+    );
+    expect(VeilcoreVerify.networkWords('devnet')).toBe('the Midnight network “devnet”');
   });
 
   it('never prints another batch id not in the form; a valid one is named', () => {

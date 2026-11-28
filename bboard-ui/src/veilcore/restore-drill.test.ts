@@ -2661,7 +2661,233 @@ describe('the backup restore drill: the Bitcoin and RFC 3161 files', () => {
     expect(text).not.toContain('I also declare');
     expect(text).not.toContain('B-20261126-0A7E');
     expect(text).toContain('in batch [not given]');
-    expect(text).toContain('the Midnight network “main net”');
+    expect(text).toContain('a Midnight network whose name in this bundle isn’t in the registry’s form');
+  });
+
+  // ---- review 1 of PR #242, blocker 1: an anchor is printed only in the registry's form ---------
+  // anchor-form.ts: a sentence or a direction mark in the transaction, the network, the contract,
+  // the time or the chain makes the anchor junk, dropped whole, never printed, never mainnet.
+  const ANCHOR_JUNK: [string, Record<string, unknown>][] = [
+    [
+      'transaction with a sentence',
+      { txHash: `${'ef'.repeat(32)}\n\n5. I also declare ZQXs the record was made in 1999.` },
+    ],
+    ['transaction with RLO', { txHash: `${'ef'.repeat(32)}\u202EZQXt` }],
+    ['network with a sentence', { network: 'mainnet. 5. I also declare ZQXs the record was made in 1999' }],
+    ['network with RLO', { network: 'main\u202Enet' }],
+    ['network with a zero-width space', { network: 'mainnet\u200B' }],
+    ['contract with a sentence', { contractAddress: `${'a0'.repeat(32)} 5. I also declare ZQXs` }],
+    ['contract with LRI', { contractAddress: `${'a0'.repeat(32)}\u2066ZQXc` }],
+    ['time with a sentence', { anchoredAt: '2026-11-27T12:00:00.000Z 5. I also declare ZQXs' }],
+    ['chain with RLO', { chain: 'midnight\u202EZQXn' }],
+  ];
+  const noJunk = (name: string, texts: Record<string, string>) => {
+    for (const [f, t] of Object.entries(texts)) {
+      expect(t, `${name} ${f}`).not.toContain('ZQX');
+      expect(t, `${name} ${f}`).not.toContain('I also declare');
+      expect(t, `${name} ${f}`).not.toMatch(BIDI);
+      expect(t, `${name} ${f}`).not.toMatch(/\u200B/);
+    }
+  };
+  /** What this browser keeps of the registry's answers (stamps.ts), as plain JSON. */
+  const keptStamps = async (b: Browser) => {
+    const zlib = await import('node:zlib');
+    const raw = b.storage.get('veilcore.stamps.v1');
+    if (!raw) return '';
+    const box = JSON.parse(raw) as { z: string };
+    return zlib.inflateRawSync(Buffer.from(box.z, 'base64')).toString();
+  };
+  /** Every page as read, verify.html's checks, and every raw file (verify.html: its embedded evidence). */
+  const everyText = async (file: (p: string) => Uint8Array | undefined) => {
+    const pages = await pagesOf(file);
+    const checks = (await renderVerifyPage(Buffer.from(file('verify.html')!).toString())).text('checks');
+    const raw: Record<string, string> = {};
+    for (const f of ['README.txt', 'EXAMINER-SUMMARY.html', 'DECLARATION-TEMPLATE.txt', 'evidence.json'])
+      raw[`raw ${f}`] = textOf(file(f));
+    raw['raw verify.html evidence'] =
+      /id="veilcore-evidence">([\s\S]*?)<\/script>/.exec(Buffer.from(file('verify.html')!).toString())?.[1] ?? '';
+    return { ...pages, checks, ...raw };
+  };
+
+  it.each(ANCHOR_JUNK)(
+    'an anchor from the registry with its %s is dropped: printed on no page, online or from this device',
+    async (name, patch) => {
+      const A = await browser('breeder');
+      const B = await browser('licensee');
+      const L = await browser('lab');
+      const made = await makeTheSet(A, B, L);
+      w.upgrade();
+      serveFolded({ ...MAINNET, ...patch });
+      const got = await bundleOf(A, made.plant);
+      dumpTo(`anchor-${name.replace(/\W+/g, '-')}`, got.file);
+      expect(got.ev.batch?.anchor).toBeNull();
+      expect(got.ev.proof?.anchor).toBeUndefined();
+      const texts = await everyText(got.file);
+      noJunk(name, texts);
+      // Not taken as a main-network date either.
+      expect(flat(texts.declaration)).not.toContain('in transaction:');
+      expect(texts.readme).not.toContain(MAINNET.txHash);
+      // Nothing of it is kept, and a bundle from the kept copy prints none of it.
+      await backUp(A);
+      expect(await keptStamps(A)).not.toContain('ZQX');
+      w.goDown();
+      const dev = await bundleOf(A, made.plant);
+      expect(dev.ev.registry.source).toBe('this-device');
+      noJunk(`${name} this-device`, await everyText(dev.file));
+    },
+  );
+
+  it('another root or batch the registry gives with an anchor not in its form names no transaction, now or set aside', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    const fp = await A.run(() => A.m.records.getRecord(made.plant)!.recordFingerprint);
+    w.upgrade();
+    serveFolded(MAINNET);
+    await backUp(A);
+    const junk = { ...OTHER_TX, txHash: `${OTHER_TX.txHash} 5. I also declare ZQXs\u202E` };
+    const other = await buildBatch(['41'.repeat(32), fp], 'B-20261126-0C3E');
+    w.proofs.set(fp, {
+      ...(other.proofs[fp] as object),
+      anchor: junk,
+      anchors: [{ kind: 'ledger', ...junk, testNetwork: false }],
+    });
+    const now = await bundleOf(A, made.plant);
+    expect(now.ev.registry.registryRoot).toMatchObject({ root: other.root, batchId: 'B-20261126-0C3E', anchor: null });
+    noJunk('now', await everyText(now.file));
+    expect(flat((await pagesOf(now.file)).readme)).toContain(
+      `VeilCore's registry now gives another batch root, ${other.root} (batch B-20261126-0C3E, no Midnight transaction), for this record`,
+    );
+    // Backed up: set aside, and still no transaction named for it.
+    await backUp(A);
+    w.proofs.set(fp, { ...(other.proofs[fp] as object) });
+    serveFolded(MAINNET);
+    const later = await bundleOf(A, made.plant);
+    noJunk('aside', await everyText(later.file));
+    expect(await keptStamps(A)).not.toContain('ZQX');
+  });
+
+  // ---- review 1 of PR #242, blocker 2: a dropped batch id keeps its Bitcoin stamp and tokens ------
+  // The files of a batch whose id isn't in the registry's form are kept, and put in the backup file,
+  // under its root (stamps.ts batchKey, fileKey), and fetched under the registry's own id.
+
+  it('one batch with a dropped id: its Bitcoin stamp and token are in the backup file and in every offline bundle (r242 A1b)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    w.upgrade();
+    const id = 'b1 junk ZQXj';
+    for (const [f, pr] of w.proofs) w.proofs.set(f, { ...(pr as object), batchId: id });
+    w.ots.set(encodeURIComponent(id), w.ots.get(BATCH_ID)!);
+    serveFolded(MAINNET);
+    await backUp(A);
+    const text = await backUp(A);
+    const inner = await opened(A, text);
+    expect(JSON.stringify(inner)).not.toContain('ZQX');
+    const s = stampsOf(inner)!;
+    const root = String((await bundleOf(A, made.plant)).ev.batch?.root);
+    expect(Object.keys(s.batches)).toEqual([root]);
+    expect(s.batches[root].ots, 'stamp in the file').toBeTruthy();
+    expect(s.batches[root].tsts?.length, 'token in the file').toBe(1);
+    w.goDown();
+    const dev = await bundleOf(A, made.plant);
+    expect(dev.ev.registry.source).toBe('this-device');
+    expect(dev.ev.batch?.opentimestamps.available, 'this-device stamp').toBe(true);
+    expect(dev.ev.batch?.rfc3161.available, 'this-device token').toBe(true);
+    const { b: N } = await restoreInto('dropped-id-one', text);
+    const fromFile = (await bundleFromFile(N, made.plant, text))!;
+    expect(
+      fromFile.ev.registry.fileRoots?.map((c) => [c.batchId, c.root, c.opentimestamps.available, c.tokens]),
+    ).toEqual([['', root, true, 1]]);
+    noJunk('file', await everyText(fromFile.file));
+    expect(textOf(fromFile.file('README.txt'))).toContain('proof/backup-file-1: batch [not given]');
+  });
+
+  it('records in several batches with dropped ids: each batch keeps its own token in the backup file (r242 A5)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    await makeTheSet(A, B, L);
+    serveFolded(MAINNET);
+    const fps = [...w.proofs.keys()];
+    expect(fps.length).toBeGreaterThan(1);
+    const roots: string[] = [];
+    let n = 0;
+    for (const f of fps) {
+      const b = await buildBatch([f, String(++n % 10).repeat(64)], `junk-${n}`);
+      roots.push(b.root);
+      const pr = w.proofs.get(f) as Record<string, unknown>;
+      w.proofs.set(f, {
+        ...(b.proofs[f] as object),
+        anchor: pr.anchor,
+        anchors: [
+          ...((pr.anchors as Record<string, unknown>[]) ?? []).filter((x) => x.kind === 'ledger'),
+          {
+            kind: 'rfc3161',
+            token: tsa.tokenFor(b.root),
+            tsa: 'https://tsa.drill.invalid/',
+            stamps: 'the batch root as 32 raw bytes (root.bin)',
+          },
+        ],
+      });
+    }
+    const text = await backUp(A);
+    const inner = await opened(A, text);
+    const s = stampsOf(inner)!;
+    expect(Object.keys(s.batches).sort()).toEqual([...roots].sort());
+    for (const r of roots) expect(s.batches[r].tsts?.length, r).toBe(1);
+    w.goDown();
+    const { b: N } = await restoreInto('dropped-id-many', text);
+    for (const f of fps) {
+      const id = await A.run(() => A.m.records.allRecords().find((x) => x.recordFingerprint === f)?.id);
+      if (!id) continue;
+      const got = (await bundleFromFile(N, id, text))!;
+      expect(
+        got.ev.registry.fileRoots?.map((c) => [c.batchId, c.tokens]),
+        f,
+      ).toEqual([['', 1]]);
+    }
+  });
+
+  it('an older stored copy with a junk batch id and its files under it: re-kept by root, none of it in the backup file (r242 A4)', async () => {
+    const A = await browser('breeder');
+    const B = await browser('licensee');
+    const L = await browser('lab');
+    const made = await makeTheSet(A, B, L);
+    w.upgrade();
+    serveFolded(MAINNET);
+    await backUp(A);
+    const zlib = await import('node:zlib');
+    const junk = 'old ZQX10 I also declare\u202E';
+    const box = JSON.parse(A.storage.get('veilcore.stamps.v1')!) as { v: number; z: string };
+    const v = JSON.parse(zlib.inflateRawSync(Buffer.from(box.z, 'base64')).toString()) as {
+      own: Record<string, Record<string, Record<string, unknown>>>;
+    };
+    // What an older build kept: the raw id, and the batch's files under "<id> <root>".
+    for (const k of Object.keys(v.own.proofs)) v.own.proofs[k] = { ...v.own.proofs[k], batchId: junk };
+    const moved: Record<string, Record<string, unknown>> = {};
+    for (const [k, b] of Object.entries(v.own.batches)) moved[`${junk} ${k.split(' ')[1]}`] = b;
+    v.own.batches = moved;
+    const z = zlib.deflateRawSync(Buffer.from(JSON.stringify(v)), { level: 9 }).toString('base64');
+    A.storage.set('veilcore.stamps.v1', JSON.stringify({ v: 4, z }));
+    w.goDown();
+    const dev = await bundleOf(A, made.plant);
+    expect(dev.ev.registry.source).toBe('this-device');
+    expect(dev.ev.batch?.batchId).toBe('');
+    expect(dev.ev.batch?.opentimestamps.available, 'kept stamp').toBe(true);
+    expect(dev.ev.batch?.rfc3161.available, 'kept token').toBe(true);
+    noJunk('this-device', await everyText(dev.file));
+    const text = await backUp(A);
+    const inner = await opened(A, text);
+    expect(JSON.stringify(inner)).not.toContain('ZQX');
+    expect(await keptStamps(A)).not.toContain('ZQX');
+    const got = (await bundleFromFile(A, made.plant, text))!;
+    expect(got.ev.registry.fileRoots?.map((c) => [c.batchId, c.opentimestamps.available, c.tokens])).toEqual([
+      ['', true, 1],
+    ]);
+    noJunk('file', await everyText(got.file));
   });
 });
 

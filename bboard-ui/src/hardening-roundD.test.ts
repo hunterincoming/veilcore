@@ -138,10 +138,10 @@ describe('F1 proofFor: a proof counts only for this record, and an anchor is nev
     const { proofFor } = await import('./veilcore/proofs');
     const mine = 'a'.repeat(64);
     const other = 'b'.repeat(64);
-    const batch = await buildBatch([other], 'forged');
+    const batch = await buildBatch([other], 'B-20261015-F0E1');
     route('GET', /\/proof\//, () => ({
       ...batch.proofs[other],
-      anchor: { chain: 'midnight', network: 'mainnet', txHash: 'deadbeef' },
+      anchor: { chain: 'midnight', network: 'mainnet', txHash: 'deadbeef'.repeat(8) },
     }));
     expect((await proofFor(mine)).status).toBe('none');
   });
@@ -150,10 +150,10 @@ describe('F1 proofFor: a proof counts only for this record, and an anchor is nev
     const { buildBatch } = await import('veilcore-records');
     const { proofFor } = await import('./veilcore/proofs');
     const x = 'c'.repeat(64);
-    const { proofs } = await buildBatch([x], 'b');
+    const { proofs } = await buildBatch([x], 'B-20261015-000B');
     route('GET', /\/proof\//, () => ({
       ...proofs[x],
-      anchor: { chain: 'midnight', network: 'mainnet', txHash: '00' },
+      anchor: { chain: 'midnight', network: 'mainnet', txHash: '00'.repeat(32) },
     }));
     expect((await proofFor('d'.repeat(64))).status).toBe('none');
   });
@@ -162,10 +162,10 @@ describe('F1 proofFor: a proof counts only for this record, and an anchor is nev
     const { buildBatch } = await import('veilcore-records');
     const { proofFor } = await import('./veilcore/proofs');
     const mine = 'e'.repeat(64);
-    const { proofs } = await buildBatch([mine, '1'.repeat(64), '2'.repeat(64)], 'b1');
+    const { proofs } = await buildBatch([mine, '1'.repeat(64), '2'.repeat(64)], 'B-20261015-00B1');
     route('GET', /\/proof\//, () => ({
       ...proofs[mine],
-      anchor: { chain: 'midnight', network: 'mainnet', txHash: 'ab' },
+      anchor: { chain: 'midnight', network: 'mainnet', txHash: 'ab'.repeat(32) },
     }));
     const s = await proofFor(mine);
     expect(s.status).toBe('anchor-reported');
@@ -178,7 +178,7 @@ describe('F1 proofFor: a proof counts only for this record, and an anchor is nev
     const { buildBatch } = await import('veilcore-records');
     const { proofFor } = await import('./veilcore/proofs');
     const mine = 'f'.repeat(64);
-    const { proofs } = await buildBatch([mine, '3'.repeat(64)], 'b2');
+    const { proofs } = await buildBatch([mine, '3'.repeat(64)], 'B-20261015-00B2');
     route('GET', /\/proof\//, () => ({ ...proofs[mine], root: '0'.repeat(64) }));
     expect((await proofFor(mine)).status).toBe('none');
     routes = [];
@@ -298,15 +298,18 @@ describe('F3 exported envelope carries the registered (anchored) fingerprint; la
     const { verifyCommitment, canonicalise, buildBatch } = await import('veilcore-records');
     const recordFingerprint = await fingerprintRecord(base);
     const r = { ...base, recordFingerprint };
-    const { proofs } = await buildBatch([recordFingerprint], 'b9');
-    const proof = { ...proofs[recordFingerprint], anchor: { chain: 'midnight', network: 'preprod', txHash: 'cafe' } };
+    const { proofs } = await buildBatch([recordFingerprint], 'B-20261015-00B9');
+    const proof = {
+      ...proofs[recordFingerprint],
+      anchor: { chain: 'midnight', network: 'preprod', txHash: 'cafe'.repeat(16) },
+    };
     const env = await exportEnvelopeFor(r, 'party-1', 'match', { status: 'anchor-reported', proof });
     const ext = env.extensions?.[REGISTERED_EXTENSION] as { fingerprint: string; fields: Record<string, unknown> };
     expect(ext.fingerprint).toBe(recordFingerprint);
     expect(await sha256hex(canonicalise(ext.fields))).toBe(recordFingerprint);
     expect((await verifyCommitment(env)).valid).toBe(true);
     expect(env.anchor.network).toBe('preprod');
-    expect(env.anchor.txHash).toBe('cafe');
+    expect(env.anchor.txHash).toBe('cafe'.repeat(16));
     expect(env.anchor.commitmentAlgorithm).toMatch(/Reported by the registry/);
     // Without a checked anchor, no network is claimed.
     const pending = await exportEnvelopeFor(r, 'party-1', 'match', { status: 'none' });
@@ -1021,7 +1024,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
   it('verify page: a registry claiming "anchored on mainnet" with a proof for another record gets no tick and no "Anchored"', async () => {
     const { buildBatch } = await import('veilcore-records');
     const other = 'b'.repeat(64);
-    const { proofs } = await buildBatch([other], 'forged');
+    const { proofs } = await buildBatch([other], 'B-20261015-F0E1');
     const { ctx, pg, violations } = await page((u) =>
       u.startsWith('/verify/')
         ? {
@@ -1030,14 +1033,14 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
             cultivar: 'Anything',
             recordFingerprint: FP,
             anchored: true,
-            anchor: { network: 'mainnet', txHash: 'dead' },
+            anchor: { network: 'mainnet', txHash: 'dead'.repeat(16) },
             disclosed: [],
             signedAttestation: true,
             attestedByVettedLab: true,
             attested: true,
           }
         : u.startsWith('/proof/')
-          ? { ...proofs[other], anchor: { chain: 'midnight', network: 'mainnet', txHash: 'dead' } }
+          ? { ...proofs[other], anchor: { chain: 'midnight', network: 'mainnet', txHash: 'dead'.repeat(16) } }
           : u.startsWith('/attestations/')
             ? { attestations: [] }
             : undefined,
@@ -1075,11 +1078,11 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
             cultivar: 'Sealed',
             recordFingerprint: FP,
             anchored: true,
-            anchor: { network: 'preprod', txHash: 'beef' },
+            anchor: { network: 'preprod', txHash: 'beef'.repeat(16) },
             disclosed: [],
           }
         : u.startsWith('/proof/')
-          ? { ...proofs[FP], anchor: { chain: 'midnight', network: 'preprod', txHash: 'beef' } }
+          ? { ...proofs[FP], anchor: { chain: 'midnight', network: 'preprod', txHash: 'beef'.repeat(16) } }
           : undefined,
     );
     await pg.goto(`${origin}/verify/VEIL-Z?fp=${FP}`, { waitUntil: 'networkidle' });
@@ -1107,7 +1110,7 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
       u.startsWith('/verify/')
         ? { found: true, cultivar: typed, recordFingerprint: FP, disclosed: [] }
         : u.startsWith('/proof/')
-          ? { ...proofs[FP], anchor: { chain: 'midnight', network: 'mainnet', txHash: 'beef' } }
+          ? { ...proofs[FP], anchor: { chain: 'midnight', network: 'mainnet', txHash: 'beef'.repeat(16) } }
           : undefined,
     );
     await pg.goto(`${origin}/verify/VEIL-Z?fp=${FP}`, { waitUntil: 'networkidle' });
@@ -1198,14 +1201,14 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
             cultivar: 'Borrowed Name',
             recordFingerprint: X,
             anchored: true,
-            anchor: { network: 'mainnet', txHash: 'cafe' },
+            anchor: { network: 'mainnet', txHash: 'cafe'.repeat(16) },
             disclosed: ['lineage'],
             lineageIntact: true,
             signedAttestation: true,
             attestedByVettedLab: true,
           }
         : u === `/proof/${X}`
-          ? { ...proofs[X], anchor: { chain: 'midnight', network: 'mainnet', txHash: 'cafe' } }
+          ? { ...proofs[X], anchor: { chain: 'midnight', network: 'mainnet', txHash: 'cafe'.repeat(16) } }
           : u === `/attestations/subject/${X}`
             ? {
                 attestations: [
@@ -1428,13 +1431,13 @@ describe.skipIf(!haveBrowser)('browser: built site under the production headers'
       attestation: { addressedTo: 'bob', type: 'receipt-confirmed', attestedAt: Date.UTC(2026, 1, 1) },
     };
     const other = 'b'.repeat(64);
-    const { proofs } = await buildBatch([other], 'forged');
+    const { proofs } = await buildBatch([other], 'B-20261015-F0E1');
     const { ctx, pg, violations, errors } = await page(
       (u, method) => {
         if (u === '/api/records' && method === 'GET') return [record];
         if (u === '/api/licenses') return [];
         if (u.startsWith('/proof/'))
-          return { ...proofs[other], anchor: { chain: 'midnight', network: 'mainnet', txHash: 'dead' } };
+          return { ...proofs[other], anchor: { chain: 'midnight', network: 'mainnet', txHash: 'dead'.repeat(16) } };
         return undefined;
       },
       () => {

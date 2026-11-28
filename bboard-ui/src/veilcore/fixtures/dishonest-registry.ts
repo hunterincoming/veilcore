@@ -107,7 +107,7 @@ export const lieEverywhere = (reg: FakeRegistry, lie: Lie, r: About): { seen: Se
     if (method === 'GET' && path.startsWith('/proof/'))
       return answer({
         commitment: other,
-        batchId: 'B-LIE',
+        batchId: 'B-20261015-0BAD',
         root: other,
         index: 0,
         path: [],

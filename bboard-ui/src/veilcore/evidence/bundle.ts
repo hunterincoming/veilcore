@@ -41,6 +41,7 @@ import { custodyView } from '../custody';
 import { receiptCovers, sentByMe, type SentTransfer } from '../transfers';
 import { isObject, isString, isNumber, readJson } from '../json';
 import { batchIdOrNone, batchIdWords, isBatchId } from '../batch-id-rule';
+import { anchorInForm, isInstant, isTsaUrl } from '../anchor-form';
 import { PREPROD_PINNED, pinnedAt } from '../../../../api/src/pinned-contracts';
 import { DOCS, DOCS_COMMIT, DOCS_VERSION, REPO_VIEW } from '../docs';
 import { verifyPageHtml, SDK_VERSION } from './verify-page';
@@ -182,7 +183,8 @@ const base64ToBytes = (b64: string): Uint8Array | null => {
 const looksLikeOts = (b: Uint8Array | null): b is Uint8Array =>
   !!b && b.length > OTS_MAGIC.length && String.fromCharCode(...b.subarray(0, OTS_MAGIC.length)) === OTS_MAGIC;
 
-const anchorObject = (v: unknown): Record<string, unknown> | null => (isObject(v) && isString(v.network) ? v : null);
+/** An anchor in the registry's form (anchor-form.ts), or null: one in any other form is never printed. */
+const anchorObject = (v: unknown): Record<string, unknown> | null => anchorInForm(v);
 
 /**
  * The registry's answer, held to the record: the proof must be about this fingerprint and
@@ -239,7 +241,7 @@ export const reconcile = async (
           available: true,
           ...(v.genTime ? { genTime: v.genTime } : {}),
           ...(v.signerSubject ? { signer: v.signerSubject } : {}),
-          ...(isString(tsaFacts.tsa) ? { tsa: tsaFacts.tsa } : {}),
+          ...(isTsaUrl(tsaFacts.tsa) ? { tsa: tsaFacts.tsa } : {}),
           ...(tsaFacts.requestedAfterSeal === true ? { requestedAfterSeal: true } : {}),
           ...(q
             ? {
@@ -256,9 +258,10 @@ export const reconcile = async (
     batch = {
       batchId: proof.batchId,
       root: proof.root,
-      ...(sameBatch && isString(b.sealedAt)
+      // Times the registry gives are held to its form (anchor-form.ts isInstant): never printed otherwise.
+      ...(sameBatch && isInstant(b.sealedAt)
         ? { sealedAt: b.sealedAt }
-        : proof.sealedAt
+        : isInstant(proof.sealedAt)
           ? { sealedAt: proof.sealedAt }
           : {}),
       ...(sameBatch && isNumber(b.recordCount) ? { recordCount: b.recordCount } : {}),
@@ -273,7 +276,7 @@ export const reconcile = async (
         ...(otsFacts && isNumber(otsFacts.bitcoinBlockHeight)
           ? { bitcoinBlockHeight: otsFacts.bitcoinBlockHeight }
           : {}),
-        ...(otsFacts && isString(otsFacts.bitcoinBlockTime) ? { bitcoinBlockTime: otsFacts.bitcoinBlockTime } : {}),
+        ...(otsFacts && isInstant(otsFacts.bitcoinBlockTime) ? { bitcoinBlockTime: otsFacts.bitcoinBlockTime } : {}),
         ...(otsFacts && Array.isArray(otsFacts.calendars) ? { calendars: otsFacts.calendars.filter(isString) } : {}),
         ...(otsOk ? { file: 'proof/root.bin.ots' } : {}),
       },
@@ -285,7 +288,7 @@ export const reconcile = async (
   );
   return {
     source: raw.source,
-    registryFirstSeen: isString(raw.registryFirstSeen) ? raw.registryFirstSeen : null,
+    registryFirstSeen: isInstant(raw.registryFirstSeen) ? raw.registryFirstSeen : null,
     proof,
     proofRefused: raw.proof !== null && raw.proof !== undefined && proof === null,
     batch,
@@ -859,7 +862,7 @@ const fileRootFacts = (c: import('../stamps').FileEvidence, i: number): FileRoot
     later: c.later,
     ...(c.otherTransaction ? { otherTransaction: true } : {}),
     proof: c.proof,
-    anchor: c.proof.anchor ?? null,
+    anchor: anchorInForm(c.proof.anchor),
     opentimestamps: c.ots
       ? {
           available: true,
@@ -1230,6 +1233,7 @@ export const buildEvidence = async (
     }
   }
 
+  const laterAnchors = (gathered.laterAnchors ?? []).map(anchorInForm).filter((a) => a !== null);
   return {
     format: EVIDENCE_FORMAT,
     createdAt: now.toISOString(),
@@ -1260,10 +1264,16 @@ export const buildEvidence = async (
             : 'firstSeen is VeilCore’s registry’s own clock, its word only. The anchor is the transaction the registry operator reported; nobody has looked it up on the chain for you.',
       ...(gathered.fileRoots?.length ? { fileRoots: gathered.fileRoots.map(fileRootFacts) } : {}),
       ...(gathered.registryRoots?.length ? { registryRoots: gathered.registryRoots } : {}),
-      ...(gathered.registryNow !== undefined ? { registryNow: gathered.registryNow } : {}),
-      ...(gathered.laterAnchors?.length ? { laterAnchors: gathered.laterAnchors } : {}),
-      ...(gathered.registryRoot ? { registryRoot: gathered.registryRoot } : {}),
-      ...(gathered.asideRoots?.length ? { asideRoots: gathered.asideRoots } : {}),
+      // Every anchor the registry named besides the one described, held to its form (anchor-form.ts)
+      // like the described one: one in any other form is "none" (null), never printed.
+      ...(gathered.registryNow !== undefined ? { registryNow: anchorInForm(gathered.registryNow) } : {}),
+      ...(laterAnchors.length ? { laterAnchors } : {}),
+      ...(gathered.registryRoot
+        ? { registryRoot: { ...gathered.registryRoot, anchor: anchorInForm(gathered.registryRoot.anchor) } }
+        : {}),
+      ...(gathered.asideRoots?.length
+        ? { asideRoots: gathered.asideRoots.map((o) => ({ ...o, anchor: anchorInForm(o.anchor) })) }
+        : {}),
       ...(gathered.nowContract ? { nowContract: gathered.nowContract } : {}),
     },
     proof: gathered.proof,

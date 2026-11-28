@@ -920,7 +920,10 @@ var VeilcoreVerify = (function () {
 
   var NETWORK_WORDS = { mainnet: 'Midnight’s main network', preprod: 'Midnight preprod (a test network)', preview: 'Midnight Preview (a test network)' };
   function networkWords(n) {
-    return NETWORK_WORDS[n] || 'the Midnight network “' + plain(n) + '”';
+    if (NETWORK_WORDS[n]) return NETWORK_WORDS[n];
+    // A name not in the registry's form (a short lower-case name, anchor-form.ts NAME) is not
+    // quoted: with a hidden character taken out it could read as a network it isn't.
+    return typeof n === 'string' && /^[a-z][a-z0-9-]{0,31}$/.test(n) ? 'the Midnight network “' + n + '”' : 'a Midnight network whose name in this bundle isn’t in the registry’s form';
   }
 
   /**

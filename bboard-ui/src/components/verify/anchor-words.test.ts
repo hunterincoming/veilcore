@@ -154,7 +154,7 @@ describe('heading, seal and footer', () => {
 });
 
 describe('History’s entry for the date stamp (same answer as the plant page and the check page)', () => {
-  const a = { network: 'preview', txHash: TX, anchoredAt: '2026-10-11T14:00:00Z', batchId: 'B-1' };
+  const a = { network: 'preview', txHash: TX, anchoredAt: '2026-10-11T14:00:00Z', batchId: 'B-20261015-0001' };
   it('checked: dated by the block, says the network in plain words', () => {
     const e = anchorHistoryEvent(OK, a);
     expect(e.at).toBe(OK.blockTime);

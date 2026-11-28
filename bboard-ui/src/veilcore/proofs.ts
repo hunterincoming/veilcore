@@ -27,6 +27,7 @@ import type { InclusionProof } from 'veilcore-records';
 import { verifyInclusion } from 'veilcore-records';
 import { isObject, isString, isBoolean, isNumber } from './json';
 import { batchIdOrNone } from './batch-id-rule';
+import { anchorFormOk } from './anchor-form';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '';
 
@@ -72,6 +73,45 @@ export const isInclusionProof = (v: unknown): v is InclusionProof =>
   v.path.every((s) => isObject(s) && isString(s.sibling) && HEX64.test(s.sibling) && isBoolean(s.siblingIsLeft)) &&
   (v.anchor === undefined || v.anchor === null || isAnchorRef(v.anchor));
 
+const formOk = (a: unknown): boolean => isObject(a) && anchorFormOk(a);
+
+/**
+ * The id the registry itself gave a proof whose id was dropped (inForm), in memory only: the
+ * registry serves the batch's Bitcoin stamp under it (stamps.ts asks with it, as gathering a bundle
+ * does). Never stored or printed.
+ */
+// Symbol.for: one key however many copies of this module a page loads.
+const ASKED_AS = Symbol.for('VeilCore: the registry’s own batch id');
+
+/** The id to ask the registry for this proof's batch files by: its own, even one not in its form. */
+export const registryBatchIdOf = (p: unknown): string | undefined => {
+  if (!isObject(p)) return undefined;
+  const asked = (p as Record<symbol, unknown>)[ASKED_AS];
+  return isString(asked) ? asked : isString(p.batchId) ? p.batchId : undefined;
+};
+
+/** The proof with its batch id and anchors held to the registry's form; itself when they all are. */
+const inForm = (body: InclusionProof): InclusionProof => {
+  const r = body as unknown as Record<string, unknown>;
+  const idOk = body.batchId === batchIdOrNone(body.batchId);
+  const anchorOk = r.anchor === undefined || r.anchor === null || formOk(r.anchor);
+  const list = Array.isArray(r.anchors) ? (r.anchors as unknown[]) : undefined;
+  const ledgerOk = (x: unknown) => !(isObject(x) && x.kind === 'ledger') || formOk(x);
+  const listOk = !list || list.every(ledgerOk);
+  if (idOk && anchorOk && listOk) return body;
+  const { anchor, anchors: _l, ...rest } = r;
+  void _l;
+  const out = {
+    ...rest,
+    batchId: batchIdOrNone(body.batchId),
+    ...(anchorOk && anchor !== undefined ? { anchor } : {}),
+    ...(list ? { anchors: list.filter(ledgerOk) } : {}),
+  } as unknown as InclusionProof;
+  // Not enumerable, and keyed by a symbol: JSON, the stored copy and the backup file never see it.
+  if (!idOk && isString(body.batchId)) Object.defineProperty(out, ASKED_AS, { value: body.batchId });
+  return out;
+};
+
 /**
  * Check a proof against the record it is supposed to be about. Exported so an imported
  * or downloaded proof goes through the same check as one fetched from the registry.
@@ -84,9 +124,11 @@ export const checkProof = async (commitment: string, body: unknown): Promise<Pro
   // A registry claiming a record is included is not evidence; the path folding to the
   // root is.
   if (!(await verifyInclusion(body))) return { status: 'none' };
-  // The batch id is the registry's label, not part of what folds: one not in the registry's
-  // form (batch-id-rule.ts) is kept as "" (not given), so no page ever prints it.
-  const proof = body.batchId === batchIdOrNone(body.batchId) ? body : { ...body, batchId: '' };
+  // What isn't part of what folds is held to the registry's own form before anything uses it: a
+  // batch id not in its form (batch-id-rule.ts) is kept as "" (not given), and an anchor not in
+  // its form (anchor-form.ts), or a Midnight entry in `anchors` not in it, is dropped whole. So no
+  // page prints a sentence the registry put there, and none is ever taken as mainnet.
+  const proof = inForm(body);
   return proof.anchor?.txHash ? { status: 'anchor-reported', proof } : { status: 'pending', proof };
 };
 
